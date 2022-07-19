@@ -1,0 +1,205 @@
+from collections import defaultdict as default_dict
+from datetime import date
+from pathlib import Path
+from textwrap import wrap
+from typing import Dict, Iterable, Iterator, List, Mapping, Tuple, TypeVar
+
+from attrs import define, field
+
+from changelogging.config import Config
+from changelogging.fragment import Fragment, FragmentType, Issue
+
+__all__ = ("Builder",)
+
+NO_SIGNIFICANT_CHANGES = "No significant changes."
+
+EMPTY = str()
+NEWLINE = "\n"
+DOUBLE_NEWLINE = NEWLINE + NEWLINE
+
+concat_newline = NEWLINE.join
+concat_double_newline = DOUBLE_NEWLINE.join
+
+WRITE = "w"
+
+HASH = "#"
+SPACE = " "
+
+DOT = "."
+
+FT = TypeVar("FT", bound=FragmentType)
+IT = TypeVar("IT", bound=Issue)
+
+Fragments = Iterable[Fragment[FT, IT]]
+Sections = Mapping[FT, Fragments[FT, IT]]
+
+
+@define()
+class Builder:
+    config: Config = field()
+    date: date = field(factory=date.today)
+
+    def build_title(self) -> str:
+        config = self.config
+
+        return self.heading(config.title_level) + config.title_format.format(
+            name=config.name, version=config.version, url=config.url, date=self.date
+        )
+
+    def build_section_title(self, type: FragmentType) -> str:
+        config = self.config
+
+        return self.heading(config.section_level) + type.title
+
+    def build_issue(self, issue: Issue) -> str:
+        config = self.config
+
+        return config.issue_format.format(issue=issue.value, url=config.url)
+
+    def build_fragment(self, fragment: Fragment[FragmentType, Issue]) -> str:
+        config = self.config
+
+        content = config.fragment_format.format(
+            content=fragment.content.strip(), issue=self.build_issue(fragment.issue)
+        )
+
+        return (
+            self.indent_wrap_lines(content, config.bullet, config.wrap_size)
+            if config.wrap
+            else self.indent_lines(content, config.bullet)
+        )
+
+    def build_fragments(self, fragments: Fragments[FragmentType, Issue]) -> str:
+        return concat_newline(map(self.build_fragment, fragments))
+
+    def collect_sections(self, fragments: Fragments[FT, IT]) -> Sections[FT, IT]:
+        sections: Dict[FT, List[Fragment[FT, IT]]] = default_dict(list)
+
+        for fragment in fragments:
+            sections[fragment.type].append(fragment)
+
+        for fragments in sections.values():
+            fragments.sort()
+
+        return sections
+
+    def build_generate(self, sections: Sections[FragmentType, Issue]) -> Iterator[str]:
+        config = self.config
+
+        yield self.build_title()
+
+        empty = True
+
+        for type in config.display.into_types(config.types):
+            if type in sections:
+                empty = False
+
+                fragments = sections[type]
+
+                yield self.build_section_title(type)
+                yield self.build_fragments(fragments)
+
+        if empty:
+            yield NO_SIGNIFICANT_CHANGES
+
+    def collect_fragments(self) -> Fragments[FragmentType, Issue]:
+        for path, type in self.collect_paths_types():
+            issue = self.get_issue(path)
+            content = path.read_text()
+
+            yield Fragment(type, content, issue)
+
+    def collect_paths_types(self) -> Iterator[Tuple[Path, FragmentType]]:
+        config = self.config
+        directory = config.directory
+        types = config.types
+
+        for path in directory.iterdir():
+            if path.is_file():
+                for suffix in path.suffixes:
+                    if types.has_suffix(suffix):
+                        yield (path, types.get_suffix(suffix))
+
+    def collect_paths(self) -> Iterator[Path]:
+        for path, _ in self.collect_paths_types():
+            yield path
+
+    @classmethod
+    def get_issue(cls, path: Path) -> Issue:
+        return Issue(int(cls.name_no_suffixes(path)))
+
+    def build(self) -> str:
+        return concat_double_newline(
+            self.build_generate(self.collect_sections(self.collect_fragments()))
+        )
+
+    def write(self) -> None:
+        config = self.config
+
+        output = config.output
+        start_string = config.start_string
+
+        content = self.build()
+
+        current = output.read_text() if output.exists() else EMPTY
+
+        before, start, after = current.partition(start_string)
+
+        with output.open(WRITE) as file:
+            if not start:
+                file.write(content + NEWLINE)
+
+                if current.strip():
+                    file.write(NEWLINE + current.lstrip())
+
+            else:
+                file.write(before)
+                file.write(start)
+                file.write(DOUBLE_NEWLINE + content + NEWLINE)
+
+                if after.strip():
+                    file.write(NEWLINE + after.lstrip())
+
+    @staticmethod
+    def heading(level: int) -> str:
+        return HASH * level + SPACE
+
+    @staticmethod
+    def indents(bullet: str) -> Tuple[str, str]:
+        space = SPACE
+        return (bullet + space, space + space)
+
+    @staticmethod
+    def name_no_suffixes(path: Path) -> str:
+        name, _, _ = path.name.partition(DOT)
+        return name
+
+    @classmethod
+    def generate_indent_lines(cls, string: str, bullet: str) -> Iterator[str]:
+        if not string:
+            return
+
+        initial, subsequent = cls.indents(bullet)
+
+        head, *tail = string.splitlines()
+
+        yield (initial + head if head.strip() else head)
+
+        for item in tail:
+            yield (subsequent + item if item.strip() else item)
+
+    @classmethod
+    def indent_lines(cls, string: str, bullet: str) -> str:
+        return concat_newline(cls.generate_indent_lines(string, bullet))
+
+    @classmethod
+    def indent_wrap_lines(cls, string: str, bullet: str, size: int) -> str:
+        size -= max(map(len, cls.indents(bullet)))
+
+        return cls.indent_lines(
+            concat_newline(
+                concat_newline(wrap(line, size, break_long_words=False))
+                for line in string.splitlines()
+            ),
+            bullet,
+        )
