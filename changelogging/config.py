@@ -27,7 +27,6 @@ from changelogging.fragment import (
     AnyFragmentTypes,
     Display,
     FragmentType,
-    FragmentTypes,
 )
 from changelogging.typing import IntoPath
 
@@ -166,7 +165,7 @@ class Config:
 
     @staticmethod
     def parse_string(string: str) -> AnyConfigDict:
-        return cast(AnyConfigDict, toml.loads(string, ConfigDict))
+        return cast(AnyConfigDict, toml.loads(string, AnyConfigDict))  # type: ignore
 
     @classmethod
     def from_config_dict(cls: Type[C], config_dict: AnyConfigDict) -> C:
