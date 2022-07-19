@@ -35,7 +35,12 @@ changelogging = "changelogging.main:changelogging"
 [tool.poetry.dependencies]
 python = ">= 3.7"
 
-wraps = ">= 0.1.0"
+attrs = ">= 21.4.0"
+
+typing-extensions = ">= 4.3.0"
+
+[tool.poetry.dependencies.wraps]
+git = "https://github.com/nekitdev/wraps.git"
 
 [tool.poetry.group.format]
 optional = true
@@ -59,7 +64,6 @@ optional = true
 [tool.poetry.group.test.dependencies]
 pytest = "7.1.2"
 pytest-cov = "3.0.0"
-typing-extensions = "4.2.0"
 
 [tool.black]
 line_length = 100
