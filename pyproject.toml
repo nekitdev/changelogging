@@ -96,6 +96,8 @@ testpaths = ["tests"]
 [tool.coverage.run]
 source = ["changelogging"]
 
+omit = ["changelogging/git.py", "changelogging/main.py", "changelogging/__main__.py"]
+
 [tool.coverage.report]
 ignore_errors = true
 exclude_lines = [
