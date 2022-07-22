@@ -17,6 +17,15 @@ def mapping_merge(*mappings: Mapping[Q, T]) -> Dict[Q, T]:
 
 
 def mapping_merge(*mappings: Mapping[Any, Any], **keywords: Any) -> Dict[Any, Any]:
+    """Merges `mappings` and `keywords` into one dictionary.
+
+    Arguments:
+        *mappings: Mappings to merge.
+        **keywords: Keywords to add to the result.
+
+    Returns:
+        A newly created dictionary.
+    """
     result: Dict[Any, Any] = {}
 
     for mapping in mappings:

@@ -7,25 +7,17 @@ from typing import Dict, Iterable, Iterator, List, Mapping, Tuple, TypeVar
 from attrs import define, field
 
 from changelogging.config import Config
-from changelogging.fragment import Fragment, FragmentType, Issue
+from changelogging.constants import DOT, DOUBLE_NEW_LINE, EMPTY, HASH, NEW_LINE, SPACE
+from changelogging.fragments import Fragment, FragmentType, Issue
 
 __all__ = ("Builder",)
 
 NO_SIGNIFICANT_CHANGES = "No significant changes."
 
-EMPTY = str()
-NEWLINE = "\n"
-DOUBLE_NEWLINE = NEWLINE + NEWLINE
-
-concat_newline = NEWLINE.join
-concat_double_newline = DOUBLE_NEWLINE.join
+concat_newline = NEW_LINE.join
+concat_double_newline = DOUBLE_NEW_LINE.join
 
 WRITE = "w"
-
-HASH = "#"
-SPACE = " "
-
-DOT = "."
 
 FT = TypeVar("FT", bound=FragmentType)
 IT = TypeVar("IT", bound=Issue)
@@ -36,10 +28,20 @@ Sections = Mapping[FT, Fragments[FT, IT]]
 
 @define()
 class Builder:
+    """Represents changelog builders."""
+
     config: Config = field()
+    """The config of the builder."""
+
     date: date = field(factory=date.today)
+    """The date to use in builds."""
 
     def build_title(self) -> str:
+        """Builds the main title.
+
+        Returns:
+            The main title.
+        """
         config = self.config
 
         return self.heading(config.title_level) + config.title_format.format(
@@ -47,16 +49,40 @@ class Builder:
         )
 
     def build_section_title(self, type: FragmentType) -> str:
+        """Builds the section title of `type`.
+
+        Arguments:
+            type: The fragment type to build the title for.
+
+        Returns:
+            The section title.
+        """
         config = self.config
 
         return self.heading(config.section_level) + type.title
 
     def build_issue(self, issue: Issue) -> str:
+        """Builds the `issue` given.
+
+        Arguments:
+            issue: The issue to build.
+
+        Returns:
+            The issue built.
+        """
         config = self.config
 
         return config.issue_format.format(issue=issue.value, url=config.url)
 
     def build_fragment(self, fragment: Fragment[FragmentType, Issue]) -> str:
+        """Builds the `fragment` given.
+
+        Arguments:
+            fragment: The fragment to build.
+
+        Returns:
+            The built fragment.
+        """
         config = self.config
 
         content = config.fragment_format.format(
@@ -70,9 +96,25 @@ class Builder:
         )
 
     def build_fragments(self, fragments: Fragments[FragmentType, Issue]) -> str:
+        """Builds several `fragments` given.
+
+        Arguments:
+            fragments: The fragments to build.
+
+        Returns:
+            The fragments built.
+        """
         return concat_newline(map(self.build_fragment, fragments))
 
     def collect_sections(self, fragments: Fragments[FT, IT]) -> Sections[FT, IT]:
+        """Collects `fragments` into sections.
+
+        Arguments:
+            fragments: The fragments to collect.
+
+        Returns:
+            The collected sections.
+        """
         sections: Dict[FT, List[Fragment[FT, IT]]] = default_dict(list)
 
         for fragment in fragments:
@@ -84,6 +126,14 @@ class Builder:
         return sections
 
     def build_generate(self, sections: Sections[FragmentType, Issue]) -> Iterator[str]:
+        """Builds `sections`, returning an iterator.
+
+        Arguments:
+            sections: The sections to build.
+
+        Returns:
+            An iterator over the build result.
+        """
         config = self.config
 
         yield self.build_title()
@@ -103,6 +153,11 @@ class Builder:
             yield NO_SIGNIFICANT_CHANGES
 
     def collect_fragments(self) -> Fragments[FragmentType, Issue]:
+        """Collects fragments from `changes` directory specified in the config.
+
+        Returns:
+            An iterator over the fragments found.
+        """
         for path, type in self.collect_paths_types():
             issue = self.get_issue(path)
             content = path.read_text()
@@ -121,6 +176,11 @@ class Builder:
                         yield (path, types.get_suffix(suffix))
 
     def collect_paths(self) -> Iterator[Path]:
+        """Collect paths to fragments.
+
+        Returns:
+            An iterator over paths found.
+        """
         for path, _ in self.collect_paths_types():
             yield path
 
@@ -129,11 +189,17 @@ class Builder:
         return Issue(int(cls.name_no_suffixes(path)))
 
     def build(self) -> str:
+        """Builds the changelog.
+
+        Returns:
+            The build result.
+        """
         return concat_double_newline(
             self.build_generate(self.collect_sections(self.collect_fragments()))
         )
 
     def write(self) -> None:
+        """Builds the changelog and writes it to the output file."""
         config = self.config
 
         output = config.output
@@ -147,18 +213,18 @@ class Builder:
 
         with output.open(WRITE) as file:
             if not start:
-                file.write(content + NEWLINE)
+                file.write(content + NEW_LINE)
 
                 if current.strip():
-                    file.write(NEWLINE + current.lstrip())
+                    file.write(NEW_LINE + current.lstrip())
 
             else:
                 file.write(before)
                 file.write(start)
-                file.write(DOUBLE_NEWLINE + content + NEWLINE)
+                file.write(DOUBLE_NEW_LINE + content + NEW_LINE)
 
                 if after.strip():
-                    file.write(NEWLINE + after.lstrip())
+                    file.write(NEW_LINE + after.lstrip())
 
     @staticmethod
     def heading(level: int) -> str:

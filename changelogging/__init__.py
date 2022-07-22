@@ -10,6 +10,6 @@ __version__ = "0.1.0"
 
 from changelogging.build import Builder
 from changelogging.config import Config
-from changelogging.fragment import Display, Fragment, FragmentType, FragmentTypes, Issue
+from changelogging.fragments import Display, Fragment, FragmentType, FragmentTypes, Issue
 
 __all__ = ("Builder", "Config", "Display", "Fragment", "FragmentType", "FragmentTypes", "Issue")

@@ -8,7 +8,7 @@ from changelogging.utils import mapping_merge
     strategies.dictionaries(strategies.text(), strategies.from_type(type)),
     strategies.dictionaries(strategies.text(), strategies.from_type(type)),
 )
-def test_mapping_merge(mapping: AnyStringDict, other: AnyStringDict) -> None:
+def test_mapping_merge(mapping: AnyStringDict, other: AnyStringDict) -> None:  # type: ignore
     result = mapping_merge(mapping, other)
 
     mapping.update(other)

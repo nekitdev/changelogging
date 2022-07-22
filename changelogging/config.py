@@ -4,6 +4,7 @@ from typing import Any, Dict, Iterable, Iterator, Type, TypeVar, cast, overload
 import toml
 from attrs import define
 from typing_extensions import Never
+from versions import Version
 from wraps import Option, convert_optional
 from yarl import URL
 
@@ -21,7 +22,7 @@ from changelogging.defaults import (
     DEFAULT_WRAP,
     DEFAULT_WRAP_SIZE,
 )
-from changelogging.fragment import (
+from changelogging.fragments import (
     DISPLAY,
     TYPES,
     AnyFragmentTypes,
@@ -80,6 +81,8 @@ CD = TypeVar("CD", bound="AnyConfigDict")
 
 
 class ConfigDict(Dict[str, T]):
+    """Dictionaries that support *by-attribute* access."""
+
     def __getattr__(self, name: str) -> Option[T]:
         return convert_optional(self.get(name))
 
@@ -116,34 +119,77 @@ C = TypeVar("C", bound="Config")
 @define()
 class Config:
     name: str
-    version: str
+    """The name of the project."""
+    version: Version
+    """The version of the project."""
     url: URL = URL(DEFAULT_URL)
+    """The URL linking to the project."""
     directory: Path = Path(DEFAULT_DIRECTORY)
+    """The `changes` directory."""
     output: Path = Path(DEFAULT_OUTPUT)
+    """The output path."""
     title_level: int = DEFAULT_TITLE_LEVEL
+    """The title level to use."""
     section_level: int = DEFAULT_SECTION_LEVEL
+    """The section title level to use."""
     bullet: str = DEFAULT_BULLET
+    """The bullet to use."""
     wrap: bool = DEFAULT_WRAP
+    """Whether to wrap lines."""
     wrap_size: int = DEFAULT_WRAP_SIZE
+    """The wrap size to use."""
     start_string: str = DEFAULT_START_STRING
+    """The start string to look for."""
     title_format: str = DEFAULT_TITLE_FORMAT
+    """The format of the title."""
     issue_format: str = DEFAULT_ISSUE_FORMAT
+    """The format of the issue."""
     fragment_format: str = DEFAULT_FRAGMENT_FORMAT
+    """The format of the fragment."""
     display: Display = DISPLAY
+    """The display ordering of fragment types."""
     types: AnyFragmentTypes = TYPES
+    """The fragment types to use."""
 
     # dynamic code ahead...
 
     @classmethod
     def from_string(cls: Type[C], string: str) -> C:
-        return cls.from_config_dict(cls.parse_string(string))
+        """Parses a [`Config`][changelogging.config.Config] from `string`.
+
+        Arguments:
+            string: The string to parse.
+
+        Returns:
+            A newly parsed [`Config`][changelogging.config.Config].
+        """
+        return cls.from_config_dict(cls.parse(string))
 
     @classmethod
     def from_file_path(cls: Type[C], path: IntoPath) -> C:
+        """Parses a [`Config`][changelogging.config.Config] from file `path`.
+
+        Arguments:
+            path: The path to the config.
+
+        Returns:
+            A newly parsed [`Config`][changelogging.config.Config] instance.
+        """
         return cls.from_string(Path(path).read_text())
 
     @classmethod
     def from_path(cls: Type[C], path: IntoPath, search: Iterable[IntoPath] = SEARCH) -> C:
+        """Parses a [`Config`][changelogging.config.Config] from `path`.
+
+        If `path` is a directory, this function searches for files in `search` inside of it.
+
+        Arguments:
+            path: The path to the config.
+            search: The paths to search for.
+
+        Returns:
+            A newly parsed [`Config`][changelogging.config.Config].
+        """
         path = Path(path)
 
         if not path.exists():
@@ -164,11 +210,20 @@ class Config:
         raise expected_file_or_directory()
 
     @staticmethod
-    def parse_string(string: str) -> AnyConfigDict:
+    def parse(string: str) -> AnyConfigDict:
         return cast(AnyConfigDict, toml.loads(string, AnyConfigDict))  # type: ignore
 
     @classmethod
     def from_config_dict(cls: Type[C], config_dict: AnyConfigDict) -> C:
+        """Creates a [`Config`][changelogging.config.Config]
+        from [`ConfigDict`][changelogging.config.ConfigDict].
+
+        Arguments:
+            config_dict: The config dict to use.
+
+        Returns:
+            A newly created [`Config`][changelogging.config.Config] instance.
+        """
         config_dict = config_dict.tool.unwrap_or(config_dict)
         config = config_dict.changelogging.unwrap_or_raise(section_not_found(SECTION))
 
@@ -177,7 +232,7 @@ class Config:
         return cls(
             # `name` and `version` are always required
             name=config.name.unwrap_or_raise(expected(NAME)),
-            version=config.version.unwrap_or_raise(expected(VERSION)),
+            version=config.version.map(Version.parse).unwrap_or_raise(expected(VERSION)),
             # map to `URL` and `Path` to simplify interaction
             url=config.url.map_or_else(default_url, URL),
             directory=config.directory.map_or_else(default_directory, Path),

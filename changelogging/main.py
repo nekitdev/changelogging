@@ -36,7 +36,7 @@ def changelogging() -> None:
 @click.help_option("-h", "--help")
 @click.option("-c", "--config", "config_path", default=None)
 @click.option("-d", "--date", "date_string", default=None)
-@click.option("-D", "--draft", "draft", is_flag=True, default=False)
+@click.option("-D", "--draft", is_flag=True, default=False)
 @click.option("-r/-n", "--remove/--no-remove", default=False)
 def build(
     config_path: Optional[str], date_string: Optional[str], draft: bool, remove: bool
