@@ -44,6 +44,10 @@ typing-extensions = ">= 4.3.0"
 
 entrypoint = ">= 1.3.0"
 
+versions = ">= 1.1.0"
+
+# wraps = ">= 0.1.0"
+
 [tool.poetry.dependencies.wraps]
 git = "https://github.com/nekitdev/wraps.git"
 
