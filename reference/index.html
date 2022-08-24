@@ -2399,7 +2399,7 @@
 
 
 <h3 id="changelogging.config.Config.from_string" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">from_string</span><span class="p">(</span><span class="n">string</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">from_string</span><span class="p">(</span><span class="n">string</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">C</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
@@ -2488,7 +2488,7 @@
 
 
 <h3 id="changelogging.config.Config.from_file_path" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">from_file_path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">from_file_path</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">IntoPath</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">C</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
@@ -2577,7 +2577,7 @@
 
 
 <h3 id="changelogging.config.Config.from_path" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">from_path</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">search</span><span class="o">=</span><span class="n">SEARCH</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">from_path</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">IntoPath</span><span class="p">,</span> <span class="n">search</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">IntoPath</span><span class="p">]</span> <span class="o">=</span> <span class="n">SEARCH</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">C</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
@@ -2717,7 +2717,7 @@
 
 
 <h3 id="changelogging.config.Config.from_config_dict" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">from_config_dict</span><span class="p">(</span><span class="n">config_dict</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">from_config_dict</span><span class="p">(</span><span class="n">config_dict</span><span class="p">:</span> <span class="n">AnyConfigDict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">C</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
@@ -3444,7 +3444,7 @@ from <a class="autorefs autorefs-internal" href="#changelogging.config.ConfigDic
 
 
 <h3 id="changelogging.fragments.FragmentType.suffix" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">suffix</span><span class="p">()</span></code>
+<code class="highlight language-python"><span class="n">suffix</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-property"><code>property</code></small>
@@ -3749,7 +3749,7 @@ from <a class="autorefs autorefs-internal" href="#changelogging.config.ConfigDic
 
 
 <h3 id="changelogging.fragments.FragmentTypes.from_types" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">from_types</span><span class="p">(</span><span class="o">*</span><span class="n">types</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">from_types</span><span class="p">(</span><span class="o">*</span><span class="n">types</span><span class="p">:</span> <span class="n">FT</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">S</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
@@ -3838,7 +3838,7 @@ from <a class="autorefs autorefs-internal" href="#changelogging.config.ConfigDic
 
 
 <h3 id="changelogging.fragments.FragmentTypes.from_iterable" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">from_iterable</span><span class="p">(</span><span class="n">iterable</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">from_iterable</span><span class="p">(</span><span class="n">iterable</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">FT</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">S</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
@@ -3930,7 +3930,7 @@ from an <code>iterable</code> of types.</p>
 
 
 <h3 id="changelogging.fragments.FragmentTypes.merge_with" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">merge_with</span><span class="p">(</span><span class="n">other</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">merge_with</span><span class="p">(</span><span class="n">other</span><span class="p">:</span> <span class="n">S</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">S</span></code>
 
 </h3>
 
@@ -4017,7 +4017,7 @@ from an <code>iterable</code> of types.</p>
 
 
 <h3 id="changelogging.fragments.FragmentTypes.name_to_type" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">name_to_type</span><span class="p">()</span></code>
+<code class="highlight language-python"><span class="n">name_to_type</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">FragmentTypeDict</span><span class="p">[</span><span class="n">FT</span><span class="p">]</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-property"><code>property</code></small>
@@ -4050,7 +4050,7 @@ from an <code>iterable</code> of types.</p>
 
 
 <h3 id="changelogging.fragments.FragmentTypes.suffix_to_type" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">suffix_to_type</span><span class="p">()</span></code>
+<code class="highlight language-python"><span class="n">suffix_to_type</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">FragmentTypeDict</span><span class="p">[</span><span class="n">FT</span><span class="p">]</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-property"><code>property</code></small>
@@ -4083,7 +4083,7 @@ from an <code>iterable</code> of types.</p>
 
 
 <h3 id="changelogging.fragments.FragmentTypes.has_name" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">has_name</span><span class="p">(</span><span class="n">name</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">has_name</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span></code>
 
 </h3>
 
@@ -4166,7 +4166,7 @@ from an <code>iterable</code> of types.</p>
 
 
 <h3 id="changelogging.fragments.FragmentTypes.get_name" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">get_name</span><span class="p">(</span><span class="n">name</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">get_name</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FT</span></code>
 
 </h3>
 
@@ -4273,7 +4273,7 @@ from an <code>iterable</code> of types.</p>
 
 
 <h3 id="changelogging.fragments.FragmentTypes.has_suffix" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">has_suffix</span><span class="p">(</span><span class="n">suffix</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">has_suffix</span><span class="p">(</span><span class="n">suffix</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span></code>
 
 </h3>
 
@@ -4356,7 +4356,7 @@ from an <code>iterable</code> of types.</p>
 
 
 <h3 id="changelogging.fragments.FragmentTypes.get_suffix" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">get_suffix</span><span class="p">(</span><span class="n">suffix</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">get_suffix</span><span class="p">(</span><span class="n">suffix</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FT</span></code>
 
 </h3>
 
@@ -4623,7 +4623,7 @@ from an <code>iterable</code> of types.</p>
 
 
 <h3 id="changelogging.fragments.Display.from_names" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">from_names</span><span class="p">(</span><span class="o">*</span><span class="n">names</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">from_names</span><span class="p">(</span><span class="o">*</span><span class="n">names</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">D</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
@@ -4712,7 +4712,7 @@ from an <code>iterable</code> of types.</p>
 
 
 <h3 id="changelogging.fragments.Display.from_iterable" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">from_iterable</span><span class="p">(</span><span class="n">iterable</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">from_iterable</span><span class="p">(</span><span class="n">iterable</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">D</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
@@ -4801,7 +4801,7 @@ from an <code>iterable</code> of types.</p>
 
 
 <h3 id="changelogging.fragments.Display.into_types" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">into_types</span><span class="p">(</span><span class="n">types</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">into_types</span><span class="p">(</span><span class="n">types</span><span class="p">:</span> <span class="n">FragmentTypes</span><span class="p">[</span><span class="n">FT</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">FT</span><span class="p">]</span></code>
 
 </h3>
 
@@ -5713,7 +5713,7 @@ from an <code>iterable</code> of types.</p>
 
 
 <h3 id="changelogging.build.Builder.build_title" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">build_title</span><span class="p">()</span></code>
+<code class="highlight language-python"><span class="n">build_title</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span></code>
 
 </h3>
 
@@ -5774,7 +5774,7 @@ from an <code>iterable</code> of types.</p>
 
 
 <h3 id="changelogging.build.Builder.build_section_title" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">build_section_title</span><span class="p">(</span><span class="nb">type</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">build_section_title</span><span class="p">(</span><span class="nb">type</span><span class="p">:</span> <span class="n">FragmentType</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span></code>
 
 </h3>
 
@@ -5861,7 +5861,7 @@ from an <code>iterable</code> of types.</p>
 
 
 <h3 id="changelogging.build.Builder.build_issue" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">build_issue</span><span class="p">(</span><span class="n">issue</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">build_issue</span><span class="p">(</span><span class="n">issue</span><span class="p">:</span> <span class="n">Issue</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span></code>
 
 </h3>
 
@@ -5948,7 +5948,7 @@ from an <code>iterable</code> of types.</p>
 
 
 <h3 id="changelogging.build.Builder.build_fragment" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">build_fragment</span><span class="p">(</span><span class="n">fragment</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">build_fragment</span><span class="p">(</span><span class="n">fragment</span><span class="p">:</span> <span class="n">Fragment</span><span class="p">[</span><span class="n">FragmentType</span><span class="p">,</span> <span class="n">Issue</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span></code>
 
 </h3>
 
@@ -6051,7 +6051,7 @@ from an <code>iterable</code> of types.</p>
 
 
 <h3 id="changelogging.build.Builder.build_fragments" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">build_fragments</span><span class="p">(</span><span class="n">fragments</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">build_fragments</span><span class="p">(</span><span class="n">fragments</span><span class="p">:</span> <span class="n">Fragments</span><span class="p">[</span><span class="n">FragmentType</span><span class="p">,</span> <span class="n">Issue</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span></code>
 
 </h3>
 
@@ -6134,7 +6134,7 @@ from an <code>iterable</code> of types.</p>
 
 
 <h3 id="changelogging.build.Builder.collect_sections" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">collect_sections</span><span class="p">(</span><span class="n">fragments</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">collect_sections</span><span class="p">(</span><span class="n">fragments</span><span class="p">:</span> <span class="n">Fragments</span><span class="p">[</span><span class="n">FT</span><span class="p">,</span> <span class="n">IT</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Sections</span><span class="p">[</span><span class="n">FT</span><span class="p">,</span> <span class="n">IT</span><span class="p">]</span></code>
 
 </h3>
 
@@ -6233,7 +6233,7 @@ from an <code>iterable</code> of types.</p>
 
 
 <h3 id="changelogging.build.Builder.build_generate" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">build_generate</span><span class="p">(</span><span class="n">sections</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">build_generate</span><span class="p">(</span><span class="n">sections</span><span class="p">:</span> <span class="n">Sections</span><span class="p">[</span><span class="n">FragmentType</span><span class="p">,</span> <span class="n">Issue</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span></code>
 
 </h3>
 
@@ -6348,7 +6348,7 @@ from an <code>iterable</code> of types.</p>
 
 
 <h3 id="changelogging.build.Builder.collect_fragments" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">collect_fragments</span><span class="p">()</span></code>
+<code class="highlight language-python"><span class="n">collect_fragments</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Fragments</span><span class="p">[</span><span class="n">FragmentType</span><span class="p">,</span> <span class="n">Issue</span><span class="p">]</span></code>
 
 </h3>
 
@@ -6409,7 +6409,7 @@ from an <code>iterable</code> of types.</p>
 
 
 <h3 id="changelogging.build.Builder.collect_paths" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">collect_paths</span><span class="p">()</span></code>
+<code class="highlight language-python"><span class="n">collect_paths</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">Path</span><span class="p">]</span></code>
 
 </h3>
 
@@ -6464,7 +6464,7 @@ from an <code>iterable</code> of types.</p>
 
 
 <h3 id="changelogging.build.Builder.build" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">build</span><span class="p">()</span></code>
+<code class="highlight language-python"><span class="n">build</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span></code>
 
 </h3>
 
@@ -6521,7 +6521,7 @@ from an <code>iterable</code> of types.</p>
 
 
 <h3 id="changelogging.build.Builder.write" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">write</span><span class="p">()</span></code>
+<code class="highlight language-python"><span class="n">write</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span></code>
 
 </h3>
 
