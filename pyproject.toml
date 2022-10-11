@@ -160,5 +160,5 @@ wrap_size = 100
 display = ["security", "feature", "change", "fix", "deprecation", "removal", "internal"]
 
 [build-system]
-requires = ["poetry-core >= 1.1.0"]
+requires = ["poetry-core >= 1.3.2"]
 build-backend = "poetry.core.masonry.api"
