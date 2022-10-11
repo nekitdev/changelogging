@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import Optional
 
 import click
-from wraps import Option, convert_optional
+from wraps import Option, wrap_optional
 
 from changelogging import __version__ as version
 from changelogging.build import Builder
@@ -41,9 +41,9 @@ def changelogging() -> None:
 def build(
     config_path: Optional[str], date_string: Optional[str], draft: bool, remove: bool
 ) -> None:
-    date = get_date(convert_optional(date_string))
+    date = get_date(wrap_optional(date_string))
 
-    config = get_config(convert_optional(config_path))
+    config = get_config(wrap_optional(config_path))
 
     builder = Builder(config, date)
 
@@ -89,7 +89,7 @@ concat_newline = NEWLINE.join
 @click.option("-e/-n", "--edit/--no-edit", "edit", default=True)
 @click.argument(NAME)
 def create(config_path: Optional[str], edit: bool, name: str) -> None:
-    config = get_config(convert_optional(config_path))
+    config = get_config(wrap_optional(config_path))
 
     if edit:
         string = click.edit(EDIT)

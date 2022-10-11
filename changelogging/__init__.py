@@ -6,7 +6,7 @@ __url__ = "https://github.com/nekitdev/changelogging"
 __title__ = "changelogging"
 __author__ = "nekitdev"
 __license__ = "MIT"
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 from changelogging.build import Builder
 from changelogging.config import Config

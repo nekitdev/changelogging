@@ -5,7 +5,7 @@ import toml
 from attrs import define
 from typing_extensions import Never
 from versions import Version
-from wraps import Option, convert_optional
+from wraps import Option, wrap_optional
 from yarl import URL
 
 from changelogging.defaults import (
@@ -84,7 +84,7 @@ class ConfigDict(Dict[str, T]):
     """Dictionaries that support *by-attribute* access."""
 
     def __getattr__(self, name: str) -> Option[T]:
-        return convert_optional(self.get(name))
+        return wrap_optional(self.get(name))
 
     def copy(self: CD) -> CD:
         return type(self)(self)
