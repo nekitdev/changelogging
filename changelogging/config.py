@@ -22,13 +22,7 @@ from changelogging.defaults import (
     DEFAULT_WRAP,
     DEFAULT_WRAP_SIZE,
 )
-from changelogging.fragments import (
-    DISPLAY,
-    TYPES,
-    AnyFragmentTypes,
-    Display,
-    FragmentType,
-)
+from changelogging.fragments import DISPLAY, TYPES, AnyFragmentTypes, Display, FragmentType
 from changelogging.typing import IntoPath
 
 __all__ = ("Config", "ConfigDict", "AnyConfigDict")
@@ -81,7 +75,7 @@ CD = TypeVar("CD", bound="AnyConfigDict")
 
 
 class ConfigDict(Dict[str, T]):
-    """Dictionaries that support *by-attribute* access."""
+    """Dictionaries that support attribute access."""
 
     def __getattr__(self, name: str) -> Option[T]:
         return wrap_optional(self.get(name))
@@ -123,7 +117,7 @@ class Config:
     version: Version
     """The version of the project."""
     url: URL = URL(DEFAULT_URL)
-    """The URL linking to the project."""
+    """The URL of the project."""
     directory: Path = Path(DEFAULT_DIRECTORY)
     """The `changes` directory."""
     output: Path = Path(DEFAULT_OUTPUT)
@@ -219,7 +213,7 @@ class Config:
         from [`ConfigDict`][changelogging.config.ConfigDict].
 
         Arguments:
-            config_dict: The config dict to use.
+            config_dict: The config dictionary to use.
 
         Returns:
             A newly created [`Config`][changelogging.config.Config] instance.

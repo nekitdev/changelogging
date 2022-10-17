@@ -51,7 +51,7 @@ INTERNAL = FragmentType("internal", "Internal")
 """`internal` fragments represent internal changes, not relevant to end users."""
 
 DEFAULT = (SECURITY, FEATURE, CHANGE, FIX, DEPRECATION, REMOVAL, INTERNAL)
-"""The default order of fragments."""
+"""The default order of changelog fragments."""
 
 FT = TypeVar("FT", bound=FragmentType)
 
@@ -66,7 +66,7 @@ class FragmentTypes(Generic[FT]):
     """Represents collections of fragment types."""
 
     types: FragmentTypeTuple[FT] = ()
-    """The types contained."""
+    """The contained fragment types."""
 
     @classmethod
     def from_types(cls: Type[S], *types: FT) -> S:
@@ -89,7 +89,7 @@ class FragmentTypes(Generic[FT]):
             iterable: The iterable to collect types from.
 
         Returns:
-            A newly created [`FragmentTypes`][changelogging.fragments.FragmentTypes].
+            A newly created [`FragmentTypes`][changelogging.fragments.FragmentTypes] instance.
         """
         return cls(tuple(iterable))
 
@@ -128,10 +128,10 @@ class FragmentTypes(Generic[FT]):
         return name in self.name_to_type
 
     def get_name(self, name: str) -> FT:
-        """Find a [`FragmentType`][changelogging.fragments.FragmentType] by `name`.
+        """Finds a [`FragmentType`][changelogging.fragments.FragmentType] by `name`.
 
         Arguments:
-            name: The name to use in searching.
+            name: The name to lookup.
 
         Raises:
             KeyError: Fragment type was not found.
@@ -153,10 +153,10 @@ class FragmentTypes(Generic[FT]):
         return suffix in self.suffix_to_type
 
     def get_suffix(self, suffix: str) -> FT:
-        """Find a [`FragmentType`][changelogging.fragments.FragmentType] by `suffix`.
+        """Finds a [`FragmentType`][changelogging.fragments.FragmentType] by `suffix`.
 
         Arguments:
-            suffix: The suffix to use in searching.
+            suffix: The suffix to lookup.
 
         Raises:
             KeyError: Fragment type was not found.
@@ -196,7 +196,7 @@ class Display:
             *names: The names to use.
 
         Returns:
-            A newly created [`Display`][changelogging.fragments.Display].
+            A newly created [`Display`][changelogging.fragments.Display] instance.
         """
         return cls(names)
 
@@ -208,7 +208,7 @@ class Display:
             iterable: The iterable to collect names from.
 
         Returns:
-            A newly created [`Display`][changelogging.fragments.Display].
+            A newly created [`Display`][changelogging.fragments.Display] instance.
         """
         return cls(tuple(iterable))
 
@@ -219,7 +219,7 @@ class Display:
             types: The fragment types to search in.
 
         Raises:
-            LookupError: Fragment type not found.
+            LookupError: Fragment type was not found.
 
         Returns:
             An iterator over fragment types found.
@@ -256,4 +256,4 @@ class Fragment(Generic[FT, IT]):
     content: str = field(order=False)
     """The content of the fragment."""
     issue: IT = field(order=True)
-    """The related issue of the fragment."""
+    """The issue related to the fragment."""

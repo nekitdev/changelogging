@@ -14,8 +14,8 @@ __all__ = ("Builder",)
 
 NO_SIGNIFICANT_CHANGES = "No significant changes."
 
-concat_newline = NEW_LINE.join
-concat_double_newline = DOUBLE_NEW_LINE.join
+concat_new_line = NEW_LINE.join
+concat_double_new_line = DOUBLE_NEW_LINE.join
 
 WRITE = "w"
 
@@ -49,7 +49,7 @@ class Builder:
         )
 
     def build_section_title(self, type: FragmentType) -> str:
-        """Builds the section title of `type`.
+        """Builds the section title of the particular `type`.
 
         Arguments:
             type: The fragment type to build the title for.
@@ -104,7 +104,7 @@ class Builder:
         Returns:
             The fragments built.
         """
-        return concat_newline(map(self.build_fragment, fragments))
+        return concat_new_line(map(self.build_fragment, fragments))
 
     def collect_sections(self, fragments: Fragments[FT, IT]) -> Sections[FT, IT]:
         """Collects `fragments` into sections.
@@ -153,7 +153,7 @@ class Builder:
             yield NO_SIGNIFICANT_CHANGES
 
     def collect_fragments(self) -> Fragments[FragmentType, Issue]:
-        """Collects fragments from `changes` directory specified in the config.
+        """Collects fragments from the changes directory specified in the config.
 
         Returns:
             An iterator over the fragments found.
@@ -194,7 +194,7 @@ class Builder:
         Returns:
             The build result.
         """
-        return concat_double_newline(
+        return concat_double_new_line(
             self.build_generate(self.collect_sections(self.collect_fragments()))
         )
 
@@ -256,15 +256,15 @@ class Builder:
 
     @classmethod
     def indent_lines(cls, string: str, bullet: str) -> str:
-        return concat_newline(cls.generate_indent_lines(string, bullet))
+        return concat_new_line(cls.generate_indent_lines(string, bullet))
 
     @classmethod
     def indent_wrap_lines(cls, string: str, bullet: str, size: int) -> str:
         size -= max(map(len, cls.indents(bullet)))
 
         return cls.indent_lines(
-            concat_newline(
-                concat_newline(wrap(line, size, break_long_words=False))
+            concat_new_line(
+                concat_new_line(wrap(line, size, break_long_words=False))
                 for line in string.splitlines()
             ),
             bullet,

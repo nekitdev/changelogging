@@ -1,3 +1,5 @@
+from changelogging.constants import EMPTY
+
 __all__ = (
     "DEFAULT_NAME",
     "DEFAULT_URL",
@@ -12,8 +14,6 @@ __all__ = (
     "DEFAULT_TITLE_FORMAT",
     "DEFAULT_ISSUE_FORMAT",
 )
-
-EMPTY = str()
 
 DEFAULT_NAME = "changelogging"
 
@@ -35,7 +35,7 @@ DEFAULT_WRAP_SIZE = 80
 """The default wrap size."""
 DEFAULT_START_STRING = "<!-- changelogging: start -->"
 """The default start string."""
-DEFAULT_TITLE_FORMAT = "{name} {version} ({date})"
+DEFAULT_TITLE_FORMAT = "{version} ({date})"
 """The default title format."""
 DEFAULT_ISSUE_FORMAT = "#{issue}"
 """The default issue format."""

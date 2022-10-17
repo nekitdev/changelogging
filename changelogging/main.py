@@ -8,6 +8,7 @@ from wraps import Option, wrap_optional
 from changelogging import __version__ as version
 from changelogging.build import Builder
 from changelogging.config import Config
+from changelogging.constants import HASH, NEW_LINE
 from changelogging.defaults import DEFAULT_NAME
 from changelogging.git import remove_paths
 
@@ -27,15 +28,19 @@ def get_date(string: Option[str]) -> date:
 
 @click.group(name=DEFAULT_NAME)
 @click.help_option("-h", "--help")
-@click.version_option(version, "-v", "--version")
+@click.version_option(version, "-V", "--version")
 def changelogging() -> None:
     pass
 
 
+CONFIG_PATH = "config_path"
+DATE_STRING = "date_string"
+
+
 @changelogging.command()
 @click.help_option("-h", "--help")
-@click.option("-c", "--config", "config_path", default=None)
-@click.option("-d", "--date", "date_string", default=None)
+@click.option("-c", "--config", CONFIG_PATH, default=None)
+@click.option("-d", "--date", DATE_STRING, default=None)
 @click.option("-D", "--draft", is_flag=True, default=False)
 @click.option("-r/-n", "--remove/--no-remove", default=False)
 def build(
@@ -57,15 +62,12 @@ def build(
         builder.write()
 
 
-HASH = "#"
-NEWLINE = "\n"
-
 ABORTED = "Creation aborted."
 CREATED = "Created the `{}` fragment."
 PLACEHOLDER = "Add the content here."
 EDIT = """
 # Please enter the fragment content.
-# Lines starting with "#" will be ignored.
+# Lines starting with `#` will be ignored.
 # Close the file without saving to abort.
 """
 
@@ -80,13 +82,13 @@ def is_content(line: str) -> bool:
     return not is_comment(line)
 
 
-concat_newline = NEWLINE.join
+concat_new_line = NEW_LINE.join
 
 
 @changelogging.command()
 @click.help_option("-h", "--help")
-@click.option("-c", "--config", "config_path", default=None)
-@click.option("-e/-n", "--edit/--no-edit", "edit", default=True)
+@click.option("-c", "--config", CONFIG_PATH, default=None)
+@click.option("-e/-n", "--edit/--no-edit", default=True)
 @click.argument(NAME)
 def create(config_path: Optional[str], edit: bool, name: str) -> None:
     config = get_config(wrap_optional(config_path))
@@ -98,13 +100,13 @@ def create(config_path: Optional[str], edit: bool, name: str) -> None:
             click.echo(ABORTED)
             return
 
-        string = concat_newline(map(str.rstrip, filter(is_content, string.splitlines())))
+        string = concat_new_line(map(str.rstrip, filter(is_content, string.splitlines())))
 
     else:
         string = PLACEHOLDER
 
     path = config.directory / name
 
-    path.write_text(string.rstrip() + NEWLINE)
+    path.write_text(string.rstrip() + NEW_LINE)
 
     click.echo(CREATED.format(name))
