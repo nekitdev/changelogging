@@ -250,6 +250,21 @@
 
   
   
+  
+    <li class="md-nav__item">
+      <a href="../usage/" class="md-nav__link">
+        Usage
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
     
   
   
@@ -1716,20 +1731,20 @@
         Bases: <code><a class="autorefs autorefs-external" title="typing.Dict" href="https://docs.python.org/3/library/typing.html#typing.Dict">Dict</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a>, <span title="changelogging.config.T">T</span>]</code></p>
 
   
-      <p>Dictionaries that support <em>by-attribute</em> access.</p>
+      <p>Dictionaries that support attribute access.</p>
 
 
         <details class="quote">
           <summary>Source code in <code>changelogging/config.py</code></summary>
-          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">83</span>
-<span class="normal">84</span>
-<span class="normal">85</span>
-<span class="normal">86</span>
-<span class="normal">87</span>
-<span class="normal">88</span>
-<span class="normal">89</span>
-<span class="normal">90</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">ConfigDict</span><span class="p">(</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">T</span><span class="p">]):</span>
-    <span class="sd">&quot;&quot;&quot;Dictionaries that support *by-attribute* access.&quot;&quot;&quot;</span>
+          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">77</span>
+<span class="normal">78</span>
+<span class="normal">79</span>
+<span class="normal">80</span>
+<span class="normal">81</span>
+<span class="normal">82</span>
+<span class="normal">83</span>
+<span class="normal">84</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">ConfigDict</span><span class="p">(</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">T</span><span class="p">]):</span>
+    <span class="sd">&quot;&quot;&quot;Dictionaries that support attribute access.&quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Option</span><span class="p">[</span><span class="n">T</span><span class="p">]:</span>
         <span class="k">return</span> <span class="n">wrap_optional</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">))</span>
@@ -1776,7 +1791,13 @@
 
         <details class="quote">
           <summary>Source code in <code>changelogging/config.py</code></summary>
-          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">119</span>
+          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">113</span>
+<span class="normal">114</span>
+<span class="normal">115</span>
+<span class="normal">116</span>
+<span class="normal">117</span>
+<span class="normal">118</span>
+<span class="normal">119</span>
 <span class="normal">120</span>
 <span class="normal">121</span>
 <span class="normal">122</span>
@@ -1905,20 +1926,14 @@
 <span class="normal">245</span>
 <span class="normal">246</span>
 <span class="normal">247</span>
-<span class="normal">248</span>
-<span class="normal">249</span>
-<span class="normal">250</span>
-<span class="normal">251</span>
-<span class="normal">252</span>
-<span class="normal">253</span>
-<span class="normal">254</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@define</span><span class="p">()</span>
+<span class="normal">248</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@define</span><span class="p">()</span>
 <span class="k">class</span> <span class="nc">Config</span><span class="p">:</span>
     <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
     <span class="sd">&quot;&quot;&quot;The name of the project.&quot;&quot;&quot;</span>
     <span class="n">version</span><span class="p">:</span> <span class="n">Version</span>
     <span class="sd">&quot;&quot;&quot;The version of the project.&quot;&quot;&quot;</span>
     <span class="n">url</span><span class="p">:</span> <span class="n">URL</span> <span class="o">=</span> <span class="n">URL</span><span class="p">(</span><span class="n">DEFAULT_URL</span><span class="p">)</span>
-    <span class="sd">&quot;&quot;&quot;The URL linking to the project.&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;The URL of the project.&quot;&quot;&quot;</span>
     <span class="n">directory</span><span class="p">:</span> <span class="n">Path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">DEFAULT_DIRECTORY</span><span class="p">)</span>
     <span class="sd">&quot;&quot;&quot;The `changes` directory.&quot;&quot;&quot;</span>
     <span class="n">output</span><span class="p">:</span> <span class="n">Path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">DEFAULT_OUTPUT</span><span class="p">)</span>
@@ -2014,7 +2029,7 @@
 <span class="sd">        from [`ConfigDict`][changelogging.config.ConfigDict].</span>
 
 <span class="sd">        Arguments:</span>
-<span class="sd">            config_dict: The config dict to use.</span>
+<span class="sd">            config_dict: The config dictionary to use.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            A newly created [`Config`][changelogging.config.Config] instance.</span>
@@ -2118,7 +2133,7 @@
 
   <div class="doc doc-contents ">
   
-      <p>The URL linking to the project.</p>
+      <p>The URL of the project.</p>
   </div>
 
 </div>
@@ -2460,17 +2475,17 @@
 
       <details class="quote">
         <summary>Source code in <code>changelogging/config.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">156</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">150</span>
+<span class="normal">151</span>
+<span class="normal">152</span>
+<span class="normal">153</span>
+<span class="normal">154</span>
+<span class="normal">155</span>
+<span class="normal">156</span>
 <span class="normal">157</span>
 <span class="normal">158</span>
 <span class="normal">159</span>
-<span class="normal">160</span>
-<span class="normal">161</span>
-<span class="normal">162</span>
-<span class="normal">163</span>
-<span class="normal">164</span>
-<span class="normal">165</span>
-<span class="normal">166</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@classmethod</span>
+<span class="normal">160</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@classmethod</span>
 <span class="k">def</span> <span class="nf">from_string</span><span class="p">(</span><span class="bp">cls</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">C</span><span class="p">],</span> <span class="n">string</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">C</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Parses a [`Config`][changelogging.config.Config] from `string`.</span>
 
@@ -2549,17 +2564,17 @@
 
       <details class="quote">
         <summary>Source code in <code>changelogging/config.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">168</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">162</span>
+<span class="normal">163</span>
+<span class="normal">164</span>
+<span class="normal">165</span>
+<span class="normal">166</span>
+<span class="normal">167</span>
+<span class="normal">168</span>
 <span class="normal">169</span>
 <span class="normal">170</span>
 <span class="normal">171</span>
-<span class="normal">172</span>
-<span class="normal">173</span>
-<span class="normal">174</span>
-<span class="normal">175</span>
-<span class="normal">176</span>
-<span class="normal">177</span>
-<span class="normal">178</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@classmethod</span>
+<span class="normal">172</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@classmethod</span>
 <span class="k">def</span> <span class="nf">from_file_path</span><span class="p">(</span><span class="bp">cls</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">C</span><span class="p">],</span> <span class="n">path</span><span class="p">:</span> <span class="n">IntoPath</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">C</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Parses a [`Config`][changelogging.config.Config] from file `path`.</span>
 
@@ -2649,7 +2664,13 @@
 
       <details class="quote">
         <summary>Source code in <code>changelogging/config.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">180</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">174</span>
+<span class="normal">175</span>
+<span class="normal">176</span>
+<span class="normal">177</span>
+<span class="normal">178</span>
+<span class="normal">179</span>
+<span class="normal">180</span>
 <span class="normal">181</span>
 <span class="normal">182</span>
 <span class="normal">183</span>
@@ -2673,13 +2694,7 @@
 <span class="normal">201</span>
 <span class="normal">202</span>
 <span class="normal">203</span>
-<span class="normal">204</span>
-<span class="normal">205</span>
-<span class="normal">206</span>
-<span class="normal">207</span>
-<span class="normal">208</span>
-<span class="normal">209</span>
-<span class="normal">210</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@classmethod</span>
+<span class="normal">204</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@classmethod</span>
 <span class="k">def</span> <span class="nf">from_path</span><span class="p">(</span><span class="bp">cls</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">C</span><span class="p">],</span> <span class="n">path</span><span class="p">:</span> <span class="n">IntoPath</span><span class="p">,</span> <span class="n">search</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">IntoPath</span><span class="p">]</span> <span class="o">=</span> <span class="n">SEARCH</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">C</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Parses a [`Config`][changelogging.config.Config] from `path`.</span>
 
@@ -2751,7 +2766,7 @@ from <a class="autorefs autorefs-internal" href="#changelogging.config.ConfigDic
           <td>
                 <code><span title="changelogging.config.AnyConfigDict">AnyConfigDict</span></code>
           </td>
-          <td><p>The config dict to use.</p></td>
+          <td><p>The config dictionary to use.</p></td>
           <td>
               <em>required</em>
           </td>
@@ -2779,7 +2794,13 @@ from <a class="autorefs autorefs-internal" href="#changelogging.config.ConfigDic
 
       <details class="quote">
         <summary>Source code in <code>changelogging/config.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">216</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">210</span>
+<span class="normal">211</span>
+<span class="normal">212</span>
+<span class="normal">213</span>
+<span class="normal">214</span>
+<span class="normal">215</span>
+<span class="normal">216</span>
 <span class="normal">217</span>
 <span class="normal">218</span>
 <span class="normal">219</span>
@@ -2811,19 +2832,13 @@ from <a class="autorefs autorefs-internal" href="#changelogging.config.ConfigDic
 <span class="normal">245</span>
 <span class="normal">246</span>
 <span class="normal">247</span>
-<span class="normal">248</span>
-<span class="normal">249</span>
-<span class="normal">250</span>
-<span class="normal">251</span>
-<span class="normal">252</span>
-<span class="normal">253</span>
-<span class="normal">254</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@classmethod</span>
+<span class="normal">248</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@classmethod</span>
 <span class="k">def</span> <span class="nf">from_config_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">C</span><span class="p">],</span> <span class="n">config_dict</span><span class="p">:</span> <span class="n">AnyConfigDict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">C</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Creates a [`Config`][changelogging.config.Config]</span>
 <span class="sd">    from [`ConfigDict`][changelogging.config.ConfigDict].</span>
 
 <span class="sd">    Arguments:</span>
-<span class="sd">        config_dict: The config dict to use.</span>
+<span class="sd">        config_dict: The config dictionary to use.</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        A newly created [`Config`][changelogging.config.Config] instance.</span>
@@ -3089,7 +3104,7 @@ from <a class="autorefs autorefs-internal" href="#changelogging.config.ConfigDic
 
 
 <h2 id="changelogging.defaults.DEFAULT_TITLE_FORMAT" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">DEFAULT_TITLE_FORMAT</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{name}</span><span class="s1"> </span><span class="si">{version}</span><span class="s1"> (</span><span class="si">{date}</span><span class="s1">)&#39;</span></code>
+<code class="highlight language-python"><span class="n">DEFAULT_TITLE_FORMAT</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{version}</span><span class="s1"> (</span><span class="si">{date}</span><span class="s1">)&#39;</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-module-attribute"><code>module-attribute</code></small>
@@ -3336,7 +3351,7 @@ from <a class="autorefs autorefs-internal" href="#changelogging.config.ConfigDic
 
   <div class="doc doc-contents ">
   
-      <p>The default order of fragments.</p>
+      <p>The default order of changelog fragments.</p>
   </div>
 
 </div>
@@ -3613,7 +3628,7 @@ from <a class="autorefs autorefs-internal" href="#changelogging.config.ConfigDic
     <span class="sd">&quot;&quot;&quot;Represents collections of fragment types.&quot;&quot;&quot;</span>
 
     <span class="n">types</span><span class="p">:</span> <span class="n">FragmentTypeTuple</span><span class="p">[</span><span class="n">FT</span><span class="p">]</span> <span class="o">=</span> <span class="p">()</span>
-    <span class="sd">&quot;&quot;&quot;The types contained.&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;The contained fragment types.&quot;&quot;&quot;</span>
 
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_types</span><span class="p">(</span><span class="bp">cls</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">S</span><span class="p">],</span> <span class="o">*</span><span class="n">types</span><span class="p">:</span> <span class="n">FT</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">S</span><span class="p">:</span>
@@ -3636,7 +3651,7 @@ from <a class="autorefs autorefs-internal" href="#changelogging.config.ConfigDic
 <span class="sd">            iterable: The iterable to collect types from.</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            A newly created [`FragmentTypes`][changelogging.fragments.FragmentTypes].</span>
+<span class="sd">            A newly created [`FragmentTypes`][changelogging.fragments.FragmentTypes] instance.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">iterable</span><span class="p">))</span>
 
@@ -3675,10 +3690,10 @@ from <a class="autorefs autorefs-internal" href="#changelogging.config.ConfigDic
         <span class="k">return</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">name_to_type</span>
 
     <span class="k">def</span> <span class="nf">get_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FT</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Find a [`FragmentType`][changelogging.fragments.FragmentType] by `name`.</span>
+        <span class="sd">&quot;&quot;&quot;Finds a [`FragmentType`][changelogging.fragments.FragmentType] by `name`.</span>
 
 <span class="sd">        Arguments:</span>
-<span class="sd">            name: The name to use in searching.</span>
+<span class="sd">            name: The name to lookup.</span>
 
 <span class="sd">        Raises:</span>
 <span class="sd">            KeyError: Fragment type was not found.</span>
@@ -3700,10 +3715,10 @@ from <a class="autorefs autorefs-internal" href="#changelogging.config.ConfigDic
         <span class="k">return</span> <span class="n">suffix</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">suffix_to_type</span>
 
     <span class="k">def</span> <span class="nf">get_suffix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">suffix</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FT</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Find a [`FragmentType`][changelogging.fragments.FragmentType] by `suffix`.</span>
+        <span class="sd">&quot;&quot;&quot;Finds a [`FragmentType`][changelogging.fragments.FragmentType] by `suffix`.</span>
 
 <span class="sd">        Arguments:</span>
-<span class="sd">            suffix: The suffix to use in searching.</span>
+<span class="sd">            suffix: The suffix to lookup.</span>
 
 <span class="sd">        Raises:</span>
 <span class="sd">            KeyError: Fragment type was not found.</span>
@@ -3741,7 +3756,7 @@ from <a class="autorefs autorefs-internal" href="#changelogging.config.ConfigDic
 
   <div class="doc doc-contents ">
   
-      <p>The types contained.</p>
+      <p>The contained fragment types.</p>
   </div>
 
 </div>
@@ -3893,7 +3908,7 @@ from an <code>iterable</code> of types.</p>
           <td>
                 <code><span title="changelogging.fragments.S">S</span></code>
           </td>
-          <td><p>A newly created <a class="autorefs autorefs-internal" href="#changelogging.fragments.FragmentTypes"><code>FragmentTypes</code></a>.</p></td>
+          <td><p>A newly created <a class="autorefs autorefs-internal" href="#changelogging.fragments.FragmentTypes"><code>FragmentTypes</code></a> instance.</p></td>
         </tr>
     </tbody>
   </table>
@@ -3920,7 +3935,7 @@ from an <code>iterable</code> of types.</p>
 <span class="sd">        iterable: The iterable to collect types from.</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">        A newly created [`FragmentTypes`][changelogging.fragments.FragmentTypes].</span>
+<span class="sd">        A newly created [`FragmentTypes`][changelogging.fragments.FragmentTypes] instance.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">iterable</span><span class="p">))</span>
 </code></pre></div></td></tr></table></div>
@@ -4177,7 +4192,7 @@ from an <code>iterable</code> of types.</p>
 
   <div class="doc doc-contents ">
   
-      <p>Find a <a class="autorefs autorefs-internal" href="#changelogging.fragments.FragmentType"><code>FragmentType</code></a> by <code>name</code>.</p>
+      <p>Finds a <a class="autorefs autorefs-internal" href="#changelogging.fragments.FragmentType"><code>FragmentType</code></a> by <code>name</code>.</p>
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -4195,7 +4210,7 @@ from an <code>iterable</code> of types.</p>
           <td>
                 <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></code>
           </td>
-          <td><p>The name to use in searching.</p></td>
+          <td><p>The name to lookup.</p></td>
           <td>
               <em>required</em>
           </td>
@@ -4254,10 +4269,10 @@ from an <code>iterable</code> of types.</p>
 <span class="normal">140</span>
 <span class="normal">141</span>
 <span class="normal">142</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">get_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FT</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Find a [`FragmentType`][changelogging.fragments.FragmentType] by `name`.</span>
+    <span class="sd">&quot;&quot;&quot;Finds a [`FragmentType`][changelogging.fragments.FragmentType] by `name`.</span>
 
 <span class="sd">    Arguments:</span>
-<span class="sd">        name: The name to use in searching.</span>
+<span class="sd">        name: The name to lookup.</span>
 
 <span class="sd">    Raises:</span>
 <span class="sd">        KeyError: Fragment type was not found.</span>
@@ -4367,7 +4382,7 @@ from an <code>iterable</code> of types.</p>
 
   <div class="doc doc-contents ">
   
-      <p>Find a <a class="autorefs autorefs-internal" href="#changelogging.fragments.FragmentType"><code>FragmentType</code></a> by <code>suffix</code>.</p>
+      <p>Finds a <a class="autorefs autorefs-internal" href="#changelogging.fragments.FragmentType"><code>FragmentType</code></a> by <code>suffix</code>.</p>
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -4385,7 +4400,7 @@ from an <code>iterable</code> of types.</p>
           <td>
                 <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></code>
           </td>
-          <td><p>The suffix to use in searching.</p></td>
+          <td><p>The suffix to lookup.</p></td>
           <td>
               <em>required</em>
           </td>
@@ -4444,10 +4459,10 @@ from an <code>iterable</code> of types.</p>
 <span class="normal">165</span>
 <span class="normal">166</span>
 <span class="normal">167</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">get_suffix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">suffix</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FT</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Find a [`FragmentType`][changelogging.fragments.FragmentType] by `suffix`.</span>
+    <span class="sd">&quot;&quot;&quot;Finds a [`FragmentType`][changelogging.fragments.FragmentType] by `suffix`.</span>
 
 <span class="sd">    Arguments:</span>
-<span class="sd">        suffix: The suffix to use in searching.</span>
+<span class="sd">        suffix: The suffix to lookup.</span>
 
 <span class="sd">    Raises:</span>
 <span class="sd">        KeyError: Fragment type was not found.</span>
@@ -4552,7 +4567,7 @@ from an <code>iterable</code> of types.</p>
 <span class="sd">            *names: The names to use.</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            A newly created [`Display`][changelogging.fragments.Display].</span>
+<span class="sd">            A newly created [`Display`][changelogging.fragments.Display] instance.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">names</span><span class="p">)</span>
 
@@ -4564,7 +4579,7 @@ from an <code>iterable</code> of types.</p>
 <span class="sd">            iterable: The iterable to collect names from.</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            A newly created [`Display`][changelogging.fragments.Display].</span>
+<span class="sd">            A newly created [`Display`][changelogging.fragments.Display] instance.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">iterable</span><span class="p">))</span>
 
@@ -4575,7 +4590,7 @@ from an <code>iterable</code> of types.</p>
 <span class="sd">            types: The fragment types to search in.</span>
 
 <span class="sd">        Raises:</span>
-<span class="sd">            LookupError: Fragment type not found.</span>
+<span class="sd">            LookupError: Fragment type was not found.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            An iterator over fragment types found.</span>
@@ -4677,7 +4692,7 @@ from an <code>iterable</code> of types.</p>
           <td>
                 <code><span title="changelogging.fragments.D">D</span></code>
           </td>
-          <td><p>A newly created <a class="autorefs autorefs-internal" href="#changelogging.fragments.Display"><code>Display</code></a>.</p></td>
+          <td><p>A newly created <a class="autorefs autorefs-internal" href="#changelogging.fragments.Display"><code>Display</code></a> instance.</p></td>
         </tr>
     </tbody>
   </table>
@@ -4702,7 +4717,7 @@ from an <code>iterable</code> of types.</p>
 <span class="sd">        *names: The names to use.</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">        A newly created [`Display`][changelogging.fragments.Display].</span>
+<span class="sd">        A newly created [`Display`][changelogging.fragments.Display] instance.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">names</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
@@ -4766,7 +4781,7 @@ from an <code>iterable</code> of types.</p>
           <td>
                 <code><span title="changelogging.fragments.D">D</span></code>
           </td>
-          <td><p>A newly created <a class="autorefs autorefs-internal" href="#changelogging.fragments.Display"><code>Display</code></a>.</p></td>
+          <td><p>A newly created <a class="autorefs autorefs-internal" href="#changelogging.fragments.Display"><code>Display</code></a> instance.</p></td>
         </tr>
     </tbody>
   </table>
@@ -4791,7 +4806,7 @@ from an <code>iterable</code> of types.</p>
 <span class="sd">        iterable: The iterable to collect names from.</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">        A newly created [`Display`][changelogging.fragments.Display].</span>
+<span class="sd">        A newly created [`Display`][changelogging.fragments.Display] instance.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">iterable</span><span class="p">))</span>
 </code></pre></div></td></tr></table></div>
@@ -4851,7 +4866,7 @@ from an <code>iterable</code> of types.</p>
           <td>
                 <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/exceptions.html#LookupError">LookupError</a></code>
           </td>
-          <td><p>Fragment type not found.</p></td>
+          <td><p>Fragment type was not found.</p></td>
         </tr>
     </tbody>
   </table>
@@ -4900,7 +4915,7 @@ from an <code>iterable</code> of types.</p>
 <span class="sd">        types: The fragment types to search in.</span>
 
 <span class="sd">    Raises:</span>
-<span class="sd">        LookupError: Fragment type not found.</span>
+<span class="sd">        LookupError: Fragment type was not found.</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        An iterator over fragment types found.</span>
@@ -5038,7 +5053,7 @@ from an <code>iterable</code> of types.</p>
     <span class="n">content</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">order</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
     <span class="sd">&quot;&quot;&quot;The content of the fragment.&quot;&quot;&quot;</span>
     <span class="n">issue</span><span class="p">:</span> <span class="n">IT</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">order</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="sd">&quot;&quot;&quot;The related issue of the fragment.&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;The issue related to the fragment.&quot;&quot;&quot;</span>
 </code></pre></div></td></tr></table></div>
         </details>
 
@@ -5110,7 +5125,7 @@ from an <code>iterable</code> of types.</p>
 
   <div class="doc doc-contents ">
   
-      <p>The related issue of the fragment.</p>
+      <p>The issue related to the fragment.</p>
   </div>
 
 </div>
@@ -5435,7 +5450,7 @@ from an <code>iterable</code> of types.</p>
         <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">build_section_title</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">type</span><span class="p">:</span> <span class="n">FragmentType</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Builds the section title of `type`.</span>
+        <span class="sd">&quot;&quot;&quot;Builds the section title of the particular `type`.</span>
 
 <span class="sd">        Arguments:</span>
 <span class="sd">            type: The fragment type to build the title for.</span>
@@ -5490,7 +5505,7 @@ from an <code>iterable</code> of types.</p>
 <span class="sd">        Returns:</span>
 <span class="sd">            The fragments built.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">concat_newline</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">build_fragment</span><span class="p">,</span> <span class="n">fragments</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">concat_new_line</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">build_fragment</span><span class="p">,</span> <span class="n">fragments</span><span class="p">))</span>
 
     <span class="k">def</span> <span class="nf">collect_sections</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fragments</span><span class="p">:</span> <span class="n">Fragments</span><span class="p">[</span><span class="n">FT</span><span class="p">,</span> <span class="n">IT</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Sections</span><span class="p">[</span><span class="n">FT</span><span class="p">,</span> <span class="n">IT</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;Collects `fragments` into sections.</span>
@@ -5539,7 +5554,7 @@ from an <code>iterable</code> of types.</p>
             <span class="k">yield</span> <span class="n">NO_SIGNIFICANT_CHANGES</span>
 
     <span class="k">def</span> <span class="nf">collect_fragments</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Fragments</span><span class="p">[</span><span class="n">FragmentType</span><span class="p">,</span> <span class="n">Issue</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;Collects fragments from `changes` directory specified in the config.</span>
+        <span class="sd">&quot;&quot;&quot;Collects fragments from the changes directory specified in the config.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            An iterator over the fragments found.</span>
@@ -5580,7 +5595,7 @@ from an <code>iterable</code> of types.</p>
 <span class="sd">        Returns:</span>
 <span class="sd">            The build result.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">concat_double_newline</span><span class="p">(</span>
+        <span class="k">return</span> <span class="n">concat_double_new_line</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">build_generate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">collect_sections</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">collect_fragments</span><span class="p">()))</span>
         <span class="p">)</span>
 
@@ -5642,15 +5657,15 @@ from an <code>iterable</code> of types.</p>
 
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">indent_lines</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">string</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">bullet</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">concat_newline</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">generate_indent_lines</span><span class="p">(</span><span class="n">string</span><span class="p">,</span> <span class="n">bullet</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">concat_new_line</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">generate_indent_lines</span><span class="p">(</span><span class="n">string</span><span class="p">,</span> <span class="n">bullet</span><span class="p">))</span>
 
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">indent_wrap_lines</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">string</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">bullet</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">size</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="n">size</span> <span class="o">-=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="bp">cls</span><span class="o">.</span><span class="n">indents</span><span class="p">(</span><span class="n">bullet</span><span class="p">)))</span>
 
         <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">indent_lines</span><span class="p">(</span>
-            <span class="n">concat_newline</span><span class="p">(</span>
-                <span class="n">concat_newline</span><span class="p">(</span><span class="n">wrap</span><span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">break_long_words</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+            <span class="n">concat_new_line</span><span class="p">(</span>
+                <span class="n">concat_new_line</span><span class="p">(</span><span class="n">wrap</span><span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">break_long_words</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
                 <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">string</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span>
             <span class="p">),</span>
             <span class="n">bullet</span><span class="p">,</span>
@@ -5785,7 +5800,7 @@ from an <code>iterable</code> of types.</p>
 
   <div class="doc doc-contents ">
   
-      <p>Builds the section title of <code>type</code>.</p>
+      <p>Builds the section title of the particular <code>type</code>.</p>
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -5843,7 +5858,7 @@ from an <code>iterable</code> of types.</p>
 <span class="normal">60</span>
 <span class="normal">61</span>
 <span class="normal">62</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">build_section_title</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">type</span><span class="p">:</span> <span class="n">FragmentType</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Builds the section title of `type`.</span>
+    <span class="sd">&quot;&quot;&quot;Builds the section title of the particular `type`.</span>
 
 <span class="sd">    Arguments:</span>
 <span class="sd">        type: The fragment type to build the title for.</span>
@@ -6126,7 +6141,7 @@ from an <code>iterable</code> of types.</p>
 <span class="sd">    Returns:</span>
 <span class="sd">        The fragments built.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">concat_newline</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">build_fragment</span><span class="p">,</span> <span class="n">fragments</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">concat_new_line</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">build_fragment</span><span class="p">,</span> <span class="n">fragments</span><span class="p">))</span>
 </code></pre></div></td></tr></table></div>
       </details>
   </div>
@@ -6359,7 +6374,7 @@ from an <code>iterable</code> of types.</p>
 
   <div class="doc doc-contents ">
   
-      <p>Collects fragments from <code>changes</code> directory specified in the config.</p>
+      <p>Collects fragments from the changes directory specified in the config.</p>
 
   <p><strong>Returns:</strong></p>
   <table>
@@ -6392,7 +6407,7 @@ from an <code>iterable</code> of types.</p>
 <span class="normal">163</span>
 <span class="normal">164</span>
 <span class="normal">165</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">collect_fragments</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Fragments</span><span class="p">[</span><span class="n">FragmentType</span><span class="p">,</span> <span class="n">Issue</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot;Collects fragments from `changes` directory specified in the config.</span>
+    <span class="sd">&quot;&quot;&quot;Collects fragments from the changes directory specified in the config.</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        An iterator over the fragments found.</span>
@@ -6511,7 +6526,7 @@ from an <code>iterable</code> of types.</p>
 <span class="sd">    Returns:</span>
 <span class="sd">        The build result.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">concat_double_newline</span><span class="p">(</span>
+    <span class="k">return</span> <span class="n">concat_double_new_line</span><span class="p">(</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">build_generate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">collect_sections</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">collect_fragments</span><span class="p">()))</span>
     <span class="p">)</span>
 </code></pre></div></td></tr></table></div>
@@ -6631,7 +6646,7 @@ from an <code>iterable</code> of types.</p>
     <nav class="md-footer__inner md-grid" aria-label="Footer" >
       
         
-        <a href=".." class="md-footer__link md-footer__link--prev" aria-label="Previous: Index" rel="prev">
+        <a href="../usage/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Usage" rel="prev">
           <div class="md-footer__button md-icon">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
           </div>
@@ -6640,7 +6655,7 @@ from an <code>iterable</code> of types.</p>
               <span class="md-footer__direction">
                 Previous
               </span>
-              Index
+              Usage
             </div>
           </div>
         </a>
