@@ -17,7 +17,7 @@ __all__ = (
 )
 
 SUFFIX = ".{}"
-format_suffix = SUFFIX.format
+suffix = SUFFIX.format
 
 
 @frozen()
@@ -32,7 +32,7 @@ class FragmentType:
     @property
     def suffix(self) -> str:
         """The suffix of the type."""
-        return format_suffix(self.name)
+        return suffix(self.name)
 
 
 SECURITY = FragmentType("security", "Security")

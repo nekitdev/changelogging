@@ -1,0 +1,17 @@
+[tool.changelogging]
+name = "tests"
+version = "0.3.0"
+url = "https://github.com/nekitdev/changelogging/blob/main/tests"
+directory = "changes"
+output = "CHANGELOG.md"
+
+start_string = "<!-- changelogging: start -->"
+
+title_format = "{version} ({date})"
+issue_format = "[#{issue}]({url}/pull/{issue})"
+
+bullet = "-"
+wrap = true
+wrap_size = 100
+
+display = ["security", "feature", "change", "fix", "deprecation", "removal", "internal"]
