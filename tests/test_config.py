@@ -20,12 +20,12 @@ CHANGES_NAME = "changes"
 CHANGES = HERE / CHANGES_NAME
 
 NAME = "tests"
-VERSION = parse_version("0.3.0")
+VERSION = parse_version("1.0.0")
 
 CONFIG_DATA = ConfigData(  # keep in sync with `tests/changelogging.toml`
     changelogging=ConfigData(
         name="tests",
-        version="0.3.0",
+        version="1.0.0",
         url="https://github.com/nekitdev/changelogging",
         directory="changes",
         output="CHANGELOG.md",

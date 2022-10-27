@@ -1,3 +1,3 @@
 [changelogging]  # keep in sync with `tests/test_config.py`
 name = "tests"
-version = "0.3.0"
+version = "1.0.0"

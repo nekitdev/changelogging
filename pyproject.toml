@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "changelogging"
-version = "0.3.0"
+version = "1.0.0"
 description = "Building changelogs from fragments."
 authors = ["nekitdev"]
 license = "MIT"
@@ -14,7 +14,7 @@ documentation = "https://nekitdev.github.io/changelogging"
 keywords = ["python", "changelog", "changes"]
 
 classifiers = [
-    "Development Status :: 4 - Beta",
+    "Development Status :: 4 - Production/Stable",
     "Intended Audience :: Developers",
     "Operating System :: OS Independent",
     "Topic :: Utilities",
@@ -143,7 +143,7 @@ warn_unused_ignores = false  # compatibility
 
 [tool.changelogging]
 name = "changelogging"
-version = "0.3.0"
+version = "1.0.0"
 url = "https://github.com/nekitdev/changelogging"
 directory = "changes"
 output = "CHANGELOG.md"
