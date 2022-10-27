@@ -1,7 +1,7 @@
-[tool.changelogging]
+[changelogging]  # keep in sync with `tests/test_config.py`
 name = "tests"
 version = "0.3.0"
-url = "https://github.com/nekitdev/changelogging/blob/main/tests"
+url = "https://github.com/nekitdev/changelogging"
 directory = "changes"
 output = "CHANGELOG.md"
 
