@@ -223,7 +223,7 @@ class Builder:
                 file.write(start)
                 file.write(DOUBLE_NEW_LINE + content + NEW_LINE)
 
-                if after.strip():  # pragma: no cover  # not tested 
+                if after.strip():
                     file.write(NEW_LINE + after.lstrip())
 
     @staticmethod

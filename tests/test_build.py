@@ -18,10 +18,17 @@ WRITE = "w"
 BUILDER = Builder(Config.from_path(HERE))
 
 
-def test_write() -> None:
+def write_template() -> None:
     with TEMPLATE.open(READ) as template, CHANGELOG.open(WRITE) as changelog:
         changelog.write(template.read())
+
+
+def test_write() -> None:
+    write_template()
 
     BUILDER.write()
 
     # TODO: perhaps test the output?
+
+    write_template()
+
