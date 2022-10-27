@@ -14,7 +14,7 @@ documentation = "https://nekitdev.github.io/changelogging"
 keywords = ["python", "changelog", "changes"]
 
 classifiers = [
-    "Development Status :: 4 - Production/Stable",
+    "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
     "Operating System :: OS Independent",
     "Topic :: Utilities",

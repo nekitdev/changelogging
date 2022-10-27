@@ -66,6 +66,11 @@ $ cat CHANGELOG.md
 <!-- changelogging: start -->
 ```
 
+### Note
+
+Note that it is recommended to have the *start string* (`<!-- changelogging: start -->` by default)
+in order for changelogs to generate in a proper order.
+
 And the `changes` directory:
 
 ```console
