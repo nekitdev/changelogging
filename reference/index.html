@@ -304,8 +304,8 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#changelogging.config.ConfigDict" class="md-nav__link">
-    ConfigDict
+  <a href="#changelogging.config.ConfigData" class="md-nav__link">
+    ConfigData
   </a>
   
 </li>
@@ -452,8 +452,8 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#changelogging.config.Config.from_config_dict" class="md-nav__link">
-    from_config_dict()
+  <a href="#changelogging.config.Config.from_data" class="md-nav__link">
+    from_data()
   </a>
   
 </li>
@@ -1040,8 +1040,8 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#changelogging.config.ConfigDict" class="md-nav__link">
-    ConfigDict
+  <a href="#changelogging.config.ConfigData" class="md-nav__link">
+    ConfigData
   </a>
   
 </li>
@@ -1188,8 +1188,8 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#changelogging.config.Config.from_config_dict" class="md-nav__link">
-    from_config_dict()
+  <a href="#changelogging.config.Config.from_data" class="md-nav__link">
+    from_data()
   </a>
   
 </li>
@@ -1719,8 +1719,8 @@
 
 
 
-<h2 id="changelogging.config.ConfigDict" class="doc doc-heading">
-        <code>ConfigDict</code>
+<h2 id="changelogging.config.ConfigData" class="doc doc-heading">
+        <code>ConfigData</code>
 
 
 </h2>
@@ -1743,7 +1743,7 @@
 <span class="normal">81</span>
 <span class="normal">82</span>
 <span class="normal">83</span>
-<span class="normal">84</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">ConfigDict</span><span class="p">(</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">T</span><span class="p">]):</span>
+<span class="normal">84</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">ConfigData</span><span class="p">(</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">T</span><span class="p">]):</span>
     <span class="sd">&quot;&quot;&quot;Dictionaries that support attribute access.&quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Option</span><span class="p">[</span><span class="n">T</span><span class="p">]:</span>
@@ -1926,7 +1926,10 @@
 <span class="normal">245</span>
 <span class="normal">246</span>
 <span class="normal">247</span>
-<span class="normal">248</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@define</span><span class="p">()</span>
+<span class="normal">248</span>
+<span class="normal">249</span>
+<span class="normal">250</span>
+<span class="normal">251</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@define</span><span class="p">()</span>
 <span class="k">class</span> <span class="nc">Config</span><span class="p">:</span>
     <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
     <span class="sd">&quot;&quot;&quot;The name of the project.&quot;&quot;&quot;</span>
@@ -1964,16 +1967,17 @@
     <span class="c1"># dynamic code ahead...</span>
 
     <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">from_string</span><span class="p">(</span><span class="bp">cls</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">C</span><span class="p">],</span> <span class="n">string</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">C</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">from_string</span><span class="p">(</span><span class="bp">cls</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">C</span><span class="p">],</span> <span class="n">string</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">source</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Path</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">C</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Parses a [`Config`][changelogging.config.Config] from `string`.</span>
 
 <span class="sd">        Arguments:</span>
 <span class="sd">            string: The string to parse.</span>
+<span class="sd">            source: The source of where the config came from.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            A newly parsed [`Config`][changelogging.config.Config].</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">from_config_dict</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">string</span><span class="p">))</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">from_data</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">string</span><span class="p">),</span> <span class="n">source</span><span class="p">)</span>
 
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_file_path</span><span class="p">(</span><span class="bp">cls</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">C</span><span class="p">],</span> <span class="n">path</span><span class="p">:</span> <span class="n">IntoPath</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">C</span><span class="p">:</span>
@@ -1985,7 +1989,9 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            A newly parsed [`Config`][changelogging.config.Config] instance.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">from_string</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">read_text</span><span class="p">())</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">from_string</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">read_text</span><span class="p">(),</span> <span class="n">path</span><span class="p">)</span>
 
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_path</span><span class="p">(</span><span class="bp">cls</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">C</span><span class="p">],</span> <span class="n">path</span><span class="p">:</span> <span class="n">IntoPath</span><span class="p">,</span> <span class="n">search</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">IntoPath</span><span class="p">]</span> <span class="o">=</span> <span class="n">SEARCH</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">C</span><span class="p">:</span>
@@ -2017,16 +2023,16 @@
         <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
             <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">from_file_path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
 
-        <span class="k">raise</span> <span class="n">expected_file_or_directory</span><span class="p">()</span>
+        <span class="k">raise</span> <span class="n">expected_file_or_directory</span><span class="p">()</span>  <span class="c1"># pragma: no cover</span>
 
     <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">parse</span><span class="p">(</span><span class="n">string</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AnyConfigDict</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">cast</span><span class="p">(</span><span class="n">AnyConfigDict</span><span class="p">,</span> <span class="n">toml</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">string</span><span class="p">,</span> <span class="n">AnyConfigDict</span><span class="p">))</span>  <span class="c1"># type: ignore</span>
+    <span class="k">def</span> <span class="nf">parse</span><span class="p">(</span><span class="n">string</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AnyConfigData</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">cast</span><span class="p">(</span><span class="n">AnyConfigData</span><span class="p">,</span> <span class="n">toml</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">string</span><span class="p">,</span> <span class="n">AnyConfigData</span><span class="p">))</span>  <span class="c1"># type: ignore</span>
 
     <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">from_config_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">C</span><span class="p">],</span> <span class="n">config_dict</span><span class="p">:</span> <span class="n">AnyConfigDict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">C</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">from_data</span><span class="p">(</span><span class="bp">cls</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">C</span><span class="p">],</span> <span class="n">config_dict</span><span class="p">:</span> <span class="n">AnyConfigData</span><span class="p">,</span> <span class="n">source</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Path</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">C</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Creates a [`Config`][changelogging.config.Config]</span>
-<span class="sd">        from [`ConfigDict`][changelogging.config.ConfigDict].</span>
+<span class="sd">        from [`ConfigData`][changelogging.config.ConfigData].</span>
 
 <span class="sd">        Arguments:</span>
 <span class="sd">            config_dict: The config dictionary to use.</span>
@@ -2045,8 +2051,8 @@
             <span class="n">version</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">version</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">Version</span><span class="o">.</span><span class="n">parse</span><span class="p">)</span><span class="o">.</span><span class="n">unwrap_or_raise</span><span class="p">(</span><span class="n">expected</span><span class="p">(</span><span class="n">VERSION</span><span class="p">)),</span>
             <span class="c1"># map to `URL` and `Path` to simplify interaction</span>
             <span class="n">url</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">url</span><span class="o">.</span><span class="n">map_or_else</span><span class="p">(</span><span class="n">default_url</span><span class="p">,</span> <span class="n">URL</span><span class="p">),</span>
-            <span class="n">directory</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">directory</span><span class="o">.</span><span class="n">map_or_else</span><span class="p">(</span><span class="n">default_directory</span><span class="p">,</span> <span class="n">Path</span><span class="p">),</span>
-            <span class="n">output</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">map_or_else</span><span class="p">(</span><span class="n">default_output</span><span class="p">,</span> <span class="n">Path</span><span class="p">),</span>
+            <span class="n">directory</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">directory</span><span class="o">.</span><span class="n">map_or_else</span><span class="p">(</span><span class="n">default_directory</span><span class="p">,</span> <span class="n">source_path</span><span class="p">(</span><span class="n">source</span><span class="p">)),</span>
+            <span class="n">output</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">map_or_else</span><span class="p">(</span><span class="n">default_output</span><span class="p">,</span> <span class="n">source_path</span><span class="p">(</span><span class="n">source</span><span class="p">)),</span>
             <span class="c1"># merely return defaults if needed</span>
             <span class="n">title_level</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">title_level</span><span class="o">.</span><span class="n">unwrap_or</span><span class="p">(</span><span class="n">DEFAULT_TITLE_LEVEL</span><span class="p">),</span>
             <span class="n">section_level</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">section_level</span><span class="o">.</span><span class="n">unwrap_or</span><span class="p">(</span><span class="n">DEFAULT_SECTION_LEVEL</span><span class="p">),</span>
@@ -2418,7 +2424,7 @@
 
 
 <h3 id="changelogging.config.Config.from_string" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">from_string</span><span class="p">(</span><span class="n">string</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">C</span></code>
+<code class="highlight language-python"><span class="n">from_string</span><span class="p">(</span><span class="n">string</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">source</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Path</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">C</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
@@ -2450,6 +2456,16 @@
           <td><p>The string to parse.</p></td>
           <td>
               <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>source</code></td>
+          <td>
+                <code><a class="autorefs autorefs-external" title="typing.Optional" href="https://docs.python.org/3/library/typing.html#typing.Optional">Optional</a>[<a class="autorefs autorefs-external" title="pathlib.Path" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path">Path</a>]</code>
+          </td>
+          <td><p>The source of where the config came from.</p></td>
+          <td>
+                <code>None</code>
           </td>
         </tr>
     </tbody>
@@ -2485,17 +2501,19 @@
 <span class="normal">157</span>
 <span class="normal">158</span>
 <span class="normal">159</span>
-<span class="normal">160</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@classmethod</span>
-<span class="k">def</span> <span class="nf">from_string</span><span class="p">(</span><span class="bp">cls</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">C</span><span class="p">],</span> <span class="n">string</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">C</span><span class="p">:</span>
+<span class="normal">160</span>
+<span class="normal">161</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@classmethod</span>
+<span class="k">def</span> <span class="nf">from_string</span><span class="p">(</span><span class="bp">cls</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">C</span><span class="p">],</span> <span class="n">string</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">source</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Path</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">C</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Parses a [`Config`][changelogging.config.Config] from `string`.</span>
 
 <span class="sd">    Arguments:</span>
 <span class="sd">        string: The string to parse.</span>
+<span class="sd">        source: The source of where the config came from.</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        A newly parsed [`Config`][changelogging.config.Config].</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">from_config_dict</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">string</span><span class="p">))</span>
+    <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">from_data</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">string</span><span class="p">),</span> <span class="n">source</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
       </details>
   </div>
@@ -2564,8 +2582,7 @@
 
       <details class="quote">
         <summary>Source code in <code>changelogging/config.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">162</span>
-<span class="normal">163</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">163</span>
 <span class="normal">164</span>
 <span class="normal">165</span>
 <span class="normal">166</span>
@@ -2574,7 +2591,10 @@
 <span class="normal">169</span>
 <span class="normal">170</span>
 <span class="normal">171</span>
-<span class="normal">172</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@classmethod</span>
+<span class="normal">172</span>
+<span class="normal">173</span>
+<span class="normal">174</span>
+<span class="normal">175</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@classmethod</span>
 <span class="k">def</span> <span class="nf">from_file_path</span><span class="p">(</span><span class="bp">cls</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">C</span><span class="p">],</span> <span class="n">path</span><span class="p">:</span> <span class="n">IntoPath</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">C</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Parses a [`Config`][changelogging.config.Config] from file `path`.</span>
 
@@ -2584,7 +2604,9 @@
 <span class="sd">    Returns:</span>
 <span class="sd">        A newly parsed [`Config`][changelogging.config.Config] instance.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">from_string</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">read_text</span><span class="p">())</span>
+    <span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">from_string</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">read_text</span><span class="p">(),</span> <span class="n">path</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
       </details>
   </div>
@@ -2664,10 +2686,7 @@
 
       <details class="quote">
         <summary>Source code in <code>changelogging/config.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">174</span>
-<span class="normal">175</span>
-<span class="normal">176</span>
-<span class="normal">177</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">177</span>
 <span class="normal">178</span>
 <span class="normal">179</span>
 <span class="normal">180</span>
@@ -2694,7 +2713,10 @@
 <span class="normal">201</span>
 <span class="normal">202</span>
 <span class="normal">203</span>
-<span class="normal">204</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@classmethod</span>
+<span class="normal">204</span>
+<span class="normal">205</span>
+<span class="normal">206</span>
+<span class="normal">207</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@classmethod</span>
 <span class="k">def</span> <span class="nf">from_path</span><span class="p">(</span><span class="bp">cls</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">C</span><span class="p">],</span> <span class="n">path</span><span class="p">:</span> <span class="n">IntoPath</span><span class="p">,</span> <span class="n">search</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">IntoPath</span><span class="p">]</span> <span class="o">=</span> <span class="n">SEARCH</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">C</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Parses a [`Config`][changelogging.config.Config] from `path`.</span>
 
@@ -2724,7 +2746,7 @@
     <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">from_file_path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
 
-    <span class="k">raise</span> <span class="n">expected_file_or_directory</span><span class="p">()</span>
+    <span class="k">raise</span> <span class="n">expected_file_or_directory</span><span class="p">()</span>  <span class="c1"># pragma: no cover</span>
 </code></pre></div></td></tr></table></div>
       </details>
   </div>
@@ -2735,8 +2757,8 @@
 
 
 
-<h3 id="changelogging.config.Config.from_config_dict" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">from_config_dict</span><span class="p">(</span><span class="n">config_dict</span><span class="p">:</span> <span class="n">AnyConfigDict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">C</span></code>
+<h3 id="changelogging.config.Config.from_data" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">from_data</span><span class="p">(</span><span class="n">config_dict</span><span class="p">:</span> <span class="n">AnyConfigData</span><span class="p">,</span> <span class="n">source</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Path</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">C</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
@@ -2748,7 +2770,7 @@
   <div class="doc doc-contents ">
   
       <p>Creates a <a class="autorefs autorefs-internal" href="#changelogging.config.Config"><code>Config</code></a>
-from <a class="autorefs autorefs-internal" href="#changelogging.config.ConfigDict"><code>ConfigDict</code></a>.</p>
+from <a class="autorefs autorefs-internal" href="#changelogging.config.ConfigData"><code>ConfigData</code></a>.</p>
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -2764,7 +2786,7 @@ from <a class="autorefs autorefs-internal" href="#changelogging.config.ConfigDic
         <tr>
           <td><code>config_dict</code></td>
           <td>
-                <code><span title="changelogging.config.AnyConfigDict">AnyConfigDict</span></code>
+                <code><span title="changelogging.config.AnyConfigData">AnyConfigData</span></code>
           </td>
           <td><p>The config dictionary to use.</p></td>
           <td>
@@ -2794,10 +2816,7 @@ from <a class="autorefs autorefs-internal" href="#changelogging.config.ConfigDic
 
       <details class="quote">
         <summary>Source code in <code>changelogging/config.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">210</span>
-<span class="normal">211</span>
-<span class="normal">212</span>
-<span class="normal">213</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">213</span>
 <span class="normal">214</span>
 <span class="normal">215</span>
 <span class="normal">216</span>
@@ -2832,10 +2851,13 @@ from <a class="autorefs autorefs-internal" href="#changelogging.config.ConfigDic
 <span class="normal">245</span>
 <span class="normal">246</span>
 <span class="normal">247</span>
-<span class="normal">248</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@classmethod</span>
-<span class="k">def</span> <span class="nf">from_config_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">C</span><span class="p">],</span> <span class="n">config_dict</span><span class="p">:</span> <span class="n">AnyConfigDict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">C</span><span class="p">:</span>
+<span class="normal">248</span>
+<span class="normal">249</span>
+<span class="normal">250</span>
+<span class="normal">251</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@classmethod</span>
+<span class="k">def</span> <span class="nf">from_data</span><span class="p">(</span><span class="bp">cls</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">C</span><span class="p">],</span> <span class="n">config_dict</span><span class="p">:</span> <span class="n">AnyConfigData</span><span class="p">,</span> <span class="n">source</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Path</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">C</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Creates a [`Config`][changelogging.config.Config]</span>
-<span class="sd">    from [`ConfigDict`][changelogging.config.ConfigDict].</span>
+<span class="sd">    from [`ConfigData`][changelogging.config.ConfigData].</span>
 
 <span class="sd">    Arguments:</span>
 <span class="sd">        config_dict: The config dictionary to use.</span>
@@ -2854,8 +2876,8 @@ from <a class="autorefs autorefs-internal" href="#changelogging.config.ConfigDic
         <span class="n">version</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">version</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">Version</span><span class="o">.</span><span class="n">parse</span><span class="p">)</span><span class="o">.</span><span class="n">unwrap_or_raise</span><span class="p">(</span><span class="n">expected</span><span class="p">(</span><span class="n">VERSION</span><span class="p">)),</span>
         <span class="c1"># map to `URL` and `Path` to simplify interaction</span>
         <span class="n">url</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">url</span><span class="o">.</span><span class="n">map_or_else</span><span class="p">(</span><span class="n">default_url</span><span class="p">,</span> <span class="n">URL</span><span class="p">),</span>
-        <span class="n">directory</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">directory</span><span class="o">.</span><span class="n">map_or_else</span><span class="p">(</span><span class="n">default_directory</span><span class="p">,</span> <span class="n">Path</span><span class="p">),</span>
-        <span class="n">output</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">map_or_else</span><span class="p">(</span><span class="n">default_output</span><span class="p">,</span> <span class="n">Path</span><span class="p">),</span>
+        <span class="n">directory</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">directory</span><span class="o">.</span><span class="n">map_or_else</span><span class="p">(</span><span class="n">default_directory</span><span class="p">,</span> <span class="n">source_path</span><span class="p">(</span><span class="n">source</span><span class="p">)),</span>
+        <span class="n">output</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">map_or_else</span><span class="p">(</span><span class="n">default_output</span><span class="p">,</span> <span class="n">source_path</span><span class="p">(</span><span class="n">source</span><span class="p">)),</span>
         <span class="c1"># merely return defaults if needed</span>
         <span class="n">title_level</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">title_level</span><span class="o">.</span><span class="n">unwrap_or</span><span class="p">(</span><span class="n">DEFAULT_TITLE_LEVEL</span><span class="p">),</span>
         <span class="n">section_level</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">section_level</span><span class="o">.</span><span class="n">unwrap_or</span><span class="p">(</span><span class="n">DEFAULT_SECTION_LEVEL</span><span class="p">),</span>
@@ -5550,7 +5572,7 @@ from an <code>iterable</code> of types.</p>
                 <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">build_section_title</span><span class="p">(</span><span class="nb">type</span><span class="p">)</span>
                 <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">build_fragments</span><span class="p">(</span><span class="n">fragments</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="n">empty</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">empty</span><span class="p">:</span>  <span class="c1"># pragma: no cover  # not tested</span>
             <span class="k">yield</span> <span class="n">NO_SIGNIFICANT_CHANGES</span>
 
     <span class="k">def</span> <span class="nf">collect_fragments</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Fragments</span><span class="p">[</span><span class="n">FragmentType</span><span class="p">,</span> <span class="n">Issue</span><span class="p">]:</span>
@@ -5576,7 +5598,7 @@ from an <code>iterable</code> of types.</p>
                     <span class="k">if</span> <span class="n">types</span><span class="o">.</span><span class="n">has_suffix</span><span class="p">(</span><span class="n">suffix</span><span class="p">):</span>
                         <span class="k">yield</span> <span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">types</span><span class="o">.</span><span class="n">get_suffix</span><span class="p">(</span><span class="n">suffix</span><span class="p">))</span>
 
-    <span class="k">def</span> <span class="nf">collect_paths</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">Path</span><span class="p">]:</span>
+    <span class="k">def</span> <span class="nf">collect_paths</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">Path</span><span class="p">]:</span>  <span class="c1"># pragma: no cover  # only used in `main`</span>
         <span class="sd">&quot;&quot;&quot;Collect paths to fragments.</span>
 
 <span class="sd">        Returns:</span>
@@ -5613,7 +5635,7 @@ from an <code>iterable</code> of types.</p>
         <span class="n">before</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">after</span> <span class="o">=</span> <span class="n">current</span><span class="o">.</span><span class="n">partition</span><span class="p">(</span><span class="n">start_string</span><span class="p">)</span>
 
         <span class="k">with</span> <span class="n">output</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">WRITE</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">start</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">start</span><span class="p">:</span>  <span class="c1"># pragma: no cover  # not tested</span>
                 <span class="n">file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">content</span> <span class="o">+</span> <span class="n">NEW_LINE</span><span class="p">)</span>
 
                 <span class="k">if</span> <span class="n">current</span><span class="o">.</span><span class="n">strip</span><span class="p">():</span>
@@ -5643,7 +5665,7 @@ from an <code>iterable</code> of types.</p>
 
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">generate_indent_lines</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">string</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">bullet</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">string</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">string</span><span class="p">:</span>  <span class="c1"># pragma: no cover  # not tested</span>
             <span class="k">return</span>
 
         <span class="n">initial</span><span class="p">,</span> <span class="n">subsequent</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">indents</span><span class="p">(</span><span class="n">bullet</span><span class="p">)</span>
@@ -6354,7 +6376,7 @@ from an <code>iterable</code> of types.</p>
             <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">build_section_title</span><span class="p">(</span><span class="nb">type</span><span class="p">)</span>
             <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">build_fragments</span><span class="p">(</span><span class="n">fragments</span><span class="p">)</span>
 
-    <span class="k">if</span> <span class="n">empty</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">empty</span><span class="p">:</span>  <span class="c1"># pragma: no cover  # not tested</span>
         <span class="k">yield</span> <span class="n">NO_SIGNIFICANT_CHANGES</span>
 </code></pre></div></td></tr></table></div>
       </details>
@@ -6464,7 +6486,7 @@ from an <code>iterable</code> of types.</p>
 <span class="normal">182</span>
 <span class="normal">183</span>
 <span class="normal">184</span>
-<span class="normal">185</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">collect_paths</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">Path</span><span class="p">]:</span>
+<span class="normal">185</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">collect_paths</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">Path</span><span class="p">]:</span>  <span class="c1"># pragma: no cover  # only used in `main`</span>
     <span class="sd">&quot;&quot;&quot;Collect paths to fragments.</span>
 
 <span class="sd">    Returns:</span>
@@ -6591,7 +6613,7 @@ from an <code>iterable</code> of types.</p>
     <span class="n">before</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">after</span> <span class="o">=</span> <span class="n">current</span><span class="o">.</span><span class="n">partition</span><span class="p">(</span><span class="n">start_string</span><span class="p">)</span>
 
     <span class="k">with</span> <span class="n">output</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">WRITE</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">start</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">start</span><span class="p">:</span>  <span class="c1"># pragma: no cover  # not tested</span>
             <span class="n">file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">content</span> <span class="o">+</span> <span class="n">NEW_LINE</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="n">current</span><span class="o">.</span><span class="n">strip</span><span class="p">():</span>
