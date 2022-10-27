@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Any, Dict, Iterable, Iterator, Type, TypeVar, cast, overload
+from typing import Any, Dict, Iterable, Iterator, Optional, Type, TypeVar, cast, overload
 
 import toml
 from attrs import define
@@ -23,9 +23,9 @@ from changelogging.defaults import (
     DEFAULT_WRAP_SIZE,
 )
 from changelogging.fragments import DISPLAY, TYPES, AnyFragmentTypes, Display, FragmentType
-from changelogging.typing import IntoPath
+from changelogging.typing import IntoPath, Unary
 
-__all__ = ("Config", "ConfigDict", "AnyConfigDict")
+__all__ = ("Config", "ConfigData", "AnyConfigData")
 
 CHANGELOGGING = "changelogging.toml"
 PYPROJECT = "pyproject.toml"
@@ -59,7 +59,7 @@ def expected(name: str) -> ValueError:
     return ValueError(EXPECTED.format(name))
 
 
-def expected_file_or_directory() -> ValueError:
+def expected_file_or_directory() -> ValueError:  # pragma: no cover
     return ValueError(EXPECTED_FILE_OR_DIRECTORY)
 
 
@@ -71,10 +71,10 @@ def empty() -> Iterator[Never]:
 T = TypeVar("T")
 
 
-CD = TypeVar("CD", bound="AnyConfigDict")
+CD = TypeVar("CD", bound="AnyConfigData")
 
 
-class ConfigDict(Dict[str, T]):
+class ConfigData(Dict[str, T]):
     """Dictionaries that support attribute access."""
 
     def __getattr__(self, name: str) -> Option[T]:
@@ -84,23 +84,23 @@ class ConfigDict(Dict[str, T]):
         return type(self)(self)
 
 
-AnyConfigDict = ConfigDict[Any]
+AnyConfigData = ConfigData[Any]
 
 
 FT = TypeVar("FT", bound=FragmentType)
 
 
 @overload
-def map_to_type(mapping: ConfigDict[str]) -> FragmentType:
-    ...  # pragma: overload
-
-
-@overload
-def map_to_type(mapping: ConfigDict[str], fragment_type: Type[FT]) -> FT:
+def map_to_type(mapping: ConfigData[str]) -> FragmentType:
     ...
 
 
-def map_to_type(mapping: ConfigDict[str], fragment_type: Type[Any] = FragmentType) -> Any:
+@overload
+def map_to_type(mapping: ConfigData[str], fragment_type: Type[FT]) -> FT:
+    ...
+
+
+def map_to_type(mapping: ConfigData[str], fragment_type: Type[Any] = FragmentType) -> Any:
     return fragment_type(
         mapping.name.unwrap_or_raise(expected(TYPE_NAME)),
         mapping.title.unwrap_or_raise(expected(TYPE_TITLE)),
@@ -148,16 +148,17 @@ class Config:
     # dynamic code ahead...
 
     @classmethod
-    def from_string(cls: Type[C], string: str) -> C:
+    def from_string(cls: Type[C], string: str, source: Optional[Path] = None) -> C:
         """Parses a [`Config`][changelogging.config.Config] from `string`.
 
         Arguments:
             string: The string to parse.
+            source: The source of where the config came from.
 
         Returns:
             A newly parsed [`Config`][changelogging.config.Config].
         """
-        return cls.from_config_dict(cls.parse(string))
+        return cls.from_data(cls.parse(string), source)
 
     @classmethod
     def from_file_path(cls: Type[C], path: IntoPath) -> C:
@@ -169,7 +170,9 @@ class Config:
         Returns:
             A newly parsed [`Config`][changelogging.config.Config] instance.
         """
-        return cls.from_string(Path(path).read_text())
+        path = Path(path)
+
+        return cls.from_string(path.read_text(), path)
 
     @classmethod
     def from_path(cls: Type[C], path: IntoPath, search: Iterable[IntoPath] = SEARCH) -> C:
@@ -201,16 +204,16 @@ class Config:
         if path.is_file():
             return cls.from_file_path(path)
 
-        raise expected_file_or_directory()
+        raise expected_file_or_directory()  # pragma: no cover
 
     @staticmethod
-    def parse(string: str) -> AnyConfigDict:
-        return cast(AnyConfigDict, toml.loads(string, AnyConfigDict))  # type: ignore
+    def parse(string: str) -> AnyConfigData:
+        return cast(AnyConfigData, toml.loads(string, AnyConfigData))  # type: ignore
 
     @classmethod
-    def from_config_dict(cls: Type[C], config_dict: AnyConfigDict) -> C:
+    def from_data(cls: Type[C], config_dict: AnyConfigData, source: Optional[Path] = None) -> C:
         """Creates a [`Config`][changelogging.config.Config]
-        from [`ConfigDict`][changelogging.config.ConfigDict].
+        from [`ConfigData`][changelogging.config.ConfigData].
 
         Arguments:
             config_dict: The config dictionary to use.
@@ -229,8 +232,8 @@ class Config:
             version=config.version.map(Version.parse).unwrap_or_raise(expected(VERSION)),
             # map to `URL` and `Path` to simplify interaction
             url=config.url.map_or_else(default_url, URL),
-            directory=config.directory.map_or_else(default_directory, Path),
-            output=config.output.map_or_else(default_output, Path),
+            directory=config.directory.map_or_else(default_directory, source_path(source)),
+            output=config.output.map_or_else(default_output, source_path(source)),
             # merely return defaults if needed
             title_level=config.title_level.unwrap_or(DEFAULT_TITLE_LEVEL),
             section_level=config.section_level.unwrap_or(DEFAULT_SECTION_LEVEL),
@@ -258,3 +261,13 @@ def default_directory() -> Path:
 
 def default_output() -> Path:
     return Path(DEFAULT_OUTPUT)
+
+
+def source_path(source: Optional[Path] = None) -> Unary[str, Path]:
+    def format_path(string: str) -> Path:
+        if source is None:
+            return Path(string)
+
+        return Path(string.format(here=source.parent))
+
+    return format_path

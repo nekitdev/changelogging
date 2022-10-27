@@ -149,7 +149,7 @@ class Builder:
                 yield self.build_section_title(type)
                 yield self.build_fragments(fragments)
 
-        if empty:
+        if empty:  # pragma: no cover  # not tested
             yield NO_SIGNIFICANT_CHANGES
 
     def collect_fragments(self) -> Fragments[FragmentType, Issue]:
@@ -175,7 +175,7 @@ class Builder:
                     if types.has_suffix(suffix):
                         yield (path, types.get_suffix(suffix))
 
-    def collect_paths(self) -> Iterator[Path]:
+    def collect_paths(self) -> Iterator[Path]:  # pragma: no cover  # only used in `main`
         """Collect paths to fragments.
 
         Returns:
@@ -212,7 +212,7 @@ class Builder:
         before, start, after = current.partition(start_string)
 
         with output.open(WRITE) as file:
-            if not start:
+            if not start:  # pragma: no cover  # not tested
                 file.write(content + NEW_LINE)
 
                 if current.strip():
@@ -223,7 +223,7 @@ class Builder:
                 file.write(start)
                 file.write(DOUBLE_NEW_LINE + content + NEW_LINE)
 
-                if after.strip():
+                if after.strip():  # pragma: no cover  # not tested 
                     file.write(NEW_LINE + after.lstrip())
 
     @staticmethod
@@ -242,7 +242,7 @@ class Builder:
 
     @classmethod
     def generate_indent_lines(cls, string: str, bullet: str) -> Iterator[str]:
-        if not string:
+        if not string:  # pragma: no cover  # not tested
             return
 
         initial, subsequent = cls.indents(bullet)

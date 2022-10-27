@@ -1,15 +1,29 @@
 from pathlib import Path
 
-from changelogging.config import Config, ConfigDict
+import pytest
+from versions import parse_version
+
+from changelogging.config import Config, ConfigData
 
 HERE = Path(__file__).parent
 
-TEST_NAME = "test.toml"
+BROKEN_NAME = "broken.toml"
+BROKEN = HERE / BROKEN_NAME
 
-TEST = HERE / TEST_NAME
+CHANGELOGGING_NAME = "changelogging.toml"
+CHANGELOGGING = HERE / CHANGELOGGING_NAME
 
-CONFIG = ConfigDict(  # keep in sync with `tests/test.toml`
-    changelogging=ConfigDict(
+DEFAULT_NAME = "default.toml"
+DEFAULT = HERE / DEFAULT_NAME
+
+CHANGES_NAME = "changes"
+CHANGES = HERE / CHANGES_NAME
+
+NAME = "tests"
+VERSION = parse_version("0.3.0")
+
+CONFIG_DATA = ConfigData(  # keep in sync with `tests/changelogging.toml`
+    changelogging=ConfigData(
         name="tests",
         version="0.3.0",
         url="https://github.com/nekitdev/changelogging",
@@ -21,6 +35,38 @@ CONFIG = ConfigDict(  # keep in sync with `tests/test.toml`
         bullet="-",
         wrap=True,
         wrap_size=100,
-        display=["security", "feature", "change", "fix", "deprecation", "removal", "internal"]
+        display=["security", "feature", "change", "fix", "deprecation", "removal", "internal"],
+        types=[ConfigData(name="test", title="Tests")],
     )
 )
+
+
+class TestConfigData:
+    def test_copy(self) -> None:
+        assert CONFIG_DATA.copy() == CONFIG_DATA
+
+
+CONFIG = Config.from_data(CONFIG_DATA)
+
+
+class TestConfig:
+    def test_from_path(self) -> None:
+        config = Config.from_path(HERE)
+
+        config_direct = Config.from_path(CHANGELOGGING)
+
+        assert config == config_direct
+
+    def test_default(self) -> None:
+        config = Config.from_path(DEFAULT)
+
+        assert config.name == NAME
+        assert config.version == VERSION
+
+    def test_file_not_found(self) -> None:
+        with pytest.raises(FileNotFoundError):
+            Config.from_path(BROKEN)
+
+    def test_directory_not_found(self) -> None:
+        with pytest.raises(FileNotFoundError):
+            Config.from_path(CHANGES)

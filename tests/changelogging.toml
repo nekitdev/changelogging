@@ -2,8 +2,8 @@
 name = "tests"
 version = "0.3.0"
 url = "https://github.com/nekitdev/changelogging"
-directory = "changes"
-output = "CHANGELOG.md"
+directory = "{here}/changes"
+output = "{here}/CHANGELOG.md"
 
 start_string = "<!-- changelogging: start -->"
 
@@ -15,3 +15,7 @@ wrap = true
 wrap_size = 100
 
 display = ["security", "feature", "change", "fix", "deprecation", "removal", "internal"]
+
+[[changelogging.types]]
+name = "test"
+title = "Tests"

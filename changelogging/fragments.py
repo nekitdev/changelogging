@@ -1,4 +1,4 @@
-from typing import Dict, Generic, Iterable, Iterator, Type, TypeVar
+from typing import Any, Dict, Generic, Iterable, Iterator, Type, TypeVar
 
 from attrs import field, frozen
 
@@ -167,7 +167,7 @@ class FragmentTypes(Generic[FT]):
         return self.suffix_to_type[suffix]
 
 
-AnyFragmentTypes = FragmentTypes[FragmentType]
+AnyFragmentTypes = FragmentTypes[Any]
 
 Names = DynamicTuple[str]
 
