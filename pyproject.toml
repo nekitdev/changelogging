@@ -60,7 +60,7 @@ python = "^3.7"
 optional = true
 
 [tool.poetry.group.check.dependencies]
-mypy = "0.971"
+mypy = "0.982"
 
 types-toml = "0.10.8"
 
