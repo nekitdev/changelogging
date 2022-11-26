@@ -1,7 +1,11 @@
-from hypothesis import given, strategies
+from typing import Any
 
-from changelogging.typing import AnyStringDict
+from hypothesis import given, strategies
+from typing_aliases import StringDict
+
 from changelogging.utils import mapping_merge
+
+AnyStringDict = StringDict[Any]
 
 
 @given(
