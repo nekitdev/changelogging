@@ -2,6 +2,13 @@
 
 <!-- changelogging: start -->
 
+## 1.0.1 (2022-11-28)
+
+### Internal
+
+- Migrated to using [`typing-aliases`](https://github.com/nekitdev/typing-aliases) package
+  instead of reimplementing type aliases in `changelogging.typing`.
+
 ## 1.0.0 (2022-10-27)
 
 The first stable release.

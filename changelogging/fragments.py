@@ -1,8 +1,8 @@
 from typing import Any, Dict, Generic, Iterable, Iterator, Type, TypeVar
 
 from attrs import field, frozen
+from typing_aliases import DynamicTuple
 
-from changelogging.typing import DynamicTuple
 from changelogging.utils import mapping_merge
 
 __all__ = (

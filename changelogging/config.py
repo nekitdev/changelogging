@@ -3,6 +3,7 @@ from typing import Any, Dict, Iterable, Iterator, Optional, Type, TypeVar, cast,
 
 import toml
 from attrs import define
+from typing_aliases import IntoPath, Unary
 from typing_extensions import Never
 from versions import Version
 from wraps import Option, wrap_optional
@@ -23,7 +24,6 @@ from changelogging.defaults import (
     DEFAULT_WRAP_SIZE,
 )
 from changelogging.fragments import DISPLAY, TYPES, AnyFragmentTypes, Display, FragmentType
-from changelogging.typing import IntoPath, Unary
 
 __all__ = ("Config", "ConfigData", "AnyConfigData")
 

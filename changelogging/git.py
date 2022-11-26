@@ -2,7 +2,7 @@ from pathlib import Path
 from subprocess import call
 from typing import Iterable, Sequence
 
-from changelogging.typing import DynamicTuple
+from typing_aliases import DynamicTuple
 
 __all__ = ("remove_command", "remove_paths")
 
