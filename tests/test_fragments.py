@@ -23,8 +23,6 @@ BROKEN_SUFFIX = suffix(BROKEN)
 
 T = TypeVar("T")
 
-FIRST = 0
-
 EMPTY = "iterable is empty"
 
 
@@ -33,6 +31,7 @@ def first(iterable: Iterable[T]) -> T:
         return item
 
     raise ValueError(EMPTY)
+
 
 class TestFragmentType:
     def test_suffix(self) -> None:

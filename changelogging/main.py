@@ -1,16 +1,17 @@
-from datetime import date
 from pathlib import Path
 from typing import Optional
 
 import click
+from iters import iter
+from pendulum import Date, parse
 from wraps import Option, wrap_optional
 
 from changelogging import __version__ as version
 from changelogging.build import Builder
 from changelogging.config import Config
-from changelogging.constants import HASH, NEW_LINE
-from changelogging.defaults import DEFAULT_NAME
+from changelogging.constants import DEFAULT_NAME, HASH, NEW_LINE
 from changelogging.git import remove_paths
+from changelogging.utils import today
 
 __all__ = ("changelogging", "build", "create")
 
@@ -19,11 +20,16 @@ def get_config(string: Option[str]) -> Config:
     return Config.from_path(string.map_or_else(Path, Path))
 
 
-parse_date = date.fromisoformat
+def get_date(string: Option[str]) -> Date:
+    return string.map_or_else(today, parse_date)
 
 
-def get_date(string: Option[str]) -> date:
-    return string.map_or_else(date.today, parse_date)
+def parse_date(string: str) -> Date:
+    return parse(string).date()  # type: ignore
+
+
+split_lines = str.splitlines
+right_strip = str.rstrip
 
 
 @click.group(name=DEFAULT_NAME)
@@ -100,13 +106,12 @@ def create(config_path: Optional[str], edit: bool, name: str) -> None:
             click.echo(ABORTED)
             return
 
-        string = concat_new_line(map(str.rstrip, filter(is_content, string.splitlines())))
-
+        string = iter(split_lines(string)).filter(is_content).map(right_strip).collect(concat_new_line)
     else:
         string = PLACEHOLDER
 
     path = config.directory / name
 
-    path.write_text(string.rstrip() + NEW_LINE)
+    path.write_text(right_strip(string) + NEW_LINE)
 
     click.echo(CREATED.format(name))

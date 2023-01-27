@@ -2,6 +2,10 @@
 
 <!-- changelogging: start -->
 
+## 1.1.0 (2022-01-27)
+
+No significant changes.
+
 ## 1.0.0 (2022-10-27)
 
 The first stable release.

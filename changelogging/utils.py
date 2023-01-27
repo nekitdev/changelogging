@@ -1,6 +1,8 @@
 from typing import Any, Dict, Hashable, Mapping, TypeVar, overload
 
-__all__ = ("mapping_merge",)
+from pendulum import Date, now
+
+__all__ = ("mapping_merge", "today")
 
 Q = TypeVar("Q", bound=Hashable)
 T = TypeVar("T")
@@ -34,3 +36,8 @@ def mapping_merge(*mappings: Mapping[Any, Any], **keywords: Any) -> Dict[Any, An
     result.update(keywords)
 
     return result
+
+
+def today() -> Date:
+    """Returns the current date."""
+    return now().date()  # type: ignore

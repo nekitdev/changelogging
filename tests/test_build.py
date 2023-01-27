@@ -1,5 +1,7 @@
 from pathlib import Path
 
+from typing_extensions import Literal
+
 from changelogging.build import Builder
 from changelogging.config import Config
 
@@ -11,8 +13,8 @@ CHANGELOG = HERE / CHANGELOG_NAME
 TEMPLATE_NAME = "TEMPLATE.md"
 TEMPLATE = HERE / TEMPLATE_NAME
 
-READ = "r"
-WRITE = "w"
+READ: Literal["r"] = "r"
+WRITE: Literal["w"] = "w"
 
 
 BUILDER = Builder(Config.from_path(HERE))
@@ -31,4 +33,3 @@ def test_write() -> None:
     # TODO: perhaps test the output?
 
     write_template()
-

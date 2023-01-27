@@ -1,10 +1,11 @@
 from collections import defaultdict as default_dict
-from datetime import date
 from pathlib import Path
 from textwrap import wrap
 from typing import Dict, Iterable, Iterator, List, Mapping, Tuple, TypeVar
 
 from attrs import define, field
+from pendulum import Date, now
+from typing_extensions import Literal
 
 from changelogging.config import Config
 from changelogging.constants import DOT, DOUBLE_NEW_LINE, EMPTY, HASH, NEW_LINE, SPACE
@@ -17,7 +18,12 @@ NO_SIGNIFICANT_CHANGES = "No significant changes."
 concat_new_line = NEW_LINE.join
 concat_double_new_line = DOUBLE_NEW_LINE.join
 
-WRITE = "w"
+WRITE: Literal["w"] = "w"
+
+
+def today() -> Date:
+    return now().date()  # type: ignore
+
 
 FT = TypeVar("FT", bound=FragmentType)
 IT = TypeVar("IT", bound=Issue)
@@ -33,7 +39,7 @@ class Builder:
     config: Config = field()
     """The config of the builder."""
 
-    date: date = field(factory=date.today)
+    date: Date = field(factory=today)
     """The date to use in builds."""
 
     def build_title(self) -> str:
@@ -132,7 +138,7 @@ class Builder:
             sections: The sections to build.
 
         Returns:
-            An iterator over the build result.
+            The iterator over the build result.
         """
         config = self.config
 
@@ -156,7 +162,7 @@ class Builder:
         """Collects fragments from the changes directory specified in the config.
 
         Returns:
-            An iterator over the fragments found.
+            The iterator over the fragments found.
         """
         for path, type in self.collect_paths_types():
             issue = self.get_issue(path)
@@ -179,7 +185,7 @@ class Builder:
         """Collect paths to fragments.
 
         Returns:
-            An iterator over paths found.
+            The iterator over paths found.
         """
         for path, _ in self.collect_paths_types():
             yield path

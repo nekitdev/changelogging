@@ -1,20 +1,11 @@
-from typing import Any, Dict, Generic, Iterable, Iterator, Type, TypeVar
+from typing import Any, Generic, Iterable, Iterator, Type, TypeVar
 
 from attrs import field, frozen
 
-from changelogging.typing import DynamicTuple
+from changelogging.typing import DynamicTuple, StringDict
 from changelogging.utils import mapping_merge
 
-__all__ = (
-    "DISPLAY",
-    "TYPES",
-    "Display",
-    "Fragment",
-    "FragmentType",
-    "FragmentTypes",
-    "AnyFragmentTypes",
-    "Issue",
-)
+__all__ = ("Display", "Fragment", "FragmentType", "FragmentTypes", "AnyFragmentTypes", "Issue")
 
 SUFFIX = ".{}"
 suffix = SUFFIX.format
@@ -35,28 +26,10 @@ class FragmentType:
         return suffix(self.name)
 
 
-SECURITY = FragmentType("security", "Security")
-"""`security` fragments represent security advisories."""
-FEATURE = FragmentType("feature", "Features")
-"""`feature` fragments represent new features."""
-CHANGE = FragmentType("change", "Changes")
-"""`change` fragments represent changes to existing features."""
-FIX = FragmentType("fix", "Fixes")
-"""`fix` fragments represent various bug fixes."""
-DEPRECATION = FragmentType("deprecation", "Deprecations")
-"""`deprecation` fragments represent deprecation of features."""
-REMOVAL = FragmentType("removal", "Removals")
-"""`removal` fragments represent removal of certain features."""
-INTERNAL = FragmentType("internal", "Internal")
-"""`internal` fragments represent internal changes, not relevant to end users."""
-
-DEFAULT = (SECURITY, FEATURE, CHANGE, FIX, DEPRECATION, REMOVAL, INTERNAL)
-"""The default order of changelog fragments."""
-
 FT = TypeVar("FT", bound=FragmentType)
 
 FragmentTypeTuple = DynamicTuple[FT]
-FragmentTypeDict = Dict[str, FT]
+FragmentTypeDict = StringDict[FT]
 
 S = TypeVar("S", bound="AnyFragmentTypes")
 
@@ -222,7 +195,7 @@ class Display:
             LookupError: Fragment type was not found.
 
         Returns:
-            An iterator over fragment types found.
+            The iterator over fragment types found.
         """
         for name in self.names:
             if types.has_name(name):
@@ -230,10 +203,6 @@ class Display:
 
             else:
                 raise type_not_found(name)
-
-
-TYPES = FragmentTypes(DEFAULT)
-DISPLAY = Display.from_iterable(type.name for type in DEFAULT)
 
 
 @frozen(order=True)

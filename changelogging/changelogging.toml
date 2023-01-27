@@ -1,0 +1,47 @@
+[changelogging]
+directory = "changes"
+output = "CHANGELOG.md"
+
+title_level = 2
+section_level = 3
+
+bullet = "-"
+wrap = false
+wrap_size = 100
+
+start_string = "<!-- changelogging: start -->"
+
+title_format = "{version} ({date})"
+issue_format = "#{issue}"
+
+fragment_format = "{content} ({issue})"
+
+display = ["security", "feature", "change", "fix", "deprecation", "removal", "internal"]
+
+[[changelogging.types]]
+name = "security"
+title = "Security"
+
+[[changelogging.types]]
+name = "feature"
+title = "Features"
+
+[[changelogging.types]]
+name = "change"
+title = "Changes"
+
+[[changelogging.types]]
+name = "fix"
+title = "Fixes"
+
+[[changelogging.types]]
+name = "deprecation"
+title = "Deprecations"
+
+[[changelogging.types]]
+name = "removal"
+title = "Removals"
+
+[[changelogging.types]]
+name = "internal"
+title = "Internal"

@@ -1,7 +1,6 @@
 from pathlib import Path
 
 import pytest
-from versions import parse_version
 
 from changelogging.config import Config, ConfigData
 
@@ -13,14 +12,8 @@ BROKEN = HERE / BROKEN_NAME
 CHANGELOGGING_NAME = "changelogging.toml"
 CHANGELOGGING = HERE / CHANGELOGGING_NAME
 
-DEFAULT_NAME = "default.toml"
-DEFAULT = HERE / DEFAULT_NAME
-
 CHANGES_NAME = "changes"
 CHANGES = HERE / CHANGES_NAME
-
-NAME = "tests"
-VERSION = parse_version("1.0.0")
 
 CONFIG_DATA = ConfigData(  # keep in sync with `tests/changelogging.toml`
     changelogging=ConfigData(
@@ -56,12 +49,6 @@ class TestConfig:
         config_direct = Config.from_path(CHANGELOGGING)
 
         assert config == config_direct
-
-    def test_default(self) -> None:
-        config = Config.from_path(DEFAULT)
-
-        assert config.name == NAME
-        assert config.version == VERSION
 
     def test_file_not_found(self) -> None:
         with pytest.raises(FileNotFoundError):
