@@ -531,7 +531,7 @@
 <h2 id="create"><code>create</code></h2>
 <p>To create changelog fragments, one can use the <code>create</code> command.</p>
 <p>For example, let us create some fragments:</p>
-<div class="highlight"><pre><span></span><code><span class="gp">$ </span>changelogging create <span class="m">13</span>.fix.md
+<div class="highlight"><pre><span></span><code><span class="gp">$ </span>changelogging<span class="w"> </span>create<span class="w"> </span><span class="m">13</span>.fix.md
 <span class="go">Created the `13.fix.md` fragment.</span>
 </code></pre></div>
 <p>This command will open the editor, where you can edit the fragment content:</p>
@@ -541,15 +541,15 @@
 # Close the file without saving to abort.
 </code></pre></div>
 <p>Now, one can use the <code>--no-edit (-n)</code> flag to manually add the fragment content later on.</p>
-<div class="highlight"><pre><span></span><code><span class="gp">$ </span>changelogging create <span class="m">42</span>.feature.md --no-edit
+<div class="highlight"><pre><span></span><code><span class="gp">$ </span>changelogging<span class="w"> </span>create<span class="w"> </span><span class="m">42</span>.feature.md<span class="w"> </span>--no-edit
 <span class="go">Created the `42.feature.md` fragment.</span>
 </code></pre></div>
 <p>The created fragment is going to contain some placeholder content:</p>
-<div class="highlight"><pre><span></span><code><span class="gp">$ </span>cat changes/42.feature.md
+<div class="highlight"><pre><span></span><code><span class="gp">$ </span>cat<span class="w"> </span>changes/42.feature.md
 <span class="go">Add the content here.</span>
 </code></pre></div>
 <p>Finally, let's add some actual content to the fragment:</p>
-<div class="highlight"><pre><span></span><code><span class="gp">$ </span><span class="nb">echo</span> <span class="s2">&quot;Added some things.&quot;</span> &gt; changes/42.feature.md
+<div class="highlight"><pre><span></span><code><span class="gp">$ </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Added some things.&quot;</span><span class="w"> </span>&gt;<span class="w"> </span>changes/42.feature.md
 </code></pre></div>
 <p>To sum up, we have created <code>13.fix.md</code> and <code>42.feature.md</code> changelog fragments.</p>
 <h3 id="options">Options</h3>
@@ -561,7 +561,7 @@
 <h2 id="build"><code>build</code></h2>
 <p>This command is used to build the changelog from fragments.</p>
 <p>Here is how the changelog file looks like before our build:</p>
-<div class="highlight"><pre><span></span><code><span class="gp">$ </span>cat CHANGELOG.md
+<div class="highlight"><pre><span></span><code><span class="gp">$ </span>cat<span class="w"> </span>CHANGELOG.md
 <span class="gp"># </span>Changelog
 
 <span class="go">&lt;!-- changelogging: start --&gt;</span>
@@ -570,12 +570,12 @@
 <p>Note that it is recommended to have the <em>start string</em> (<code>&lt;!-- changelogging: start --&gt;</code> by default)
 in order for changelogs to generate in a proper order.</p>
 <p>And the <code>changes</code> directory:</p>
-<div class="highlight"><pre><span></span><code><span class="gp">$ </span>ls changes
+<div class="highlight"><pre><span></span><code><span class="gp">$ </span>ls<span class="w"> </span>changes
 <span class="go">13.fix.md  42.feature.md</span>
 </code></pre></div>
 <p>To build the changelog in <em>draft mode</em> (i.e. without saving changes),
 you can use the <code>--draft (-D)</code> flag:</p>
-<div class="highlight"><pre><span></span><code><span class="gp">$ </span>changelogging build --draft
+<div class="highlight"><pre><span></span><code><span class="gp">$ </span>changelogging<span class="w"> </span>build<span class="w"> </span>--draft
 <span class="gp">#</span><span class="c1"># 1.0.0 (2022-09-13)</span>
 
 <span class="gp">#</span><span class="c1">## Features</span>
@@ -587,8 +587,8 @@ you can use the <code>--draft (-D)</code> flag:</p>
 <span class="go">- Fixed some issues. ([#13](https://github.com/nekitdev/changelogging/pull/13))</span>
 </code></pre></div>
 <p>Now, let's build the changelog:</p>
-<div class="highlight"><pre><span></span><code><span class="gp">$ </span>changelogging build
-<span class="gp">$ </span>cat CHANGELOG.md
+<div class="highlight"><pre><span></span><code><span class="gp">$ </span>changelogging<span class="w"> </span>build
+<span class="gp">$ </span>cat<span class="w"> </span>CHANGELOG.md
 <span class="gp"># </span>Changelog
 
 <span class="go">&lt;!-- changelogging: start --&gt;</span>
