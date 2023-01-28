@@ -40,4 +40,4 @@ def mapping_merge(*mappings: Mapping[Any, Any], **keywords: Any) -> Dict[Any, An
 
 def today() -> Date:
     """Returns the current date."""
-    return now().date()  # type: ignore
+    return now().date()  # type: ignore  # pragma: no cover  # used in generated code
