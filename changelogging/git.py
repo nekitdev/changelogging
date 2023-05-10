@@ -2,23 +2,33 @@ from pathlib import Path
 from subprocess import call
 from typing import Iterable, Sequence
 
-from changelogging.typing import DynamicTuple
+from funcs.typing import DynamicTuple
+
+from changelogging.constants import DEFAULT_QUIET
+from changelogging.utils import unary_tuple
 
 __all__ = ("remove_command", "remove_paths")
 
 GIT = "git"
 REMOVE = "rm"
-QUIET = "--quiet"
-FORCE = "--force"
+QUIET = "-q"
+FORCE = "-f"
 
 
-def remove_command(iterable: Iterable[Path]) -> Sequence[str]:
-    command: DynamicTuple[str] = (GIT, REMOVE, QUIET, FORCE)
+def resolve_path(path: Path) -> str:
+    return path.resolve().as_posix()
 
-    command += tuple(path.resolve().as_posix() for path in iterable)
+
+def remove_command(iterable: Iterable[Path], quiet: bool = DEFAULT_QUIET) -> Sequence[str]:
+    command: DynamicTuple[str] = (GIT, REMOVE, FORCE)
+
+    if quiet:
+        command += unary_tuple(QUIET)
+
+    command += tuple(map(resolve_path, iterable))
 
     return command
 
 
-def remove_paths(iterable: Iterable[Path]) -> None:
-    call(remove_command(iterable))
+def remove_paths(iterable: Iterable[Path], quiet: bool = DEFAULT_QUIET) -> None:
+    call(remove_command(iterable, quiet=quiet))

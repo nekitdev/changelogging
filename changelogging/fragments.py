@@ -1,9 +1,10 @@
 from typing import Any, Generic, Iterable, Iterator, Type, TypeVar
 
 from attrs import field, frozen
+from funcs.typing import DynamicTuple
+from iters.mappings import merge
 
-from changelogging.typing import DynamicTuple, StringDict
-from changelogging.utils import mapping_merge
+from changelogging.typing import StringDict
 
 __all__ = ("Display", "Fragment", "FragmentType", "FragmentTypes", "AnyFragmentTypes", "Issue")
 
@@ -75,7 +76,7 @@ class FragmentTypes(Generic[FT]):
         Returns:
             The merged [`FragmentTypes`][changelogging.fragments.FragmentTypes] instance.
         """
-        merged = mapping_merge(self.name_to_type, other.name_to_type)
+        merged = merge(self.name_to_type, other.name_to_type)
 
         return self.from_iterable(merged.values())
 

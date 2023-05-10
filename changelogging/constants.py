@@ -1,5 +1,7 @@
 from pathlib import Path
 
+from typing_extensions import Literal
+
 __all__ = (
     # constants
     "ROOT",
@@ -9,7 +11,10 @@ __all__ = (
     "DOUBLE_NEW_LINE",
     "HASH",
     "DOT",
+    "WRITE",
     # defaults
+    "DEFAULT_QUIET",
+    "DEFAULT_IGNORE_REQUIRED",
     "DEFAULT_NAME",
     "DEFAULT_ENCODING",
     "DEFAULT_ERRORS",
@@ -27,6 +32,10 @@ DOUBLE_NEW_LINE = NEW_LINE + NEW_LINE
 HASH = "#"
 
 DOT = "."
+
+WRITE: Literal["w"] = "w"
+
+DEFAULT_QUIET = True
 
 DEFAULT_IGNORE_REQUIRED = False
 

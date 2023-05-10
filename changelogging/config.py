@@ -1,12 +1,15 @@
 from pathlib import Path
-from typing import Any, Dict, Iterable, Optional, Type, TypeVar, cast, overload
+from typing import Any, Iterable, Optional, Type, TypeVar, cast, overload
 
 import toml
 from attrs import define
-from iters import iter
+from funcs.typing import Unary
+from iters.iters import iter
 from iters.utils import empty
-from versions import Version, parse_version
-from wraps import Option, wrap_optional
+from versions.functions import parse_version
+from versions.version import Version
+from wraps.option import Option, Some
+from wraps.wraps import wrap_optional
 from yarl import URL
 
 from changelogging.constants import (
@@ -17,7 +20,8 @@ from changelogging.constants import (
     ROOT,
 )
 from changelogging.fragments import AnyFragmentTypes, Display, FragmentType
-from changelogging.typing import IntoPath, Unary
+from changelogging.typing import IntoPath, StringDict
+from changelogging.utils import contains_only_item
 
 __all__ = ("Config", "ConfigData", "AnyConfigData")
 
@@ -33,6 +37,8 @@ EXPECTED_FILE_OR_DIRECTORY = "expected either a file or a directory"
 
 EXPECTED = "expected `{}`"
 expected = EXPECTED.format
+
+EXPECTED_ONE_CHARACTER_BULLET = "expected one character bullet"
 
 EXPECTED_CHANGELOGGING = expected("changelogging")
 EXPECTED_CHANGELOGGING_NAME = expected("changelogging.name")
@@ -68,7 +74,7 @@ T = TypeVar("T")
 CD = TypeVar("CD", bound="AnyConfigData")
 
 
-class ConfigData(Dict[str, T]):
+class ConfigData(StringDict[T]):
     """Dictionaries that support attribute access."""
 
     def __getattr__(self, name: str) -> Option[T]:
@@ -99,6 +105,10 @@ def mapping_to_type(mapping: ConfigData[str], fragment_type: Type[Any] = Fragmen
         mapping.name.expect(EXPECTED_CHANGELOGGING_TYPES_TYPE_NAME),
         mapping.title.expect(EXPECTED_CHANGELOGGING_TYPES_TYPE_TITLE),
     )
+
+
+def validate_bullet(bullet: str) -> str:
+    return Some(bullet).filter(contains_only_item).expect(EXPECTED_ONE_CHARACTER_BULLET)
 
 
 C = TypeVar("C", bound="Config")
@@ -249,7 +259,7 @@ class Config:
             # merely return defaults if needed
             title_level=config.title_level.unwrap_or(default_config.title_level),
             section_level=config.section_level.unwrap_or(default_config.section_level),
-            bullet=config.bullet.unwrap_or(default_config.bullet),
+            bullet=validate_bullet(config.bullet.unwrap_or(default_config.bullet)),
             wrap=config.wrap.unwrap_or(default_config.wrap),
             wrap_size=config.wrap_size.unwrap_or(default_config.wrap_size),
             start_string=config.start_string.unwrap_or(default_config.start_string),
@@ -367,7 +377,7 @@ class Config:
             output=config.output.map(source_path(source)).expect(EXPECTED_CHANGELOGGING_OUTPUT),
             title_level=config.title_level.expect(EXPECTED_CHANGELOGGING_TITLE_LEVEL),
             section_level=config.section_level.expect(EXPECTED_CHANGELOGGING_SECTION_LEVEL),
-            bullet=config.bullet.expect(EXPECTED_CHANGELOGGING_BULLET),
+            bullet=validate_bullet(config.bullet.expect(EXPECTED_CHANGELOGGING_BULLET)),
             wrap=config.wrap.expect(EXPECTED_CHANGELOGGING_WRAP),
             wrap_size=config.wrap_size.expect(EXPECTED_CHANGELOGGING_WRAP_SIZE),
             start_string=config.start_string.expect(EXPECTED_CHANGELOGGING_START_STRING),

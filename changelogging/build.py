@@ -4,32 +4,41 @@ from textwrap import wrap
 from typing import Dict, Iterable, Iterator, List, Mapping, Tuple, TypeVar
 
 from attrs import define, field
-from pendulum import Date, now
-from typing_extensions import Literal
+from funcs.typing import Binary, Unary
+from funcs.unpacking import unpack_binary
+from iters.iters import iter, wrap_iter
+from pendulum import Date
 
 from changelogging.config import Config
-from changelogging.constants import DOT, DOUBLE_NEW_LINE, EMPTY, HASH, NEW_LINE, SPACE
+from changelogging.constants import (
+    DEFAULT_ENCODING,
+    DEFAULT_ERRORS,
+    DOT,
+    DOUBLE_NEW_LINE,
+    EMPTY,
+    HASH,
+    NEW_LINE,
+    SPACE,
+    WRITE,
+)
 from changelogging.fragments import Fragment, FragmentType, Issue
+from changelogging.utils import left_strip, split_lines, today
 
 __all__ = ("Builder",)
 
 NO_SIGNIFICANT_CHANGES = "No significant changes."
-
-concat_new_line = NEW_LINE.join
-concat_double_new_line = DOUBLE_NEW_LINE.join
-
-WRITE: Literal["w"] = "w"
-
-
-def today() -> Date:
-    return now().date()  # type: ignore
-
 
 FT = TypeVar("FT", bound=FragmentType)
 IT = TypeVar("IT", bound=Issue)
 
 Fragments = Iterable[Fragment[FT, IT]]
 Sections = Mapping[FT, Fragments[FT, IT]]
+
+
+def get_path(item: Tuple[Path, FragmentType]) -> Path:  # pragma: no cover  # `main` only
+    path, _ = item
+
+    return path
 
 
 @define()
@@ -110,7 +119,7 @@ class Builder:
         Returns:
             The fragments built.
         """
-        return concat_new_line(map(self.build_fragment, fragments))
+        return iter(fragments).map(self.build_fragment).join(NEW_LINE)
 
     def collect_sections(self, fragments: Fragments[FT, IT]) -> Sections[FT, IT]:
         """Collects `fragments` into sections.
@@ -131,6 +140,7 @@ class Builder:
 
         return sections
 
+    @wrap_iter
     def build_generate(self, sections: Sections[FragmentType, Issue]) -> Iterator[str]:
         """Builds `sections`, returning an iterator.
 
@@ -158,22 +168,63 @@ class Builder:
         if empty:  # pragma: no cover  # not tested
             yield NO_SIGNIFICANT_CHANGES
 
-    def collect_fragments(self) -> Fragments[FragmentType, Issue]:
+    def fetch_fragment(
+        self,
+        path: Path,
+        type: FragmentType,
+        encoding: str = DEFAULT_ENCODING,
+        errors: str = DEFAULT_ERRORS,
+    ) -> Fragment[FragmentType, Issue]:
+        """Fetches a fragment of `type` from `path`.
+
+        Arguments:
+            path: The path to fetch the fragment from.
+            type: The type of the fragment to fetch.
+            encoding: The encoding to use.
+            errors: The error handling strategy to use.
+
+        Returns:
+            The fetched fragment.
+        """
+        issue = self.get_issue(path)
+        content = path.read_text(encoding, errors)
+
+        return Fragment(type, content, issue)
+
+    def fetching_fragment(
+        self, encoding: str = DEFAULT_ENCODING, errors: str = DEFAULT_ERRORS
+    ) -> Binary[Path, FragmentType, Fragment[FragmentType, Issue]]:
+        def fetch_fragment(path: Path, type: FragmentType) -> Fragment[FragmentType, Issue]:
+            return self.fetch_fragment(path, type, encoding, errors)
+
+        return fetch_fragment
+
+    @wrap_iter
+    def collect_fragments(
+        self, encoding: str = DEFAULT_ENCODING, errors: str = DEFAULT_ERRORS
+    ) -> Fragments[FragmentType, Issue]:
         """Collects fragments from the changes directory specified in the config.
+
+        Arguments:
+            encoding: The encoding to use.
+            errors: The error handling strategy to use.
 
         Returns:
             The iterator over the fragments found.
         """
-        for path, type in self.collect_paths_types():
-            issue = self.get_issue(path)
-            content = path.read_text()
+        return (
+            self.collect_paths_types()
+            .map(unpack_binary(self.fetching_fragment(encoding, errors)))
+            .unwrap()
+        )
 
-            yield Fragment(type, content, issue)
-
+    @wrap_iter
     def collect_paths_types(self) -> Iterator[Tuple[Path, FragmentType]]:
         config = self.config
         directory = config.directory
         types = config.types
+
+        # TODO: perhaps rewrite this using iterators?
 
         for path in directory.iterdir():
             if path.is_file():
@@ -181,14 +232,14 @@ class Builder:
                     if types.has_suffix(suffix):
                         yield (path, types.get_suffix(suffix))
 
-    def collect_paths(self) -> Iterator[Path]:  # pragma: no cover  # only used in `main`
+    @wrap_iter
+    def collect_paths(self) -> Iterator[Path]:
         """Collect paths to fragments.
 
         Returns:
             The iterator over paths found.
         """
-        for path, _ in self.collect_paths_types():
-            yield path
+        return self.collect_paths_types().map(get_path).unwrap()  # pragma: no cover  # `main` only
 
     @classmethod
     def get_issue(cls, path: Path) -> Issue:
@@ -200,12 +251,17 @@ class Builder:
         Returns:
             The build result.
         """
-        return concat_double_new_line(
-            self.build_generate(self.collect_sections(self.collect_fragments()))
+        return self.build_generate(self.collect_sections(self.collect_fragments().unwrap())).join(
+            DOUBLE_NEW_LINE
         )
 
-    def write(self) -> None:
-        """Builds the changelog and writes it to the output file."""
+    def write(self, encoding: str = DEFAULT_ENCODING, errors: str = DEFAULT_ERRORS) -> None:
+        """Builds the changelog and writes it to the output file.
+
+        Arguments:
+            encoding: The encoding to use.
+            errors: The error handling strategy to use.
+        """
         config = self.config
 
         output = config.output
@@ -213,16 +269,16 @@ class Builder:
 
         content = self.build()
 
-        current = output.read_text() if output.exists() else EMPTY
+        current = output.read_text(encoding, errors) if output.exists() else EMPTY
 
         before, start, after = current.partition(start_string)
 
-        with output.open(WRITE) as file:
+        with output.open(WRITE, encoding=encoding, errors=errors) as file:
             if not start:  # pragma: no cover  # not tested
                 file.write(content + NEW_LINE)
 
                 if current.strip():
-                    file.write(NEW_LINE + current.lstrip())
+                    file.write(NEW_LINE + left_strip(current))
 
             else:
                 file.write(before)
@@ -230,7 +286,7 @@ class Builder:
                 file.write(DOUBLE_NEW_LINE + content + NEW_LINE)
 
                 if after.strip():
-                    file.write(NEW_LINE + after.lstrip())
+                    file.write(NEW_LINE + left_strip(after))
 
     @staticmethod
     def heading(level: int) -> str:
@@ -247,13 +303,14 @@ class Builder:
         return name
 
     @classmethod
+    @wrap_iter
     def generate_indent_lines(cls, string: str, bullet: str) -> Iterator[str]:
         if not string:  # pragma: no cover  # not tested
             return
 
         initial, subsequent = cls.indents(bullet)
 
-        head, *tail = string.splitlines()
+        head, *tail = split_lines(string)
 
         yield (initial + head if head.strip() else head)
 
@@ -262,16 +319,19 @@ class Builder:
 
     @classmethod
     def indent_lines(cls, string: str, bullet: str) -> str:
-        return concat_new_line(cls.generate_indent_lines(string, bullet))
+        return cls.generate_indent_lines(string, bullet).join(NEW_LINE)
+
+    @staticmethod
+    def wrapping_line(size: int) -> Unary[str, str]:
+        def wrap_line(line: str) -> str:
+            return iter(wrap(line, size, break_long_words=False)).join(NEW_LINE)
+
+        return wrap_line
 
     @classmethod
     def indent_wrap_lines(cls, string: str, bullet: str, size: int) -> str:
-        size -= max(map(len, cls.indents(bullet)))
+        size -= iter(cls.indents(bullet)).map(len).max().unwrap()
 
         return cls.indent_lines(
-            concat_new_line(
-                concat_new_line(wrap(line, size, break_long_words=False))
-                for line in string.splitlines()
-            ),
-            bullet,
+            iter(split_lines(string)).map(cls.wrapping_line(size)).join(NEW_LINE), bullet
         )

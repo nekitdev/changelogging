@@ -2,16 +2,17 @@ from pathlib import Path
 from typing import Optional
 
 import click
-from iters import iter
-from pendulum import Date, parse
-from wraps import Option, wrap_optional
+from iters.iters import iter
+from pendulum import Date
+from wraps.option import Option
+from wraps.wraps import wrap_optional
 
 from changelogging import __version__ as version
 from changelogging.build import Builder
 from changelogging.config import Config
-from changelogging.constants import DEFAULT_NAME, HASH, NEW_LINE
+from changelogging.constants import DEFAULT_NAME, DEFAULT_QUIET, HASH, NEW_LINE
 from changelogging.git import remove_paths
-from changelogging.utils import today
+from changelogging.utils import parse_date, right_strip, split_lines, starts_with, today
 
 __all__ = ("changelogging", "build", "create")
 
@@ -24,17 +25,9 @@ def get_date(string: Option[str]) -> Date:
     return string.map_or_else(today, parse_date)
 
 
-def parse_date(string: str) -> Date:
-    return parse(string).date()  # type: ignore
-
-
-split_lines = str.splitlines
-right_strip = str.rstrip
-
-
 @click.group(name=DEFAULT_NAME)
-@click.help_option("-h", "--help")
-@click.version_option(version, "-V", "--version")
+@click.help_option("--help", "-h")
+@click.version_option(version, "--version", "-V")
 def changelogging() -> None:
     pass
 
@@ -42,15 +35,19 @@ def changelogging() -> None:
 CONFIG_PATH = "config_path"
 DATE_STRING = "date_string"
 
+REMOVING = "removing `{}`"
+removing = REMOVING.format
+
 
 @changelogging.command()
-@click.help_option("-h", "--help")
-@click.option("-c", "--config", CONFIG_PATH, default=None)
-@click.option("-d", "--date", DATE_STRING, default=None)
-@click.option("-D", "--draft", is_flag=True, default=False)
-@click.option("-r/-n", "--remove/--no-remove", default=False)
+@click.help_option("--help", "-h")
+@click.option("--config", "-c", CONFIG_PATH, default=None)
+@click.option("--date", "-d", DATE_STRING, default=None)
+@click.option("--quiet", "-q", is_flag=True, default=DEFAULT_QUIET)
+@click.option("--draft", "-D", is_flag=True, default=False)
+@click.option("--remove/--no-remove", "-r/-n", default=False)
 def build(
-    config_path: Optional[str], date_string: Optional[str], draft: bool, remove: bool
+    config_path: Optional[str], date_string: Optional[str], quiet: bool, draft: bool, remove: bool
 ) -> None:
     date = get_date(wrap_optional(date_string))
 
@@ -63,7 +60,7 @@ def build(
 
     else:
         if remove:
-            remove_paths(builder.collect_paths())
+            remove_paths(builder.collect_paths(), quiet=quiet)
 
         builder.write()
 
@@ -81,20 +78,17 @@ NAME = "name"
 
 
 def is_comment(line: str) -> bool:
-    return line.startswith(HASH)
+    return starts_with(line, HASH)
 
 
 def is_content(line: str) -> bool:
     return not is_comment(line)
 
 
-concat_new_line = NEW_LINE.join
-
-
 @changelogging.command()
-@click.help_option("-h", "--help")
-@click.option("-c", "--config", CONFIG_PATH, default=None)
-@click.option("-e/-n", "--edit/--no-edit", default=True)
+@click.help_option("--help", "-h")
+@click.option("--config", "-c", CONFIG_PATH, default=None)
+@click.option("--edit/--no-edit", "-e/-n", default=True)
 @click.argument(NAME)
 def create(config_path: Optional[str], edit: bool, name: str) -> None:
     config = get_config(wrap_optional(config_path))
@@ -104,9 +98,11 @@ def create(config_path: Optional[str], edit: bool, name: str) -> None:
 
         if string is None:
             click.echo(ABORTED)
+
             return
 
-        string = iter(split_lines(string)).filter(is_content).map(right_strip).collect(concat_new_line)
+        string = iter(split_lines(string)).filter(is_content).map(right_strip).join(NEW_LINE)
+
     else:
         string = PLACEHOLDER
 

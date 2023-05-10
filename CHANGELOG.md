@@ -2,6 +2,10 @@
 
 <!-- changelogging: start -->
 
+## 1.2.0 (2023-05-09)
+
+No significant changes.
+
 ## 1.1.0 (2022-01-27)
 
 No significant changes.
