@@ -3,9 +3,9 @@ from typing import Any, Iterable, Optional, Type, TypeVar, cast, overload
 
 import toml
 from attrs import define
-from funcs.typing import Unary
 from iters.iters import iter
-from iters.utils import empty
+from iters.utils import contains_only_item, empty
+from typing_aliases import IntoPath, StringDict, Unary
 from versions.functions import parse_version
 from versions.version import Version
 from wraps.option import Option, Some
@@ -20,8 +20,6 @@ from changelogging.constants import (
     ROOT,
 )
 from changelogging.fragments import AnyFragmentTypes, Display, FragmentType
-from changelogging.typing import IntoPath, StringDict
-from changelogging.utils import contains_only_item
 
 __all__ = ("Config", "ConfigData", "AnyConfigData")
 

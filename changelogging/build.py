@@ -4,10 +4,10 @@ from textwrap import wrap
 from typing import Dict, Iterable, Iterator, List, Mapping, Tuple, TypeVar
 
 from attrs import define, field
-from funcs.typing import Binary, Unary
 from funcs.unpacking import unpack_binary
 from iters.iters import iter, wrap_iter
 from pendulum import Date
+from typing_aliases import Binary, Unary
 
 from changelogging.config import Config
 from changelogging.constants import (

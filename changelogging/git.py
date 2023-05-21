@@ -2,10 +2,10 @@ from pathlib import Path
 from subprocess import call
 from typing import Iterable, Sequence
 
-from funcs.typing import DynamicTuple
+from iters.utils import unary_tuple
+from typing_aliases import DynamicTuple
 
 from changelogging.constants import DEFAULT_QUIET
-from changelogging.utils import unary_tuple
 
 __all__ = ("remove_command", "remove_paths")
 

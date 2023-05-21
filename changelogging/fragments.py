@@ -1,10 +1,8 @@
 from typing import Any, Generic, Iterable, Iterator, Type, TypeVar
 
 from attrs import field, frozen
-from funcs.typing import DynamicTuple
 from iters.mappings import merge
-
-from changelogging.typing import StringDict
+from typing_aliases import DynamicTuple, StringDict
 
 __all__ = ("Display", "Fragment", "FragmentType", "FragmentTypes", "AnyFragmentTypes", "Issue")
 
