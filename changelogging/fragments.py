@@ -1,8 +1,9 @@
-from typing import Any, Generic, Iterable, Iterator, Type, TypeVar
+from typing import Any, Generic, Iterable, Iterator, TypeVar
 
 from attrs import field, frozen
 from iters.mappings import merge
 from typing_aliases import DynamicTuple, StringDict
+from typing_extensions import Self
 
 __all__ = ("Display", "Fragment", "FragmentType", "FragmentTypes", "AnyFragmentTypes", "Issue")
 
@@ -30,8 +31,6 @@ FT = TypeVar("FT", bound=FragmentType)
 FragmentTypeTuple = DynamicTuple[FT]
 FragmentTypeDict = StringDict[FT]
 
-S = TypeVar("S", bound="AnyFragmentTypes")
-
 
 @frozen()
 class FragmentTypes(Generic[FT]):
@@ -41,7 +40,7 @@ class FragmentTypes(Generic[FT]):
     """The contained fragment types."""
 
     @classmethod
-    def from_types(cls: Type[S], *types: FT) -> S:
+    def from_types(cls, *types: FT) -> Self:
         """Creates [`FragmentTypes`][changelogging.fragments.FragmentTypes] from `types`.
 
         Arguments:
@@ -53,7 +52,7 @@ class FragmentTypes(Generic[FT]):
         return cls(types)
 
     @classmethod
-    def from_iterable(cls: Type[S], iterable: Iterable[FT]) -> S:
+    def from_iterable(cls, iterable: Iterable[FT]) -> Self:
         """Creates [`FragmentTypes`][changelogging.fragments.FragmentTypes]
         from an `iterable` of types.
 
@@ -65,7 +64,7 @@ class FragmentTypes(Generic[FT]):
         """
         return cls(tuple(iterable))
 
-    def merge_with(self: S, other: S) -> S:
+    def merge_with(self, other: Self) -> Self:
         """Merges `self` and `other` into one instance.
 
         Arguments:
@@ -150,9 +149,6 @@ def type_not_found(name: str) -> LookupError:
     return LookupError(TYPE_NOT_FOUND.format(name))
 
 
-D = TypeVar("D", bound="Display")
-
-
 @frozen()
 class Display:
     """Represents ordering of fragments' display."""
@@ -161,7 +157,7 @@ class Display:
     """The names of the fragment types."""
 
     @classmethod
-    def from_names(cls: Type[D], *names: str) -> D:
+    def from_names(cls, *names: str) -> Self:
         """Creates a [`Display`][changelogging.fragments.Display] from `names`.
 
         Arguments:
@@ -173,7 +169,7 @@ class Display:
         return cls(names)
 
     @classmethod
-    def from_iterable(cls: Type[D], iterable: Iterable[str]) -> D:
+    def from_iterable(cls, iterable: Iterable[str]) -> Self:
         """Creates a [`Display`][changelogging.fragments.Display] from an `iterable` of names.
 
         Arguments:

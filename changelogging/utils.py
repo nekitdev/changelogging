@@ -38,4 +38,4 @@ def today() -> Date:
     Returns:
         The current date.
     """
-    return now().date()  # type: ignore  # pragma: no cover  # not tested
+    return now().date()  # pragma: no cover  # not tested

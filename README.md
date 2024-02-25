@@ -44,7 +44,7 @@ Or by directly specifying it in the configuration like so:
 
 ```toml
 [tool.poetry.dependencies]
-changelogging = "^1.3.0"
+changelogging = "^1.4.0"
 ```
 
 Alternatively, you can add it directly from the source:
@@ -82,7 +82,7 @@ If you are interested in contributing to `changelogging`, make sure to take a lo
 
 [Email]: mailto:support@nekit.dev
 
-[Discord]: https://nekit.dev/discord
+[Discord]: https://nekit.dev/chat
 
 [Actions]: https://github.com/nekitdev/changelogging/actions
 
@@ -97,7 +97,7 @@ If you are interested in contributing to `changelogging`, make sure to take a lo
 [Coverage]: https://codecov.io/gh/nekitdev/changelogging
 [Documentation]: https://nekitdev.github.io/changelogging
 
-[Discord Badge]: https://img.shields.io/badge/chat-discord-5865f2
+[Discord Badge]: https://img.shields.io/discord/728012506899021874
 [License Badge]: https://img.shields.io/pypi/l/changelogging
 [Version Badge]: https://img.shields.io/pypi/v/changelogging
 [Downloads Badge]: https://img.shields.io/pypi/dm/changelogging

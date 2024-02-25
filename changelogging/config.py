@@ -1,11 +1,12 @@
 from pathlib import Path
-from typing import Any, Iterable, Optional, Type, TypeVar, cast, overload
+from typing import Any, Iterable, Optional, Type, TypeVar, overload
 
-import toml
 from attrs import define
 from iters.iters import iter
 from iters.utils import contains_only_item, empty
+from toml import loads as load_string
 from typing_aliases import IntoPath, StringDict, Unary
+from typing_extensions import Self
 from versions.functions import parse_version
 from versions.version import Version
 from wraps.option import Option, Some
@@ -69,16 +70,13 @@ def expected_file_or_directory() -> ValueError:  # pragma: no cover
 T = TypeVar("T")
 
 
-CD = TypeVar("CD", bound="AnyConfigData")
-
-
 class ConfigData(StringDict[T]):
     """Dictionaries that support attribute access."""
 
     def __getattr__(self, name: str) -> Option[T]:
         return wrap_optional(self.get(name))
 
-    def copy(self: CD) -> CD:
+    def copy(self) -> Self:
         return type(self)(self)
 
 
@@ -107,9 +105,6 @@ def mapping_to_type(mapping: ConfigData[str], fragment_type: Type[Any] = Fragmen
 
 def validate_bullet(bullet: str) -> str:
     return Some(bullet).filter(contains_only_item).expect(EXPECTED_ONE_CHARACTER_BULLET)
-
-
-C = TypeVar("C", bound="Config")
 
 
 @define()
@@ -150,7 +145,7 @@ class Config:
     # dynamic code ahead...
 
     @classmethod
-    def from_string(cls: Type[C], string: str, source: Optional[Path] = None) -> C:
+    def from_string(cls, string: str, source: Optional[Path] = None) -> Self:
         """Parses a [`Config`][changelogging.config.Config] from `string`.
 
         Arguments:
@@ -164,8 +159,8 @@ class Config:
 
     @classmethod
     def from_file_path(
-        cls: Type[C], path: IntoPath, encoding: str = DEFAULT_ENCODING, errors: str = DEFAULT_ERRORS
-    ) -> C:
+        cls, path: IntoPath, encoding: str = DEFAULT_ENCODING, errors: str = DEFAULT_ERRORS
+    ) -> Self:
         """Parses a [`Config`][changelogging.config.Config] from file `path`.
 
         Arguments:
@@ -182,12 +177,12 @@ class Config:
 
     @classmethod
     def from_path(
-        cls: Type[C],
+        cls,
         path: IntoPath,
         search: Iterable[IntoPath] = SEARCH,
         encoding: str = DEFAULT_ENCODING,
         errors: str = DEFAULT_ERRORS,
-    ) -> C:
+    ) -> Self:
         """Parses a [`Config`][changelogging.config.Config] from `path`.
 
         If `path` is a directory, this function searches for files in `search` inside of it.
@@ -222,10 +217,10 @@ class Config:
 
     @staticmethod
     def parse(string: str) -> AnyConfigData:
-        return cast(AnyConfigData, toml.loads(string, AnyConfigData))
+        return load_string(string, AnyConfigData)
 
     @classmethod
-    def from_data(cls: Type[C], config_data: AnyConfigData, source: Optional[Path] = None) -> C:
+    def from_data(cls, config_data: AnyConfigData, source: Optional[Path] = None) -> Self:
         """Creates a [`Config`][changelogging.config.Config]
         from [`ConfigData`][changelogging.config.ConfigData].
 
@@ -272,21 +267,21 @@ class Config:
 
     @classmethod
     def unsafe_from_string(
-        cls: Type[C],
+        cls,
         string: str,
         source: Optional[Path] = None,
         ignore_required: bool = DEFAULT_IGNORE_REQUIRED,
-    ) -> C:
+    ) -> Self:
         return cls.unsafe_from_data(cls.parse(string), source, ignore_required=ignore_required)
 
     @classmethod
     def unsafe_from_file_path(
-        cls: Type[C],
+        cls,
         path: IntoPath,
         encoding: str = DEFAULT_ENCODING,
         errors: str = DEFAULT_ERRORS,
         ignore_required: bool = DEFAULT_IGNORE_REQUIRED,
-    ) -> C:
+    ) -> Self:
         path = Path(path)
 
         return cls.unsafe_from_string(
@@ -295,13 +290,13 @@ class Config:
 
     @classmethod
     def unsafe_from_path(
-        cls: Type[C],
+        cls,
         path: IntoPath,
         search: Iterable[IntoPath] = SEARCH,
         encoding: str = DEFAULT_ENCODING,
         errors: str = DEFAULT_ERRORS,
         ignore_required: bool = DEFAULT_IGNORE_REQUIRED,
-    ) -> C:
+    ) -> Self:
         path = Path(path)
 
         if not path.exists():  # pragma: no cover
@@ -327,11 +322,11 @@ class Config:
 
     @classmethod
     def unsafe_from_data(
-        cls: Type[C],
+        cls,
         config_dict: AnyConfigData,
         source: Optional[Path] = None,
         ignore_required: bool = DEFAULT_IGNORE_REQUIRED,
-    ) -> C:
+    ) -> Self:
         config_dict = config_dict.tool.unwrap_or(config_dict)
         config = config_dict.changelogging.expect(EXPECTED_CHANGELOGGING)
 
