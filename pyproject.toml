@@ -40,16 +40,16 @@ click = ">= 8.1.7"
 toml = ">= 0.10.2"
 yarl = ">= 1.9.4"
 
-typing-aliases = ">= 1.7.0"
+typing-aliases = ">= 1.7.1"
 typing-extensions = ">= 4.10.0"
 
 pendulum = ">= 3.0.0"
 
-entrypoint = ">= 2.0.1"
-versions = ">= 2.1.1"
-funcs = ">= 0.9.0"
-wraps = ">= 0.9.0"
-iters = ">= 0.16.0"
+entrypoint = ">= 2.0.2"
+versions = ">= 2.1.2"
+funcs = ">= 0.9.1"
+wraps = ">= 0.9.1"
+iters = ">= 0.16.1"
 
 [tool.poetry.group.format.dependencies]
 ruff = "0.2.2"
