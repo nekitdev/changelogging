@@ -57,7 +57,7 @@ ruff = "0.2.2"
 [tool.poetry.group.check.dependencies]
 mypy = "1.8.0"
 
-types-toml = "0.10.8.7"
+types-toml = "0.10.8.20240310"
 
 [tool.poetry.group.check.dependencies.pre-commit]
 version = "3.6.2"
