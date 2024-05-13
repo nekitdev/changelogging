@@ -1,0 +1,47 @@
+[package]
+name = "changelogging"
+version = "0.1.0"
+authors = ["nekitdev"]
+edition = "2021"
+description = "Building changelogs from fragments."
+documentation = "https://docs.rs/changelogging"
+readme = "README.md"
+repository = "https://github.com/nekitdev/changelogging"
+license = "MIT"
+keywords = ["changelog", "changes"]
+categories = ["command-line-utilities", "development-tools"]
+
+[dependencies.anyhow]
+version = "1.0.83"
+
+[dependencies.clap]
+version = "4.5.4"
+features = ["derive"]
+
+[dependencies.edit]
+version = "0.1.5"
+
+[dependencies.itertools]
+version = "0.12.1"
+
+[dependencies.handlebars]
+version = "5.1.2"
+
+[dependencies.thiserror]
+version = "1.0.60"
+
+[dependencies.textwrap]
+version = "0.16.1"
+default-features = false
+
+[dependencies.time]
+version = "0.3.36"
+features = ["serde", "parsing", "macros"]
+
+[dependencies.toml]
+version = "0.8.12"
+features = ["parse"]
+
+[dependencies.serde]
+version = "1.0.200"
+features = ["derive"]

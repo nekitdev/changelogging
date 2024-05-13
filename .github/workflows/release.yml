@@ -1,0 +1,35 @@
+name: publish
+
+on:
+  push:
+    tags:
+      - v*
+
+jobs:
+  release:
+    name: Release
+
+    strategy:
+      matrix:
+        config:
+          - os: ubuntu
+            out: target/release/changelogging
+          - os: macos
+            out: target/release/changelogging
+          - os: windows
+            out: target/release/changelogging.exe
+
+    runs-on: ${{ matrix.config.os }}-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Build
+        run: cargo build --release
+
+      - name: Publish
+        run: cargo publish --token ${{ secrets.CARGO_TOKEN }}

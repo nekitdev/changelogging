@@ -1,0 +1,30 @@
+start = "<!-- changelogging: start -->"
+
+wrap = 100
+
+order = ["security", "feature", "change", "fix", "deprecation", "removal", "internal"]
+
+[paths]
+directory = "changes"
+output = "CHANGELOG.md"
+
+[levels]
+entry = 2
+section = 3
+
+[indents]
+heading = "#"
+bullet = "-"
+
+[formats]
+title = "{{version}} ({{date}})"
+fragment = "{{content}} ({{id}})"
+
+[types]
+security = "Security"
+feature = "Features"
+change = "Changes"
+fix = "Fixes"
+deprecation = "Deprecations"
+removal = "Removals"
+internal = "Internal"

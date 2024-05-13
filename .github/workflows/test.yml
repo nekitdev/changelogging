@@ -1,0 +1,33 @@
+name: test
+
+on:
+  push:
+    branches:
+      - main
+
+  pull_request:
+    branches:
+      - "**"
+
+jobs:
+  test:
+    name: Test
+
+    strategy:
+      matrix:
+        os: [ubuntu, macos, windows]
+
+    runs-on: ${{ matrix.os }}-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Run clippy
+        run: cargo clippy
+
+      - name: Run tests
+        run: cargo test
