@@ -38,7 +38,7 @@ jobs:
         run: |
           git config --local user.email "nekitdevofficial@gmail.com"
           git config --local user.name "Nikita Tikhonov"
-          git commit -m "Update changelog with `${{ github.ref_name }}`."
+          git commit -am "Update changelog with `${{ github.ref_name }}`."
           git push
 
       - name: Build release changelog
