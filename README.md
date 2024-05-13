@@ -4,8 +4,6 @@
 [![Version][Version Badge]][Package]
 [![Downloads][Downloads Badge]][Package]
 [![Discord][Discord Badge]][Discord]
-
-[![Release][Release Badge]][Releases]
 [![Test][Test Badge]][Actions]
 
 > *Building changelogs from fragments.*
@@ -81,6 +79,4 @@ If you are interested in contributing to `changelogging`, make sure to take a lo
 [License Badge]: https://img.shields.io/crates/l/changelogging
 [Version Badge]: https://img.shields.io/crates/v/changelogging
 [Downloads Badge]: https://img.shields.io/crates/dr/changelogging
-
-[Release Badge]: https://github.com/nekitdev/changelogging/workflows/release/badge.svg
 [Test Badge]: https://github.com/nekitdev/changelogging/workflows/test/badge.svg
