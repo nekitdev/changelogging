@@ -1,6 +1,6 @@
 [package]
 name = "changelogging"
-version = "0.1.0"
+version = "0.0.0"
 authors = ["nekitdev"]
 edition = "2021"
 description = "Building changelogs from fragments."
@@ -43,5 +43,5 @@ version = "0.8.12"
 features = ["parse"]
 
 [dependencies.serde]
-version = "1.0.200"
+version = "1.0.201"
 features = ["derive"]
