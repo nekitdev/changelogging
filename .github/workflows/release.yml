@@ -31,16 +31,6 @@ jobs:
       - name: Build
         run: cargo build --release
 
-      - name: Update changelog
-        run: cargo run build
-
-      - name: Commit changelog
-        run: |
-          git config --local user.email "nekitdevofficial@gmail.com"
-          git config --local user.name "Nikita Tikhonov"
-          git commit -am "Update changelog with `${{ github.ref_name }}`."
-          git push
-
       - name: Build release changelog
         run: cargo run build --preview > CHANGELOG_${{ github.ref_name }}.md
 
