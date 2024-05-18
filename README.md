@@ -56,7 +56,7 @@ $ mkdir changes
 Now we can add *fragments*:
 
 ```console
-$ changelogging create --content "Added cool things!" 13.feature.md
+$ changelogging create --content "Added cool features!" 13.feature.md
 $ changelogging create --content "Fixed annoying bugs!" 64.fix.md
 ```
 
