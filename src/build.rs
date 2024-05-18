@@ -1,6 +1,7 @@
 use std::{
     borrow::Cow,
-    fs::{read_to_string, write},
+    fs::{read_to_string, File},
+    io::Write,
     iter::{once, repeat},
 };
 
@@ -12,9 +13,9 @@ use thiserror::Error;
 use time::Date;
 
 use crate::{
-    config::{Config, Types},
+    config::Config,
     context::Context,
-    fragments::{Fragment, Fragments, Sections},
+    fragments::{Fragment, Fragments, Sections, Slice},
     paths::{load, FromDir},
     workspace::Workspace,
 };
@@ -62,7 +63,6 @@ pub struct Builder<'b> {
 pub enum Error {
     Template(#[from] TemplateError),
     Render(#[from] RenderError),
-    Format(#[from] std::fmt::Error),
     Io(#[from] std::io::Error),
 }
 
@@ -118,42 +118,40 @@ impl Builder<'_> {
         &self.config
     }
 
-    pub fn types(&self) -> &Types<'_> {
-        &self.config.types
-    }
-
     // BUILDING
 
     pub fn write(&self) -> Result<(), Error> {
-        let contents = self.prepare()?;
+        let output = self.config.paths.output.as_ref();
 
-        write(self.config.paths.output.as_ref(), contents)?;
+        let contents = read_to_string(output)?;
 
-        Ok(())
-    }
-
-    pub fn prepare(&self) -> Result<String, Error> {
-        let contents = read_to_string(self.config.paths.output.as_ref())?;
-
-        let mut string = String::new();
+        let mut file = File::options().write(true).truncate(true).open(output)?;
 
         let start = self.config.start.as_ref();
 
         let entry = self.build()?;
 
         if let Some((before, after)) = contents.split_once(start) {
-            string.push_str(before);
-            string.push_str(start);
-            string.push_str(DOUBLE_NEW_LINE);
-            string.push_str(entry.as_ref());
-            string.push_str(after);
+            write!(file, "{before}")?;
+            write!(file, "{start}")?;
+            write!(file, "{DOUBLE_NEW_LINE}")?;
+            write!(file, "{entry}")?;
+            write!(file, "{after}")?;
         } else {
-            string.push_str(entry.as_ref());
-            string.push_str(DOUBLE_NEW_LINE);
-            string.push_str(contents.as_ref());
+            write!(file, "{entry}")?;
+            write!(file, "{DOUBLE_NEW_LINE}")?;
+            write!(file, "{contents}")?;
         }
 
-        Ok(string)
+        Ok(())
+    }
+
+    pub fn preview(&self) -> Result<(), Error> {
+        let string = self.build()?;
+
+        println!("{string}");
+
+        Ok(())
     }
 
     pub fn build(&self) -> Result<String, Error> {
@@ -200,7 +198,7 @@ impl Builder<'_> {
         Ok(self.wrap(string))
     }
 
-    pub fn build_fragments(&self, fragments: &Fragments<'_>) -> Result<String, Error> {
+    pub fn build_fragments(&self, fragments: Slice<'_, '_>) -> Result<String, Error> {
         let string = fragments
             .iter()
             .map(|fragment| self.build_fragment(fragment))
@@ -225,7 +223,7 @@ impl Builder<'_> {
     }
 
     pub fn build_sections(&self, sections: &Sections<'_>) -> Result<String, Error> {
-        let types = self.types();
+        let types = self.config.types();
 
         let string = self
             .config
@@ -274,7 +272,7 @@ impl Builder<'_> {
             .filter_map(|result| result.ok())
             .for_each(|fragment| {
                 sections
-                    .entry(fragment.name.clone())
+                    .entry(fragment.info.type_name.clone())
                     .or_default()
                     .push(fragment)
             });

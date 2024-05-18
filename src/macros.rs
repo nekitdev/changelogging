@@ -1,4 +1,4 @@
-/// Implements [`FromStr`] for types via calling [`toml::from_str`]
+/// Implements [`FromStr`] for types via calling [`toml::from_str`].
 ///
 /// [`FromStr`]: core::str::FromStr
 macro_rules! impl_from_str_with_toml {

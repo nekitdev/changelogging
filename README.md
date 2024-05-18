@@ -32,6 +32,84 @@ $ cargo install --path .
 
 The binaries can be downloaded from [releases][Releases].
 
+## Example
+
+Once `changelogging` is installed, we can start building changelogs!
+
+First things first, we need to configure the *context* of the project.
+
+Create `changelogging.toml` and add the *name*, *version* and *URL* of the project:
+
+```toml
+[context]
+name = "changelogging"
+version = "0.1.0"
+url = "https://github.com/nekitdev/changelogging"
+```
+
+Then we need to create the `changes` directory:
+
+```console
+$ mkdir changes
+```
+
+Now we can add *fragments*:
+
+```console
+$ changelogging create --content "Added cool things!" 13.feature.md
+$ changelogging create --content "Fixed annoying bugs!" 64.fix.md
+```
+
+And finally, preview the changelog entry!
+
+```console
+$ changelogging build --preview
+## 0.1.0 (YYYY-MM-DD)
+
+### Features
+
+- Added cool features! (#13)
+
+### Fixes
+
+- Fixed annoying bugs! (#64)
+```
+
+Then let us add our `CHANGELOG.md` file with the following content:
+
+```md
+# Changelog
+
+<!-- changelogging: start -->
+```
+
+Note that the `start` is essential if we want to add some content before the changelog entries.
+
+Assuming the preview is what we expected it to be, writing it to the changelog is as simple as:
+
+```console
+$ changelogging build
+```
+
+Finally, let's see the changelog:
+
+```console
+$ cat CHANGELOG.md
+# Changelog
+
+<!-- changelogging: start -->
+
+## 0.1.0 (YYYY-MM-DD)
+
+### Features
+
+- Added cool features! (#13)
+
+### Fixes
+
+- Fixed annoying bugs! (#64)
+```
+
 ## Documentation
 
 You can find the documentation [here][Documentation].

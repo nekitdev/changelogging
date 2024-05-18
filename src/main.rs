@@ -1,9 +1,9 @@
 use anyhow::Result;
-use changelogging::cli::{Command, Runnable};
+use changelogging::app::App;
 use clap::Parser;
 
 fn main() -> Result<()> {
-    Command::parse().run()?;
+    App::parse().run()?;
 
     Ok(())
 }

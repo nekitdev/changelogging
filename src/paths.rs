@@ -1,5 +1,5 @@
 use std::{
-    fs::{read_dir, DirEntry, ReadDir},
+    fs::{read_dir, ReadDir},
     io::Error,
     marker::PhantomData,
     path::Path,
@@ -83,20 +83,12 @@ impl<F: FromPath> FromDir<F> {
 }
 
 impl<F: FromPath> FromPath for FromDir<F> {
-    type Error = std::io::Error;
+    type Error = Error;
 
     fn from_path<P: AsRef<Path>>(path: P) -> Result<Self, Self::Error> {
         let iterator = read_dir(path)?;
 
         Ok(Self::new(iterator))
-    }
-}
-
-impl<F: FromPath> FromDir<F> {
-    pub fn process(result: Result<DirEntry, Error>) -> Result<F, F::Error> {
-        let path = result?.path();
-
-        load(path)
     }
 }
 

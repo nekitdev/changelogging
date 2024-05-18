@@ -18,7 +18,7 @@ bullet = "-"
 
 [formats]
 title = "{{version}} ({{date}})"
-fragment = "{{content}} ({{id}})"
+fragment = "{{content}} (#{{id}})"
 
 [types]
 security = "Security"
