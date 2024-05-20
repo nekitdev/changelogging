@@ -1,3 +1,5 @@
+//! Defines the `changelogging` application.
+
 use std::{env::set_current_dir, path::PathBuf};
 
 use clap::{Args, Parser, Subcommand};
@@ -73,7 +75,7 @@ impl App {
         let globals = self.globals;
 
         if let Some(directory) = globals.directory {
-            set_current_dir(directory)?
+            set_current_dir(directory)?;
         };
 
         let workspace = globals.config.map_or_else(discover, workspace)?;

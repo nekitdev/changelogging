@@ -1,3 +1,8 @@
+//! Discovering and loading workspaces.
+//!
+//! This module provides two notable functions, [`workspace`] and [`discover`], as well as
+//! the [`Workspace`] structure.
+
 use std::{
     env::current_dir,
     path::{Path, PathBuf},
@@ -18,17 +23,17 @@ use crate::{
 pub struct Workspace<'w> {
     /// The context of the workspace.
     pub context: Context<'w>,
-    /// The options of the workspace.
+    /// The options of the workspace. This field is flattened during (de)serialization.
     #[serde(flatten)]
     pub options: Options<'w>,
 }
 
+impl_from_str_with_toml!(Workspace<'_>);
+impl_from_path_with_parse!(Workspace<'_>, crate::config::Error);
+
 trait IntoWorkspace<'w> {
     fn into_workspace(self) -> Option<Workspace<'w>>;
 }
-
-impl_from_str_with_toml!(Workspace<'_>);
-impl_from_path_with_parse!(Workspace<'_>, crate::config::Error);
 
 impl<'w> IntoWorkspace<'w> for Workspace<'w> {
     fn into_workspace(self) -> Option<Workspace<'w>> {
@@ -43,29 +48,30 @@ pub struct Tools<'t> {
     pub changelogging: Option<Workspace<'t>>,
 }
 
+impl_from_str_with_toml!(Tools<'_>);
+impl_from_path_with_parse!(Tools<'_>, crate::config::Error);
+
 impl<'t> IntoWorkspace<'t> for Tools<'t> {
     fn into_workspace(self) -> Option<Workspace<'t>> {
         self.changelogging
     }
 }
 
-impl_from_str_with_toml!(Tools<'_>);
-impl_from_path_with_parse!(Tools<'_>, crate::config::Error);
-
 /// Represents structures of `pyproject.toml` files.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct PyProject<'p> {
+    /// The `tool` section.
     pub tool: Option<Tools<'p>>,
 }
+
+impl_from_str_with_toml!(PyProject<'_>);
+impl_from_path_with_parse!(PyProject<'_>, crate::config::Error);
 
 impl<'p> IntoWorkspace<'p> for PyProject<'p> {
     fn into_workspace(self) -> Option<Workspace<'p>> {
         self.tool.and_then(|tools| tools.into_workspace())
     }
 }
-
-impl_from_str_with_toml!(PyProject<'_>);
-impl_from_path_with_parse!(PyProject<'_>, crate::config::Error);
 
 const CHANGELOGGING: &str = "changelogging.toml";
 const PYPROJECT: &str = "pyproject.toml";
@@ -97,6 +103,11 @@ pub enum Error {
     Discover(#[from] DiscoverError),
 }
 
+/// Loads the workspace from the given `path`.
+///
+/// # Errors
+///
+/// Returns [`enum@Error`] on loading errors.
 pub fn workspace<P: AsRef<Path>>(path: P) -> Result<Workspace<'static>, Error> {
     let workspace = load(path)?;
 

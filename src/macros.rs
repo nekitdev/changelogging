@@ -1,3 +1,5 @@
+//! Various macros to implement traits.
+
 /// Implements [`FromStr`] for types via calling [`toml::from_str`].
 ///
 /// [`FromStr`]: core::str::FromStr

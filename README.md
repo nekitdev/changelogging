@@ -1,3 +1,5 @@
+![Image]
+
 # `changelogging`
 
 [![License][License Badge]][License]
@@ -135,6 +137,8 @@ If you are interested in contributing to `changelogging`, make sure to take a lo
 ## License
 
 `changelogging` is licensed under the MIT License terms. See [License][License] for details.
+
+[Image]: https://github.com/nekitdev/changelogging/blob/main/changelogging.svg?raw=true
 
 [Email]: mailto:support@nekit.dev
 

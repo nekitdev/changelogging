@@ -1,3 +1,5 @@
+//! Changelog fragments.
+
 use std::{
     borrow::Cow, collections::HashMap, fs::read_to_string, num::ParseIntError, path::Path,
     str::FromStr,

@@ -8,25 +8,33 @@ use crate::{
     options::Options,
 };
 
+/// Represents errors that can occur during configuration loading.
 #[derive(Debug, Error)]
 #[error(transparent)]
 pub enum Error {
+    /// I/O error.
     Io(#[from] std::io::Error),
+    /// TOML error.
     Toml(#[from] toml::de::Error),
 }
 
+/// Represents `paths` sections.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Paths<'p> {
+    /// The directory to fetch fragments from.
     pub directory: Cow<'p, Path>,
+    /// The file to write entries to.
     pub output: Cow<'p, Path>,
 }
 
+/// Represents `levels` sections.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Levels {
     pub entry: usize,
     pub section: usize,
 }
 
+/// Represents `indents` sections.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Indents {
     pub heading: char,

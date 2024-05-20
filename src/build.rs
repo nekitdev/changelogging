@@ -269,12 +269,12 @@ impl Builder<'_> {
         let mut sections = Sections::new();
 
         self.iter_fragments()?
-            .filter_map(|result| result.ok())
+            .filter_map(|result| result.ok())  // ignore errors
             .for_each(|fragment| {
                 sections
                     .entry(fragment.info.type_name.clone())
                     .or_default()
-                    .push(fragment)
+                    .push(fragment);
             });
 
         sections.values_mut().for_each(|section| section.sort());

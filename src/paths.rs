@@ -1,3 +1,10 @@
+//! Loading values from paths.
+//!
+//! This module provides one notable trait, [`FromPath`], as well as two functions,
+//! [`load`] and [`load_if_exists`], that use it.
+//!
+//! There is also the [`FromDir`] structure which implements loading of paths in directories.
+
 use std::{
     fs::{read_dir, ReadDir},
     io::Error,
@@ -14,6 +21,10 @@ pub trait FromPath: Sized {
     type Error: From<Error>;
 
     /// Loads the `path` provided to return the corresponding value.
+    ///
+    /// # Errors
+    ///
+    /// [`Self::Error`] is returned when loading fails.
     fn from_path<P: AsRef<Path>>(path: P) -> Result<Self, Self::Error>;
 }
 

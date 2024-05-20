@@ -32,7 +32,7 @@ pub fn create<S: AsRef<str>, C: AsRef<str>>(
 
     let mut file = File::options().create_new(true).write(true).open(path.as_path())?;
 
-    let string = content.as_ref().map(|slice| slice.as_ref()).unwrap_or(PLACEHOLDER);
+    let string = content.as_ref().map_or(PLACEHOLDER, |slice| slice.as_ref());
 
     writeln!(file, "{string}")?;
 

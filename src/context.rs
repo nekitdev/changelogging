@@ -1,3 +1,7 @@
+//! Project contexts.
+//!
+//! This module provides the [`Context`] structure that represents contexts of projects.
+
 use std::borrow::Cow;
 
 use serde::{Deserialize, Serialize};
