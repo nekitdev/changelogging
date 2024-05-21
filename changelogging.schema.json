@@ -2,6 +2,7 @@
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "$defs": {
         "Context": {
+            "title": "Context",
             "description": "Represents contexts of projects.",
             "type": "object",
             "required": [
@@ -26,6 +27,7 @@
             "additionalProperties": false
         },
         "Paths": {
+            "title": "Paths",
             "description": "Specifies locations of fragments and the changelog.",
             "type": "object",
             "properties": {
@@ -53,6 +55,7 @@
             "minimum": 1
         },
         "Levels": {
+            "title": "Levels",
             "description": "Defines which heading levels to use.",
             "type": "object",
             "properties": {
@@ -76,6 +79,7 @@
             "maxLength": 1
         },
         "Indents": {
+            "title": "Indents",
             "description": "Specifies which characters to use for indenting.",
             "type": "object",
             "properties": {
@@ -93,6 +97,7 @@
             "additionalProperties": false
         },
         "Formats": {
+            "title": "Formats",
             "description": "Defines formats to use for rendering entry titles and fragments.",
             "type": "object",
             "properties": {
@@ -123,7 +128,9 @@
             }
         },
         "Types": {
+            "title": "Types",
             "description": "Maps types to their titles.",
+            "type": "object",
             "patternProperties": {
                 "^.+$": {
                     "$ref": "#/$defs/NonEmptyString"
