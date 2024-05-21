@@ -1,1 +1,183 @@
-{}
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$defs": {
+        "Context": {
+            "description": "Represents contexts of projects.",
+            "type": "object",
+            "required": [
+                "name",
+                "version",
+                "url"
+            ],
+            "properties": {
+                "name": {
+                    "description": "The name of the project.",
+                    "$ref": "#/$defs/NonEmptyString"
+                },
+                "version": {
+                    "description": "The version of the project.",
+                    "$ref": "#/$defs/NonEmptyString"
+                },
+                "url": {
+                    "description": "The URL of the project.",
+                    "$ref": "#/$defs/NonEmptyString"
+                }
+            },
+            "additionalProperties": false
+        },
+        "Paths": {
+            "description": "Specifies locations of fragments and the changelog.",
+            "type": "object",
+            "properties": {
+                "directory": {
+                    "description": "The directory containing fragments.",
+                    "$ref": "#/$defs/NonEmptyString",
+                    "default": "changes"
+                },
+                "output": {
+                    "description": "The file containing the changelog.",
+                    "$ref": "#/$defs/NonEmptyString",
+                    "default": "CHANGELOG.md"
+                }
+            },
+            "additionalProperties": false
+        },
+        "NonEmptyString": {
+            "description": "Represents non-empty strings.",
+            "type": "string",
+            "minLength": 1
+        },
+        "Level": {
+            "description": "The heading level.",
+            "type": "integer",
+            "minimum": 1
+        },
+        "Levels": {
+            "description": "Defines which heading levels to use.",
+            "type": "object",
+            "properties": {
+                "entry": {
+                    "description": "The heading level of the entry title.",
+                    "$ref": "#/$defs/Level",
+                    "default": 2
+                },
+                "section": {
+                    "description": "The heading level of individual sections.",
+                    "$ref": "#/$defs/Level",
+                    "default": 3
+                }
+            },
+            "additionalProperties": false
+        },
+        "Character": {
+            "description": "The character type.",
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1
+        },
+        "Indents": {
+            "description": "Specifies which characters to use for indenting.",
+            "type": "object",
+            "properties": {
+                "heading": {
+                    "description": "The character to use for headings.",
+                    "$ref": "#/$defs/Character",
+                    "default": "#"
+                },
+                "bullet": {
+                    "description": "The character to use for indenting.",
+                    "$ref": "#/$defs/Character",
+                    "default": "-"
+                }
+            },
+            "additionalProperties": false
+        },
+        "Formats": {
+            "description": "Defines formats to use for rendering entry titles and fragments.",
+            "type": "object",
+            "properties": {
+                "title": {
+                    "description": "The format used for rendering entry titles.",
+                    "$ref": "#/$defs/NonEmptyString",
+                    "default": "{{version}} ({{date}})"
+                },
+                "fragment": {
+                    "description": "The format used for rendering fragments.",
+                    "$ref": "#/$defs/NonEmptyString",
+                    "default": "{{content}} (#{{id}})"
+                }
+            },
+            "additionalProperties": false
+        },
+        "Wrap": {
+            "description": "The wrap length.",
+            "type": "integer",
+            "minimum": 1
+        },
+        "Order": {
+            "description": "Defines which types to include, and in what order.",
+            "type": "array",
+            "items": {
+                "description": "The type to include.",
+                "$ref": "#/$defs/NonEmptyString"
+            }
+        },
+        "Types": {
+            "description": "Maps types to their titles.",
+            "patternProperties": {
+                "^.+$": {
+                    "$ref": "#/$defs/NonEmptyString"
+                }
+            },
+            "additionalProperties": false
+        }
+    },
+    "title": "changelogging",
+    "description": "changelogging configuration file.",
+    "type": "object",
+    "required": [
+        "context"
+    ],
+    "properties": {
+        "context": {
+            "$ref": "#/$defs/Context"
+        },
+        "paths": {
+            "$ref": "#/$defs/Paths"
+        },
+        "start": {
+            "$ref": "#/$defs/NonEmptyString",
+            "default": "<!-- changelogging: start -->"
+        },
+        "levels": {
+            "$ref": "#/$defs/Levels"
+        },
+        "indents": {
+            "$ref": "#/$defs/Indents"
+        },
+        "formats": {
+            "$ref": "#/$defs/Formats"
+        },
+        "wrap": {
+            "$ref": "#/$defs/Wrap",
+            "default": 100
+        },
+        "order": {
+            "$ref": "#/$defs/Order",
+            "default": ["security", "feature", "change", "fix", "deprecation", "removal", "internal"]
+        },
+        "types": {
+            "$ref": "#/$defs/Types",
+            "default": {
+                "security": "Security",
+                "feature": "Features",
+                "change": "Changes",
+                "fix": "Fixes",
+                "deprecation": "Deprecations",
+                "removal": "Removals",
+                "internal": "Internal"
+            }
+        }
+    },
+    "additionalProperties": false
+}
