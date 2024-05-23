@@ -45,12 +45,14 @@
             "additionalProperties": false
         },
         "NonEmptyString": {
-            "description": "Represents non-empty strings.",
             "type": "string",
             "minLength": 1
         },
+        "Start": {
+            "description": "Marks the location in the changelog to start writing entries after.",
+            "$ref": "#/$defs/NonEmptyString"
+        },
         "Level": {
-            "description": "The heading level.",
             "type": "integer",
             "minimum": 1
         },
@@ -73,7 +75,6 @@
             "additionalProperties": false
         },
         "Character": {
-            "description": "The character type.",
             "type": "string",
             "minLength": 1,
             "maxLength": 1
@@ -115,7 +116,6 @@
             "additionalProperties": false
         },
         "Wrap": {
-            "description": "The wrap length.",
             "type": "integer",
             "minimum": 1
         },
@@ -153,7 +153,7 @@
             "$ref": "#/$defs/Paths"
         },
         "start": {
-            "$ref": "#/$defs/NonEmptyString",
+            "$ref": "#/$defs/Start",
             "default": "<!-- changelogging: start -->"
         },
         "levels": {
