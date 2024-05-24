@@ -2,11 +2,13 @@
 //!
 //! This module provides two notable functions, [`workspace`] and [`discover`], as well as
 //! the [`Workspace`] structure.
+//!
+//! See also [`context`] and [`options`].
+//!
+//! [`context`]: crate::context
+//! [`options`]: crate::options
 
-use std::{
-    env::current_dir,
-    path::{Path, PathBuf},
-};
+use std::{env::current_dir, path::Path};
 
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
@@ -23,9 +25,18 @@ use crate::{
 pub struct Workspace<'w> {
     /// The context of the workspace.
     pub context: Context<'w>,
-    /// The options of the workspace. This field is flattened during (de)serialization.
+    /// The options of the workspace.
+    ///
+    /// This field is flattened during (de)serialization.
     #[serde(flatten)]
     pub options: Options<'w>,
+}
+
+impl<'w> Workspace<'w> {
+    /// Creates [`Workspace`] from [`Context`] and [`Options`] provided.
+    pub fn new(context: Context<'w>, options: Options<'w>) -> Self {
+        Self { context, options }
+    }
 }
 
 impl_from_str_with_toml!(Workspace<'_>);
@@ -33,12 +44,6 @@ impl_from_path_with_parse!(Workspace<'_>, crate::config::Error);
 
 trait IntoWorkspace<'w> {
     fn into_workspace(self) -> Option<Workspace<'w>>;
-}
-
-impl<'w> IntoWorkspace<'w> for Workspace<'w> {
-    fn into_workspace(self) -> Option<Workspace<'w>> {
-        Some(self)
-    }
 }
 
 /// Represents `tool` sections in `pyproject.toml` files.
@@ -51,12 +56,6 @@ pub struct Tools<'t> {
 impl_from_str_with_toml!(Tools<'_>);
 impl_from_path_with_parse!(Tools<'_>, crate::config::Error);
 
-impl<'t> IntoWorkspace<'t> for Tools<'t> {
-    fn into_workspace(self) -> Option<Workspace<'t>> {
-        self.changelogging
-    }
-}
-
 /// Represents structures of `pyproject.toml` files.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct PyProject<'p> {
@@ -67,29 +66,13 @@ pub struct PyProject<'p> {
 impl_from_str_with_toml!(PyProject<'_>);
 impl_from_path_with_parse!(PyProject<'_>, crate::config::Error);
 
-impl<'p> IntoWorkspace<'p> for PyProject<'p> {
-    fn into_workspace(self) -> Option<Workspace<'p>> {
-        self.tool.and_then(|tools| tools.into_workspace())
-    }
-}
-
 const CHANGELOGGING: &str = "changelogging.toml";
 const PYPROJECT: &str = "pyproject.toml";
 
 /// Represents discovery errors.
 #[derive(Debug, Error)]
-#[error("failed to discover workspace in {path}")]
-pub struct DiscoverError {
-    /// The path where discovering failed.
-    path: PathBuf,
-}
-
-impl DiscoverError {
-    /// Constructs [`DiscoverError`] from [`PathBuf`].
-    pub fn new(path: PathBuf) -> Self {
-        Self { path }
-    }
-}
+#[error("failed to discover workspace")]
+pub struct DiscoverError;
 
 /// Represents [`discover`] and [`workspace`] errors.
 #[derive(Debug, Error)]
@@ -119,7 +102,7 @@ pub fn workspace<P: AsRef<Path>>(path: P) -> Result<Workspace<'static>, Error> {
 /// # Errors
 ///
 /// [`enum@Error`] is returned on I/O errors (from [`current_dir`]),
-/// config errors (from [`load_if_exists`]) and when workspace can not be discovered.
+/// loading errors (from [`load_if_exists`]) and when workspace can not be discovered.
 pub fn discover() -> Result<Workspace<'static>, Error> {
     let mut path = current_dir()?;
 
@@ -137,9 +120,12 @@ pub fn discover() -> Result<Workspace<'static>, Error> {
 
     path.push(PYPROJECT);
 
-    let pyproject_option: Option<PyProject<'_>> = load_if_exists(path.as_path())?;
+    let option: Option<PyProject<'_>> = load_if_exists(path.as_path())?;
 
-    if let Some(workspace) = pyproject_option.and_then(|pyproject| pyproject.into_workspace()) {
+    if let Some(workspace) = option
+        .and_then(|pyproject| pyproject.tool)
+        .and_then(|tools| tools.changelogging)
+    {
         return Ok(workspace);
     }
 
@@ -147,7 +133,5 @@ pub fn discover() -> Result<Workspace<'static>, Error> {
 
     path.pop();
 
-    let error = DiscoverError::new(path);
-
-    Err(error.into())
+    Err(DiscoverError.into())
 }

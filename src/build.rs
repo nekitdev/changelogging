@@ -1,3 +1,5 @@
+//! Building changelogs from fragments.
+
 use std::{
     borrow::Cow,
     fs::{read_to_string, File},
@@ -13,22 +15,22 @@ use thiserror::Error;
 use time::Date;
 
 use crate::{
-    config::Config,
+    config::{Config, Level},
     context::Context,
-    fragments::{Fragment, Fragments, Sections, Slice},
+    fragments::{Fragment, Fragments, Sections},
     paths::{load, FromDir},
     workspace::Workspace,
 };
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub struct RenderTitleData<'t> {
+struct RenderTitleData<'t> {
     #[serde(flatten)]
-    pub context: &'t Context<'t>,
-    pub date: Cow<'t, str>,
+    context: &'t Context<'t>,
+    date: Cow<'t, str>,
 }
 
 impl<'t> RenderTitleData<'t> {
-    pub fn new(context: &'t Context<'_>, date: Date) -> Self {
+    fn new(context: &'t Context<'_>, date: Date) -> Self {
         Self {
             context,
             date: date.to_string().into(),
@@ -37,32 +39,41 @@ impl<'t> RenderTitleData<'t> {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub struct RenderFragmentData<'f> {
+struct RenderFragmentData<'f> {
     #[serde(flatten)]
-    pub context: &'f Context<'f>,
+    context: &'f Context<'f>,
     #[serde(flatten)]
-    pub fragment: &'f Fragment<'f>,
+    fragment: &'f Fragment<'f>,
 }
 
 impl<'f> RenderFragmentData<'f> {
-    pub fn new(context: &'f Context<'_>, fragment: &'f Fragment<'_>) -> Self {
+    fn new(context: &'f Context<'_>, fragment: &'f Fragment<'_>) -> Self {
         Self { context, fragment }
     }
 }
 
+/// Represents changelog builders.
 #[derive(Debug, Clone)]
 pub struct Builder<'b> {
+    /// The context of the project.
     pub context: Context<'b>,
+    /// The configuration to use.
     pub config: Config<'b>,
+    /// The date to use.
     pub date: Date,
+    /// The renderer to use.
     pub renderer: Handlebars<'b>,
 }
 
+/// Represents errors that can occur during building.
 #[derive(Debug, Error)]
 #[error(transparent)]
 pub enum Error {
+    /// Template error.
     Template(#[from] TemplateError),
+    /// Render error.
     Render(#[from] RenderError),
+    /// I/O error.
     Io(#[from] std::io::Error),
 }
 
@@ -70,10 +81,12 @@ const TITLE: &str = "title";
 const FRAGMENT: &str = "fragment";
 
 impl<'b> Builder<'b> {
+    /// Constructs [`Self`] from [`Workspace`] and [`Date`].
     pub fn from_workspace(workspace: Workspace<'b>, date: Date) -> Result<Self, TemplateError> {
         Self::new(workspace.context, workspace.options.into_config(), date)
     }
 
+    /// Constructs [`Self`].
     pub fn new(
         context: Context<'b>,
         config: Config<'b>,
@@ -81,7 +94,7 @@ impl<'b> Builder<'b> {
     ) -> Result<Self, TemplateError> {
         let mut renderer = Handlebars::new();
 
-        let formats = config.formats();
+        let formats = config.formats_ref();
 
         renderer.set_strict_mode(true);
 
@@ -101,8 +114,11 @@ const SPACE: char = ' ';
 const DOUBLE_NEW_LINE: &str = "\n\n";
 const NO_SIGNIFICANT_CHANGES: &str = "No significant changes.";
 
-fn heading(character: char, level: usize) -> String {
-    repeat(character).take(level).chain(once(SPACE)).collect()
+fn heading(character: char, level: Level) -> String {
+    repeat(character)
+        .take(level.into())
+        .chain(once(SPACE))
+        .collect()
 }
 
 fn indent(character: char) -> String {
@@ -110,11 +126,13 @@ fn indent(character: char) -> String {
 }
 
 impl Builder<'_> {
-    pub fn context(&self) -> &Context<'_> {
+    /// Returns [`Context`] reference.
+    pub fn context_ref(&self) -> &Context<'_> {
         &self.context
     }
 
-    pub fn config(&self) -> &Config<'_> {
+    /// Returns [`Config`] reference.
+    pub fn config_ref(&self) -> &Config<'_> {
         &self.config
     }
 
@@ -198,7 +216,7 @@ impl Builder<'_> {
         Ok(self.wrap(string))
     }
 
-    pub fn build_fragments(&self, fragments: Slice<'_, '_>) -> Result<String, Error> {
+    pub fn build_fragments(&self, fragments: &Fragments<'_>) -> Result<String, Error> {
         let string = fragments
             .iter()
             .map(|fragment| self.build_fragment(fragment))
@@ -223,7 +241,7 @@ impl Builder<'_> {
     }
 
     pub fn build_sections(&self, sections: &Sections<'_>) -> Result<String, Error> {
-        let types = self.config.types();
+        let types = self.config.types_ref();
 
         let string = self
             .config
@@ -242,7 +260,8 @@ impl Builder<'_> {
         let initial_indent = indent(self.config.indents.bullet);
         let subsequent_indent = indent(SPACE);
 
-        let options = WrapOptions::new(self.config.wrap)
+        let options = WrapOptions::new(self.config.wrap.into())
+            .break_words(false)
             .initial_indent(initial_indent.as_ref())
             .subsequent_indent(subsequent_indent.as_ref());
 
@@ -252,13 +271,13 @@ impl Builder<'_> {
     // RENDERING
 
     pub fn render_title(&self) -> Result<String, RenderError> {
-        let data = RenderTitleData::new(self.context(), self.date);
+        let data = RenderTitleData::new(self.context_ref(), self.date);
 
         self.renderer.render(TITLE, &data)
     }
 
     pub fn render_fragment(&self, fragment: &Fragment<'_>) -> Result<String, RenderError> {
-        let data = RenderFragmentData::new(self.context(), fragment);
+        let data = RenderFragmentData::new(self.context_ref(), fragment);
 
         self.renderer.render(FRAGMENT, &data)
     }
@@ -269,10 +288,10 @@ impl Builder<'_> {
         let mut sections = Sections::new();
 
         self.iter_fragments()?
-            .filter_map(|result| result.ok())  // ignore errors
+            .filter_map(|result| result.ok()) // ignore errors
             .for_each(|fragment| {
                 sections
-                    .entry(fragment.info.type_name.clone())
+                    .entry(fragment.partial.type_name.clone())
                     .or_default()
                     .push(fragment);
             });
@@ -290,7 +309,7 @@ impl Builder<'_> {
 
     // HEADING
 
-    pub fn level_heading(&self, level: usize) -> String {
+    pub fn level_heading(&self, level: Level) -> String {
         heading(self.config.indents.heading, level)
     }
 

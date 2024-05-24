@@ -11,8 +11,8 @@ license = "MIT"
 keywords = ["changelog", "changes"]
 categories = ["command-line-utilities", "development-tools"]
 
-[dependencies.anyhow]
-version = "1.0.83"
+[dependencies]
+anyhow = "1.0.86"
 
 [dependencies.clap]
 version = "4.5.4"

@@ -10,29 +10,37 @@ use thiserror::Error;
 
 use crate::paths::{name_str, FromPath};
 
+/// Represents IDs of fragments.
 pub type FragmentId = u32;
 
+/// Represents errors that can occur while parsing into [`PartialFragment`].
 #[derive(Debug, Error)]
 #[error(transparent)]
 pub enum ParseError {
+    /// Parse ID error.
     Id(#[from] ParseIntError),
+    /// Unexpected EOF.
     #[error("unexpected EOF when parsing fragment info")]
     UnexpectedEof,
 }
 
+/// Represents partial fragments.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
-pub struct FragmentInfo<'i> {
+pub struct PartialFragment<'p> {
+    /// The ID of the fragment.
     pub id: FragmentId,
-    pub type_name: Cow<'i, str>,
+    /// The type of the fragment.
+    pub type_name: Cow<'p, str>,
 }
 
-impl<'i> FragmentInfo<'i> {
-    pub fn new(id: FragmentId, type_name: Cow<'i, str>) -> Self {
+impl<'p> PartialFragment<'p> {
+    /// Constructs [`Self`].
+    pub fn new(id: FragmentId, type_name: Cow<'p, str>) -> Self {
         Self { id, type_name }
     }
 }
 
-impl FromStr for FragmentInfo<'_> {
+impl FromStr for PartialFragment<'_> {
     type Err = ParseError;
 
     fn from_str(string: &str) -> Result<Self, Self::Err> {
@@ -46,25 +54,41 @@ impl FromStr for FragmentInfo<'_> {
     }
 }
 
+/// Checks that the `string` represents some partial fragment.
+///
+/// This function parses the string provided, discarding the resulting partial fragment.
+///
+/// # Errors
+///
+/// Returns [`ParseError`] if `string` is invalid.
 pub fn validate<S: AsRef<str>>(string: S) -> Result<(), ParseError> {
-    let _check: FragmentInfo = string.as_ref().parse()?;
+    let _check: PartialFragment<'_> = string.as_ref().parse()?;
 
     Ok(())
 }
 
+/// Represents errors that can occur when loading [`Fragment`].
 #[derive(Debug, Error)]
 #[error(transparent)]
 pub enum Error {
+    /// I/O error.
     Io(#[from] std::io::Error),
-    Info(#[from] ParseError),
-    #[error("the name of the fragment is not valid utf-8")]
+    /// Parse error.
+    Parse(#[from] ParseError),
+    /// Invalid UTF-8.
+    #[error("invalid utf-8")]
     InvalidUtf8,
 }
 
+/// Represents fragments.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 pub struct Fragment<'f> {
+    /// The partial fragment.
+    ///
+    /// This field is flattened during (de)serialization.
     #[serde(flatten)]
-    pub info: FragmentInfo<'f>,
+    pub partial: PartialFragment<'f>,
+    /// The fragment content.
     pub content: Cow<'f, str>,
 }
 
@@ -85,21 +109,26 @@ impl FromPath for Fragment<'_> {
 }
 
 impl<'f> Fragment<'f> {
-    pub fn new(info: FragmentInfo<'f>, content: Cow<'f, str>) -> Self {
-        Self { info, content }
+    /// Constructs [`Self`].
+    pub fn new(partial: PartialFragment<'f>, content: Cow<'f, str>) -> Self {
+        Self { partial, content }
     }
 }
 
 impl Fragment<'_> {
-    pub fn info(&self) -> &FragmentInfo<'_> {
-        &self.info
+    /// References the `partial` field.
+    pub fn partial(&self) -> &PartialFragment<'_> {
+        &self.partial
     }
 
+    /// References the `content` field.
     pub fn content(&self) -> &str {
         self.content.as_ref()
     }
 }
 
-pub type Fragments<'f> = Vec<Fragment<'f>>;
-pub type Slice<'a, 'f> = &'a [Fragment<'f>];
-pub type Sections<'s> = HashMap<Cow<'s, str>, Fragments<'s>>;
+/// Represents arrays of fragments.
+pub type Fragments<'f> = [Fragment<'f>];
+
+/// Represents sections.
+pub type Sections<'s> = HashMap<Cow<'s, str>, Vec<Fragment<'s>>>;

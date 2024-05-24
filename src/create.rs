@@ -1,53 +1,49 @@
-use std::{fs::File, io::Write};
+//! Creating changelog fragments.
+//!
+//! The [`create`] function implements the `create` subcommand.
+
+use std::{fs::File, io::Write, path::Path};
 
 use edit::edit_file;
 use thiserror::Error;
 
-use crate::{
-    config::Config,
-    context::Context,
-    fragments::{validate, ParseError},
-    workspace::Workspace,
-};
+use crate::fragments::{validate, ParseError};
 
+/// Represents errors that can occur during [`create`] runs.
 #[derive(Debug, Error)]
 #[error(transparent)]
 pub enum Error {
-    Io(#[from] std::io::Error),
+    /// Create error.
+    Create(#[from] std::io::Error),
+    /// Parse error.
     Parse(#[from] ParseError),
 }
 
 const PLACEHOLDER: &str = "Add the fragment content here.";
 
-pub fn create<S: AsRef<str>, C: AsRef<str>>(
-    _context: Context<'_>,
-    config: Config<'_>,
+/// Creates changelog fragments.
+pub fn create<D: AsRef<Path>, S: AsRef<str>, C: AsRef<str>>(
+    directory: D,
     name: S,
     content: Option<C>,
     edit: bool,
 ) -> Result<(), Error> {
     validate(name.as_ref())?;
 
-    let path = config.paths.directory.join(name.as_ref());
+    let path = directory.as_ref().join(name.as_ref());
 
-    let mut file = File::options().create_new(true).write(true).open(path.as_path())?;
+    let mut file = File::options()
+        .create_new(true)
+        .write(true)
+        .open(path.as_path())?;
 
     let string = content.as_ref().map_or(PLACEHOLDER, |slice| slice.as_ref());
 
     writeln!(file, "{string}")?;
 
     if edit {
-        edit_file(path)?;
+        edit_file(path.as_path())?;
     }
 
     Ok(())
-}
-
-pub fn create_from_workspace<S: AsRef<str>, C: AsRef<str>>(
-    workspace: Workspace<'_>,
-    name: S,
-    content: Option<C>,
-    edit: bool,
-) -> Result<(), Error> {
-    create(workspace.context, workspace.options.into_config(), name, content, edit)
 }

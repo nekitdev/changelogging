@@ -1,6 +1,6 @@
-//! Defines the `changelogging` application.
+//! The application.
 
-use std::{env::set_current_dir, path::PathBuf};
+use std::path::{Path, PathBuf};
 
 use clap::{Args, Parser, Subcommand};
 use thiserror::Error;
@@ -8,8 +8,9 @@ use time::Date;
 
 use crate::{
     build::builder_from_workspace,
-    create::create_from_workspace,
+    create::create,
     date::{parse_slice, today},
+    init::init,
     workspace::{discover, workspace, Workspace},
 };
 
@@ -44,7 +45,7 @@ pub struct Globals {
     version,
     about,
     propagate_version = true,
-    arg_required_else_help = true,
+    arg_required_else_help = true
 )]
 pub struct App {
     /// The global options to use.
@@ -59,8 +60,8 @@ pub struct App {
 #[derive(Debug, Error)]
 #[error(transparent)]
 pub enum Error {
-    /// I/O errors.
-    Io(#[from] std::io::Error),
+    /// Initialization errors.
+    Init(#[from] crate::init::Error),
     /// Workspace discovery and loading errors.
     Workspace(#[from] crate::workspace::Error),
     /// `build` errors.
@@ -74,16 +75,18 @@ impl App {
     pub fn run(self) -> Result<(), Error> {
         let globals = self.globals;
 
-        if let Some(directory) = globals.directory {
-            set_current_dir(directory)?;
-        };
+        init(globals.directory)?;
 
         let workspace = globals.config.map_or_else(discover, workspace)?;
 
         if let Some(command) = self.command {
             match command {
                 Command::Build(build) => build.run(workspace)?,
-                Command::Create(create) => create.run(workspace)?,
+                Command::Create(create) => {
+                    let directory = workspace.options.into_config().paths.directory;
+
+                    create.run(directory)?;
+                }
             }
         };
 
@@ -94,15 +97,16 @@ impl App {
 /// Represents `changelogging` subcommands.
 #[derive(Debug, Subcommand)]
 pub enum Command {
-    /// The `build` subcommand.
+    /// The `build` command.
+    #[command(about = "Build changelog entries from fragments")]
     Build(BuildCommand),
-    /// The `create` subcommand.
+    /// The `create` command.
+    #[command(about = "Create changelog fragments")]
     Create(CreateCommand),
 }
 
 /// Represents `build` commands.
 #[derive(Debug, Args)]
-#[command(about = "Build changelog entries from fragments")]
 pub struct BuildCommand {
     /// The date to use. If not provided, [`today`] is used.
     #[arg(
@@ -168,7 +172,7 @@ pub struct CreateCommand {
 
 impl CreateCommand {
     /// Runs the `create` command.
-    pub fn run(self, workspace: Workspace<'_>) -> Result<(), crate::create::Error> {
-        create_from_workspace(workspace, self.name, self.content, self.edit)
+    pub fn run<D: AsRef<Path>>(self, directory: D) -> Result<(), crate::create::Error> {
+        create(directory, self.name, self.content, self.edit)
     }
 }
