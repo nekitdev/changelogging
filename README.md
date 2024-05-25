@@ -49,7 +49,7 @@ version = "0.1.0"
 url = "https://github.com/nekitdev/changelogging"
 ```
 
-Then we need to create the `changes` directory:
+Then we need to create the `changes` directory.
 
 ```console
 $ mkdir changes

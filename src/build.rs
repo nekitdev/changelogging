@@ -2,13 +2,15 @@
 
 use std::{
     borrow::Cow,
-    fs::{read_to_string, File},
-    io::Write,
+    fs::{read_dir, File},
+    io::{read_to_string, Write},
     iter::{once, repeat},
+    path::{Path, PathBuf},
 };
 
 use handlebars::{Handlebars, RenderError, TemplateError};
 use itertools::Itertools;
+use miette::Diagnostic;
 use serde::Serialize;
 use textwrap::{fill, Options as WrapOptions};
 use thiserror::Error;
@@ -17,10 +19,299 @@ use time::Date;
 use crate::{
     config::{Config, Level},
     context::Context,
-    fragments::{Fragment, Fragments, Sections},
-    paths::{load, FromDir},
+    date::{parse, today},
+    fragment::{Fragment, Fragments, Sections},
     workspace::Workspace,
 };
+
+#[derive(Debug, Error, Diagnostic)]
+#[error("failed to initialize the renderer")]
+#[diagnostic(
+    code(changelogging::build::init),
+    help("make sure the formats configuration is valid")
+)]
+pub struct InitError(#[from] pub TemplateError);
+
+#[derive(Debug, Error, Diagnostic)]
+#[error("failed to build the title")]
+#[diagnostic(
+    code(changelogging::build::build_title),
+    help("make sure the formats configuration is valid")
+)]
+pub struct BuildTitleError(#[from] pub RenderError);
+
+#[derive(Debug, Error, Diagnostic)]
+#[error("failed to build the fragment")]
+#[diagnostic(
+    code(changelogging::build::build_fragment),
+    help("make sure the formats configuration is valid")
+)]
+pub struct BuildFragmentError(#[from] pub RenderError);
+
+#[derive(Debug, Error, Diagnostic)]
+#[error("failed to read from `{path}`")]
+#[diagnostic(
+    code(changelogging::build::read),
+    help("check whether the file exists and is accessible")
+)]
+pub struct ReadFileError {
+    pub source: std::io::Error,
+    pub path: PathBuf,
+}
+
+impl ReadFileError {
+    pub fn new<P: AsRef<Path>>(source: std::io::Error, path: P) -> Self {
+        let path = path.as_ref().to_owned();
+
+        Self { source, path }
+    }
+}
+
+#[derive(Debug, Error, Diagnostic)]
+#[error("failed to write to `{path}`")]
+#[diagnostic(
+    code(changelogging::build::write),
+    help("check whether the file exists and is accessible")
+)]
+pub struct WriteFileError {
+    pub source: std::io::Error,
+    pub path: PathBuf,
+}
+
+impl WriteFileError {
+    pub fn new<P: AsRef<Path>>(source: std::io::Error, path: P) -> Self {
+        let path = path.as_ref().to_owned();
+
+        Self { source, path }
+    }
+}
+
+#[derive(Debug, Error, Diagnostic)]
+#[error("failed to open `{path}`")]
+#[diagnostic(
+    code(changelogging::build::open),
+    help("check whether the file exists and is accessible")
+)]
+pub struct OpenFileError {
+    pub source: std::io::Error,
+    pub path: PathBuf,
+}
+
+impl OpenFileError {
+    pub fn new<P: AsRef<Path>>(source: std::io::Error, path: P) -> Self {
+        let path = path.as_ref().to_owned();
+
+        Self { source, path }
+    }
+}
+
+#[derive(Debug, Error, Diagnostic)]
+#[error("failed to read directory")]
+#[diagnostic(
+    code(changelogging::build::read_directory),
+    help("make sure the directory is accessible")
+)]
+pub struct ReadDirectoryError(#[from] std::io::Error);
+
+#[derive(Debug, Error, Diagnostic)]
+#[error("failed to iterate directory")]
+#[diagnostic(
+    code(changelogging::build::iter_directory),
+    help("make sure the directory is accessible")
+)]
+pub struct IterDirectoryError(#[from] std::io::Error);
+
+#[derive(Debug, Error, Diagnostic)]
+#[error(transparent)]
+#[diagnostic(transparent)]
+pub enum CollectErrorSource {
+    ReadDirectory(#[from] ReadDirectoryError),
+    IterDirectory(#[from] IterDirectoryError),
+}
+
+#[derive(Debug, Error, Diagnostic)]
+#[error("failed to collect from `{path}`")]
+#[diagnostic(
+    code(changelogging::build::collect),
+    help("make sure the directory is accessible")
+)]
+pub struct CollectError {
+    #[source]
+    #[diagnostic_source]
+    pub source: CollectErrorSource,
+    pub path: PathBuf,
+}
+
+impl CollectError {
+    pub fn new<P: AsRef<Path>>(source: CollectErrorSource, path: P) -> Self {
+        let path = path.as_ref().to_owned();
+
+        Self { source, path }
+    }
+
+    pub fn read_directory<P: AsRef<Path>>(source: ReadDirectoryError, path: P) -> Self {
+        Self::new(source.into(), path)
+    }
+
+    pub fn iter_directory<P: AsRef<Path>>(source: IterDirectoryError, path: P) -> Self {
+        Self::new(source.into(), path)
+    }
+
+    pub fn new_read_directory<P: AsRef<Path>>(source: std::io::Error, path: P) -> Self {
+        Self::read_directory(ReadDirectoryError(source), path)
+    }
+
+    pub fn new_iter_directory<P: AsRef<Path>>(source: std::io::Error, path: P) -> Self {
+        Self::iter_directory(IterDirectoryError(source), path)
+    }
+}
+
+#[derive(Debug, Error, Diagnostic)]
+#[error(transparent)]
+#[diagnostic(transparent)]
+pub enum BuildErrorSource {
+    BuildTitle(#[from] BuildTitleError),
+    BuildFragment(#[from] BuildFragmentError),
+    Collect(#[from] CollectError),
+}
+
+#[derive(Debug, Error, Diagnostic)]
+#[error("failed to build")]
+#[diagnostic(
+    code(changelogging::build::build),
+    help("see the report for more information")
+)]
+pub struct BuildError {
+    #[source]
+    #[diagnostic_source]
+    pub source: BuildErrorSource,
+}
+
+impl BuildError {
+    pub fn new(source: BuildErrorSource) -> Self {
+        Self { source }
+    }
+
+    pub fn build_title(source: BuildTitleError) -> Self {
+        Self::new(source.into())
+    }
+
+    pub fn build_fragment(source: BuildFragmentError) -> Self {
+        Self::new(source.into())
+    }
+
+    pub fn collect(source: CollectError) -> Self {
+        Self::new(source.into())
+    }
+
+    pub fn new_build_title(source: RenderError) -> Self {
+        Self::build_title(BuildTitleError(source))
+    }
+
+    pub fn new_build_fragment(source: RenderError) -> Self {
+        Self::build_fragment(BuildFragmentError(source))
+    }
+}
+
+#[derive(Debug, Error, Diagnostic)]
+#[error(transparent)]
+#[diagnostic(transparent)]
+pub enum WriteErrorSource {
+    OpenFile(#[from] OpenFileError),
+    ReadFile(#[from] ReadFileError),
+    Build(#[from] BuildError),
+    WriteFile(#[from] WriteFileError),
+}
+
+#[derive(Debug, Error, Diagnostic)]
+#[error("failed to write")]
+#[diagnostic(
+    code(changelogging::build::write),
+    help("see the report for more information")
+)]
+pub struct WriteError {
+    #[source]
+    #[diagnostic_source]
+    pub source: WriteErrorSource,
+}
+
+impl WriteError {
+    pub fn new(source: WriteErrorSource) -> Self {
+        Self { source }
+    }
+
+    pub fn open_file(source: OpenFileError) -> Self {
+        Self::new(source.into())
+    }
+
+    pub fn read_file(source: ReadFileError) -> Self {
+        Self::new(source.into())
+    }
+
+    pub fn build(source: BuildError) -> Self {
+        Self::new(source.into())
+    }
+
+    pub fn write_file(source: WriteFileError) -> Self {
+        Self::new(source.into())
+    }
+
+    pub fn new_open_file<P: AsRef<Path>>(source: std::io::Error, path: P) -> Self {
+        Self::open_file(OpenFileError::new(source, path))
+    }
+
+    pub fn new_read_file<P: AsRef<Path>>(source: std::io::Error, path: P) -> Self {
+        Self::read_file(ReadFileError::new(source, path))
+    }
+
+    pub fn new_write_file<P: AsRef<Path>>(source: std::io::Error, path: P) -> Self {
+        Self::write_file(WriteFileError::new(source, path))
+    }
+}
+
+#[derive(Debug, Error, Diagnostic)]
+#[error(transparent)]
+#[diagnostic(transparent)]
+pub enum ErrorSource {
+    Init(#[from] InitError),
+    Date(#[from] crate::date::Error),
+    Build(#[from] BuildError),
+    Write(#[from] WriteError),
+}
+
+#[derive(Debug, Error, Diagnostic)]
+#[error("failed to run")]
+#[diagnostic(
+    code(changelogging::build::run),
+    help("see the report for more information")
+)]
+pub struct Error {
+    #[source]
+    #[diagnostic_source]
+    pub source: ErrorSource,
+}
+
+impl Error {
+    pub fn new(source: ErrorSource) -> Self {
+        Self { source }
+    }
+
+    pub fn init(source: InitError) -> Self {
+        Self::new(source.into())
+    }
+
+    pub fn date(source: crate::date::Error) -> Self {
+        Self::new(source.into())
+    }
+
+    pub fn build(source: BuildError) -> Self {
+        Self::new(source.into())
+    }
+
+    pub fn write(source: WriteError) -> Self {
+        Self::new(source.into())
+    }
+}
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 struct RenderTitleData<'t> {
@@ -65,33 +356,17 @@ pub struct Builder<'b> {
     pub renderer: Handlebars<'b>,
 }
 
-/// Represents errors that can occur during building.
-#[derive(Debug, Error)]
-#[error(transparent)]
-pub enum Error {
-    /// Template error.
-    Template(#[from] TemplateError),
-    /// Render error.
-    Render(#[from] RenderError),
-    /// I/O error.
-    Io(#[from] std::io::Error),
-}
-
 const TITLE: &str = "title";
 const FRAGMENT: &str = "fragment";
 
 impl<'b> Builder<'b> {
     /// Constructs [`Self`] from [`Workspace`] and [`Date`].
-    pub fn from_workspace(workspace: Workspace<'b>, date: Date) -> Result<Self, TemplateError> {
+    pub fn from_workspace(workspace: Workspace<'b>, date: Date) -> Result<Self, InitError> {
         Self::new(workspace.context, workspace.options.into_config(), date)
     }
 
     /// Constructs [`Self`].
-    pub fn new(
-        context: Context<'b>,
-        config: Config<'b>,
-        date: Date,
-    ) -> Result<Self, TemplateError> {
+    pub fn new(context: Context<'b>, config: Config<'b>, date: Date) -> Result<Self, InitError> {
         let mut renderer = Handlebars::new();
 
         let formats = config.formats_ref();
@@ -138,33 +413,42 @@ impl Builder<'_> {
 
     // BUILDING
 
-    pub fn write(&self) -> Result<(), Error> {
-        let output = self.config.paths.output.as_ref();
+    pub fn write(&self) -> Result<(), WriteError> {
+        let entry = self.build().map_err(|error| WriteError::build(error))?;
 
-        let contents = read_to_string(output)?;
+        let path = self.config.paths.output.as_ref();
 
-        let mut file = File::options().write(true).truncate(true).open(output)?;
+        let file = File::options()
+            .read(true)
+            .open(path)
+            .map_err(|error| WriteError::new_open_file(error, path))?;
+
+        let contents =
+            read_to_string(file).map_err(|error| WriteError::new_read_file(error, path))?;
+
+        let mut file = File::options()
+            .create(true)
+            .write(true)
+            .truncate(true)
+            .open(path)
+            .map_err(|error| WriteError::new_open_file(error, path))?;
 
         let start = self.config.start.as_ref();
 
-        let entry = self.build()?;
-
-        if let Some((before, after)) = contents.split_once(start) {
-            write!(file, "{before}")?;
-            write!(file, "{start}")?;
-            write!(file, "{DOUBLE_NEW_LINE}")?;
-            write!(file, "{entry}")?;
-            write!(file, "{after}")?;
+        let parts = if let Some((before, after)) = contents.split_once(start) {
+            vec![before, start, DOUBLE_NEW_LINE, entry.as_ref(), after]
         } else {
-            write!(file, "{entry}")?;
-            write!(file, "{DOUBLE_NEW_LINE}")?;
-            write!(file, "{contents}")?;
-        }
+            vec![entry.as_ref(), DOUBLE_NEW_LINE, contents.as_ref()]
+        };
+
+        let string: String = parts.into_iter().collect();
+
+        write!(file, "{string}").map_err(|error| WriteError::new_write_file(error, path))?;
 
         Ok(())
     }
 
-    pub fn preview(&self) -> Result<(), Error> {
+    pub fn preview(&self) -> Result<(), BuildError> {
         let string = self.build()?;
 
         println!("{string}");
@@ -172,14 +456,18 @@ impl Builder<'_> {
         Ok(())
     }
 
-    pub fn build(&self) -> Result<String, Error> {
-        let mut string = self.build_title()?;
+    pub fn build(&self) -> Result<String, BuildError> {
+        let mut string = self
+            .build_title()
+            .map_err(|error| BuildError::new(error.into()))?;
 
         string.push_str(DOUBLE_NEW_LINE);
 
-        let sections = self.collect_sections()?;
+        let sections = self.collect().map_err(|error| BuildError::collect(error))?;
 
-        let built = self.build_sections(&sections)?;
+        let built = self
+            .build_sections(&sections)
+            .map_err(|error| BuildError::new(error.into()))?;
 
         let contents = if built.is_empty() {
             NO_SIGNIFICANT_CHANGES
@@ -192,7 +480,7 @@ impl Builder<'_> {
         Ok(string)
     }
 
-    pub fn build_title(&self) -> Result<String, RenderError> {
+    pub fn build_title(&self) -> Result<String, BuildTitleError> {
         let mut string = self.entry_heading();
 
         let title = self.render_title()?;
@@ -210,13 +498,13 @@ impl Builder<'_> {
         string
     }
 
-    pub fn build_fragment(&self, fragment: &Fragment<'_>) -> Result<String, RenderError> {
+    pub fn build_fragment(&self, fragment: &Fragment<'_>) -> Result<String, BuildFragmentError> {
         let string = self.render_fragment(fragment)?;
 
         Ok(self.wrap(string))
     }
 
-    pub fn build_fragments(&self, fragments: &Fragments<'_>) -> Result<String, Error> {
+    pub fn build_fragments(&self, fragments: &Fragments<'_>) -> Result<String, BuildFragmentError> {
         let string = fragments
             .iter()
             .map(|fragment| self.build_fragment(fragment))
@@ -229,7 +517,7 @@ impl Builder<'_> {
         &self,
         title: S,
         fragments: &Fragments<'_>,
-    ) -> Result<String, Error> {
+    ) -> Result<String, BuildFragmentError> {
         let mut string = self.build_section_title(title);
 
         let built = self.build_fragments(fragments)?;
@@ -240,7 +528,7 @@ impl Builder<'_> {
         Ok(string)
     }
 
-    pub fn build_sections(&self, sections: &Sections<'_>) -> Result<String, Error> {
+    pub fn build_sections(&self, sections: &Sections<'_>) -> Result<String, BuildFragmentError> {
         let types = self.config.types_ref();
 
         let string = self
@@ -284,27 +572,33 @@ impl Builder<'_> {
 
     // COLLECTING
 
-    pub fn collect_sections(&self) -> Result<Sections<'_>, Error> {
+    pub fn collect(&self) -> Result<Sections<'_>, CollectError> {
+        let directory = self.config.paths.directory.as_ref();
+
         let mut sections = Sections::new();
 
-        self.iter_fragments()?
-            .filter_map(|result| result.ok()) // ignore errors
-            .for_each(|fragment| {
-                sections
-                    .entry(fragment.partial.type_name.clone())
-                    .or_default()
-                    .push(fragment);
-            });
+        read_dir(directory)
+            .map_err(|error| CollectError::new_read_directory(error, directory))?
+            .map(|result| {
+                result
+                    .map(|entry| entry.path())
+                    .map_err(|error| CollectError::new_iter_directory(error, directory))
+            })
+            .process_results(|iterator| {
+                iterator
+                    .into_iter()
+                    .filter_map(|path| Fragment::load(path).ok()) // ignore errors
+                    .for_each(|fragment| {
+                        sections
+                            .entry(fragment.partial.type_name.clone())
+                            .or_default()
+                            .push(fragment)
+                    })
+            })?;
 
         sections.values_mut().for_each(|section| section.sort());
 
         Ok(sections)
-    }
-
-    pub fn iter_fragments(&self) -> Result<FromDir<Fragment<'_>>, Error> {
-        let iterator = load(self.config.paths.directory.as_ref())?;
-
-        Ok(iterator)
     }
 
     // HEADING
@@ -322,18 +616,23 @@ impl Builder<'_> {
     }
 }
 
-pub fn builder<'a>(
-    context: Context<'a>,
-    config: Config<'a>,
-    date: Date,
-) -> Result<Builder<'a>, Error> {
-    let builder = Builder::new(context, config, date)?;
+pub fn run<S: AsRef<str>>(
+    workspace: Workspace<'_>,
+    string: Option<S>,
+    preview: bool,
+) -> Result<(), Error> {
+    let date = match string {
+        Some(content) => parse(content).map_err(|error| Error::date(error))?,
+        None => today(),
+    };
 
-    Ok(builder)
-}
+    let builder = Builder::from_workspace(workspace, date).map_err(|error| Error::init(error))?;
 
-pub fn builder_from_workspace(workspace: Workspace<'_>, date: Date) -> Result<Builder<'_>, Error> {
-    let builder = Builder::from_workspace(workspace, date)?;
+    if preview {
+        builder.preview().map_err(|error| Error::build(error))?;
+    } else {
+        builder.write().map_err(|error| Error::write(error))?;
+    }
 
-    Ok(builder)
+    Ok(())
 }

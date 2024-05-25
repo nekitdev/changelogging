@@ -3,15 +3,15 @@
 use std::path::{Path, PathBuf};
 
 use clap::{Args, Parser, Subcommand};
+use miette::Diagnostic;
 use thiserror::Error;
-use time::Date;
 
 use crate::{
-    build::builder_from_workspace,
+    build::run,
     create::create,
-    date::{parse_slice, today},
+    discover::discover,
     init::init,
-    workspace::{discover, workspace, Workspace},
+    workspace::{load, Workspace},
 };
 
 /// Represents global options of `changelogging`.
@@ -57,17 +57,53 @@ pub struct App {
 }
 
 /// Represents errors that can occur during application runs.
-#[derive(Debug, Error)]
+#[derive(Debug, Error, Diagnostic)]
 #[error(transparent)]
-pub enum Error {
-    /// Initialization errors.
+#[diagnostic(transparent)]
+pub enum ErrorSource {
     Init(#[from] crate::init::Error),
-    /// Workspace discovery and loading errors.
+    Discover(#[from] crate::discover::Error),
     Workspace(#[from] crate::workspace::Error),
-    /// `build` errors.
     Build(#[from] crate::build::Error),
-    /// `create` errors.
     Create(#[from] crate::create::Error),
+}
+
+#[derive(Debug, Error, Diagnostic)]
+#[error("error encoutered")]
+#[diagnostic(
+    code(changelogging::app::run),
+    help("see the report for more information")
+)]
+pub struct Error {
+    #[source]
+    #[diagnostic_source]
+    source: ErrorSource,
+}
+
+impl Error {
+    pub fn new(source: ErrorSource) -> Self {
+        Self { source }
+    }
+
+    pub fn init(source: crate::init::Error) -> Self {
+        Self::new(source.into())
+    }
+
+    pub fn discover(source: crate::discover::Error) -> Self {
+        Self::new(source.into())
+    }
+
+    pub fn workspace(source: crate::workspace::Error) -> Self {
+        Self::new(source.into())
+    }
+
+    pub fn build(source: crate::build::Error) -> Self {
+        Self::new(source.into())
+    }
+
+    pub fn create(source: crate::create::Error) -> Self {
+        Self::new(source.into())
+    }
 }
 
 impl App {
@@ -75,17 +111,24 @@ impl App {
     pub fn run(self) -> Result<(), Error> {
         let globals = self.globals;
 
-        init(globals.directory)?;
+        init(globals.directory).map_err(|error| Error::init(error))?;
 
-        let workspace = globals.config.map_or_else(discover, workspace)?;
+        let workspace = match globals.config {
+            Some(path) => load(path).map_err(|error| Error::workspace(error))?,
+            None => discover().map_err(|error| Error::discover(error))?,
+        };
 
         if let Some(command) = self.command {
             match command {
-                Command::Build(build) => build.run(workspace)?,
+                Command::Build(build) => {
+                    build.run(workspace).map_err(|error| Error::build(error))?;
+                }
                 Command::Create(create) => {
                     let directory = workspace.options.into_config().paths.directory;
 
-                    create.run(directory)?;
+                    create
+                        .run(directory)
+                        .map_err(|error| Error::create(error))?;
                 }
             }
         };
@@ -113,10 +156,9 @@ pub struct BuildCommand {
         short = 'd',
         long,
         name = "DATE",
-        value_parser = parse_slice,
-        help = "Use the date provided instead of today",
+        help = "Use the date provided instead of today"
     )]
-    pub date: Option<Date>,
+    pub date: Option<String>,
 
     /// Whether to preview or write the build result.
     #[arg(
@@ -131,15 +173,7 @@ pub struct BuildCommand {
 impl BuildCommand {
     /// Runs the `build` command.
     pub fn run(self, workspace: Workspace<'_>) -> Result<(), crate::build::Error> {
-        let builder = builder_from_workspace(workspace, self.date.unwrap_or_else(today))?;
-
-        if self.preview {
-            builder.preview()?;
-        } else {
-            builder.write()?;
-        }
-
-        Ok(())
+        run(workspace, self.date, self.preview)
     }
 }
 

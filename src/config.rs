@@ -157,22 +157,8 @@
 use std::{borrow::Cow, collections::HashMap, num::NonZeroUsize, path::Path};
 
 use serde::{Deserialize, Serialize};
-use thiserror::Error;
 
-use crate::{
-    macros::{impl_from_path_with_parse, impl_from_str_with_toml},
-    options::Options,
-};
-
-/// Represents errors that can occur during configuration loading.
-#[derive(Debug, Error)]
-#[error(transparent)]
-pub enum Error {
-    /// I/O error.
-    Io(#[from] std::io::Error),
-    /// TOML error.
-    Toml(#[from] toml::de::Error),
-}
+use crate::options::Options;
 
 /// Marks the location in the changelog to start writing entries after.
 pub type Start<'s> = Cow<'s, str>;
@@ -246,15 +232,12 @@ pub struct Config<'c> {
     pub types: Types<'c>,
 }
 
-impl_from_str_with_toml!(Config<'_>);
-impl_from_path_with_parse!(Config<'_>, Error);
-
 const DEFAULTS: &str = include_str!("defaults.toml");
 
 impl Default for Config<'_> {
     fn default() -> Self {
         // SAFETY: defaults must be valid
-        DEFAULTS.parse().unwrap()
+        toml::from_str(DEFAULTS).unwrap()
     }
 }
 

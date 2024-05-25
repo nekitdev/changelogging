@@ -13,10 +13,7 @@ use serde::{Deserialize, Serialize};
 #[allow(unused)]
 use crate::config;
 
-use crate::{
-    config::{Config, Error, Level, Order, Start, Types, Wrap},
-    macros::{impl_from_path_with_parse, impl_from_str_with_toml},
-};
+use crate::config::{Config, Level, Order, Start, Types, Wrap};
 
 /// Optional [`config::Paths`].
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
@@ -74,9 +71,6 @@ pub struct Options<'o> {
     /// Optional [`Config::types`].
     pub types: Option<Types<'o>>,
 }
-
-impl_from_str_with_toml!(Options<'_>);
-impl_from_path_with_parse!(Options<'_>, Error);
 
 impl<'o> Options<'o> {
     /// Converts [`Options`] into [`Config`].

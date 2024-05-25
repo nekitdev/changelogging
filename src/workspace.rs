@@ -8,17 +8,78 @@
 //! [`context`]: crate::context
 //! [`options`]: crate::options
 
-use std::{env::current_dir, path::Path};
+use std::{
+    fs::read_to_string,
+    path::{Path, PathBuf},
+};
 
+use miette::Diagnostic;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
-use crate::{
-    context::Context,
-    macros::{impl_from_path_with_parse, impl_from_str_with_toml},
-    options::Options,
-    paths::{load, load_if_exists},
-};
+use crate::{context::Context, options::Options};
+
+#[derive(Debug, Error, Diagnostic)]
+#[error("read failed")]
+#[diagnostic(
+    code(changelogging::workspace::read),
+    help("check that the file exists and is accessible")
+)]
+pub struct ReadError(#[from] pub std::io::Error);
+
+#[derive(Debug, Error, Diagnostic)]
+#[error("parsing failed")]
+#[diagnostic(
+    code(changelogging::workspace::parse),
+    help("check that the configuration is correct")
+)]
+pub struct ParseError(#[from] pub toml::de::Error);
+
+#[derive(Debug, Error, Diagnostic)]
+#[error(transparent)]
+#[diagnostic(transparent)]
+pub enum ErrorSource {
+    Read(#[from] ReadError),
+    Parse(#[from] ParseError),
+}
+
+/// Represents errors that can occur during configuration loading.
+#[derive(Debug, Error, Diagnostic)]
+#[error("loading workspace from `{path}` failed")]
+#[diagnostic(
+    code(changelogging::workspace::load),
+    help("see the report for more information")
+)]
+pub struct Error {
+    #[source]
+    #[diagnostic_source]
+    pub source: ErrorSource,
+    pub path: PathBuf,
+}
+
+impl Error {
+    pub fn new<P: AsRef<Path>>(source: ErrorSource, path: P) -> Self {
+        let path = path.as_ref().to_owned();
+
+        Self { source, path }
+    }
+
+    pub fn read<P: AsRef<Path>>(source: ReadError, path: P) -> Self {
+        Self::new(source.into(), path)
+    }
+
+    pub fn parse<P: AsRef<Path>>(source: ParseError, path: P) -> Self {
+        Self::new(source.into(), path)
+    }
+
+    pub fn new_read<P: AsRef<Path>>(source: std::io::Error, path: P) -> Self {
+        Self::read(ReadError(source), path)
+    }
+
+    pub fn new_parse<P: AsRef<Path>>(source: toml::de::Error, path: P) -> Self {
+        Self::parse(ParseError(source), path)
+    }
+}
 
 /// Combines [`Context`] and [`Options`] into one structure.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -33,17 +94,27 @@ pub struct Workspace<'w> {
 }
 
 impl<'w> Workspace<'w> {
-    /// Creates [`Workspace`] from [`Context`] and [`Options`] provided.
+    /// Constructs [`Self`].
     pub fn new(context: Context<'w>, options: Options<'w>) -> Self {
         Self { context, options }
     }
 }
 
-impl_from_str_with_toml!(Workspace<'_>);
-impl_from_path_with_parse!(Workspace<'_>, crate::config::Error);
+impl Workspace<'_> {
+    pub fn load<P: AsRef<Path>>(path: P) -> Result<Self, Error> {
+        let path = path.as_ref();
 
-trait IntoWorkspace<'w> {
-    fn into_workspace(self) -> Option<Workspace<'w>>;
+        let string = read_to_string(path).map_err(|error| Error::new_read(error, path))?;
+
+        let workspace =
+            toml::from_str(string.as_ref()).map_err(|error| Error::new_parse(error, path))?;
+
+        Ok(workspace)
+    }
+}
+
+pub fn load<P: AsRef<Path>>(path: P) -> Result<Workspace<'static>, Error> {
+    Workspace::load(path)
 }
 
 /// Represents `tool` sections in `pyproject.toml` files.
@@ -53,9 +124,6 @@ pub struct Tools<'t> {
     pub changelogging: Option<Workspace<'t>>,
 }
 
-impl_from_str_with_toml!(Tools<'_>);
-impl_from_path_with_parse!(Tools<'_>, crate::config::Error);
-
 /// Represents structures of `pyproject.toml` files.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct PyProject<'p> {
@@ -63,75 +131,15 @@ pub struct PyProject<'p> {
     pub tool: Option<Tools<'p>>,
 }
 
-impl_from_str_with_toml!(PyProject<'_>);
-impl_from_path_with_parse!(PyProject<'_>, crate::config::Error);
+impl PyProject<'_> {
+    pub fn load<P: AsRef<Path>>(path: P) -> Result<Self, Error> {
+        let path = path.as_ref();
 
-const CHANGELOGGING: &str = "changelogging.toml";
-const PYPROJECT: &str = "pyproject.toml";
+        let string = read_to_string(path).map_err(|error| Error::new_read(error, path))?;
 
-/// Represents discovery errors.
-#[derive(Debug, Error)]
-#[error("failed to discover workspace")]
-pub struct DiscoverError;
+        let workspace =
+            toml::from_str(string.as_ref()).map_err(|error| Error::new_parse(error, path))?;
 
-/// Represents [`discover`] and [`workspace`] errors.
-#[derive(Debug, Error)]
-#[error(transparent)]
-pub enum Error {
-    /// I/O error.
-    Io(#[from] std::io::Error),
-    /// Config error.
-    Config(#[from] crate::config::Error),
-    /// Discovery error.
-    Discover(#[from] DiscoverError),
-}
-
-/// Loads the workspace from the given `path`.
-///
-/// # Errors
-///
-/// Returns [`enum@Error`] on loading errors.
-pub fn workspace<P: AsRef<Path>>(path: P) -> Result<Workspace<'static>, Error> {
-    let workspace = load(path)?;
-
-    Ok(workspace)
-}
-
-/// Discovers the workspace in the current directory.
-///
-/// # Errors
-///
-/// [`enum@Error`] is returned on I/O errors (from [`current_dir`]),
-/// loading errors (from [`load_if_exists`]) and when workspace can not be discovered.
-pub fn discover() -> Result<Workspace<'static>, Error> {
-    let mut path = current_dir()?;
-
-    // try `changelogging.toml`
-
-    path.push(CHANGELOGGING);
-
-    if let Some(workspace) = load_if_exists(path.as_path())? {
-        return Ok(workspace);
+        Ok(workspace)
     }
-
-    // try `pyproject.toml` iff `[tool.changelogging]` is in there
-
-    path.pop();
-
-    path.push(PYPROJECT);
-
-    let option: Option<PyProject<'_>> = load_if_exists(path.as_path())?;
-
-    if let Some(workspace) = option
-        .and_then(|pyproject| pyproject.tool)
-        .and_then(|tools| tools.changelogging)
-    {
-        return Ok(workspace);
-    }
-
-    // not found
-
-    path.pop();
-
-    Err(DiscoverError.into())
 }

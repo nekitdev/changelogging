@@ -11,9 +11,6 @@ license = "MIT"
 keywords = ["changelog", "changes"]
 categories = ["command-line-utilities", "development-tools"]
 
-[dependencies]
-anyhow = "1.0.86"
-
 [dependencies.clap]
 version = "4.5.4"
 features = ["derive"]
@@ -26,6 +23,10 @@ version = "0.13.0"
 
 [dependencies.handlebars]
 version = "5.1.2"
+
+[dependencies.miette]
+version = "7.2.0"
+features = ["fancy"]
 
 [dependencies.thiserror]
 version = "1.0.60"
