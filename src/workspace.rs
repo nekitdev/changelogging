@@ -1,7 +1,6 @@
 //! Discovering and loading workspaces.
 //!
-//! This module provides two notable functions, [`workspace`] and [`discover`], as well as
-//! the [`Workspace`] structure.
+//! This module provides two notable structures, [`Workspace`] and [`PyProject`].
 //!
 //! See also [`context`] and [`options`].
 //!
@@ -19,6 +18,7 @@ use thiserror::Error;
 
 use crate::{context::Context, options::Options};
 
+/// Represents errors that can occur when reading files.
 #[derive(Debug, Error, Diagnostic)]
 #[error("read failed")]
 #[diagnostic(
@@ -27,6 +27,7 @@ use crate::{context::Context, options::Options};
 )]
 pub struct ReadError(#[from] pub std::io::Error);
 
+/// Represents errors that can occur when parsing TOML configuration into concrete types.
 #[derive(Debug, Error, Diagnostic)]
 #[error("parsing failed")]
 #[diagnostic(
@@ -35,15 +36,18 @@ pub struct ReadError(#[from] pub std::io::Error);
 )]
 pub struct ParseError(#[from] pub toml::de::Error);
 
+/// Represents sources of errors that can occur when loading workspaces.
 #[derive(Debug, Error, Diagnostic)]
 #[error(transparent)]
 #[diagnostic(transparent)]
 pub enum ErrorSource {
+    /// Read error.
     Read(#[from] ReadError),
+    /// Parse error.
     Parse(#[from] ParseError),
 }
 
-/// Represents errors that can occur during configuration loading.
+/// Represents errors that can occur during workspace loading.
 #[derive(Debug, Error, Diagnostic)]
 #[error("loading workspace from `{path}` failed")]
 #[diagnostic(
@@ -51,31 +55,38 @@ pub enum ErrorSource {
     help("see the report for more information")
 )]
 pub struct Error {
+    /// The source of this error.
     #[source]
     #[diagnostic_source]
     pub source: ErrorSource,
+    /// The path provided.
     pub path: PathBuf,
 }
 
 impl Error {
+    /// Constructs [`Self`].
     pub fn new<P: AsRef<Path>>(source: ErrorSource, path: P) -> Self {
         let path = path.as_ref().to_owned();
 
         Self { source, path }
     }
 
+    /// Constructs [`Self`] from [`ReadError`].
     pub fn read<P: AsRef<Path>>(source: ReadError, path: P) -> Self {
         Self::new(source.into(), path)
     }
 
+    /// Constructs [`Self`] from [`ParseError`].
     pub fn parse<P: AsRef<Path>>(source: ParseError, path: P) -> Self {
         Self::new(source.into(), path)
     }
 
+    /// Constructs [`ReadError`] and constructs [`Self`] from it.
     pub fn new_read<P: AsRef<Path>>(source: std::io::Error, path: P) -> Self {
         Self::read(ReadError(source), path)
     }
 
+    /// Constructs [`ParseError`] and constructs [`Self`] from it.
     pub fn new_parse<P: AsRef<Path>>(source: toml::de::Error, path: P) -> Self {
         Self::parse(ParseError(source), path)
     }
@@ -101,6 +112,11 @@ impl<'w> Workspace<'w> {
 }
 
 impl Workspace<'_> {
+    /// Loads [`Self`] from the given path.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`struct@Error`] if reading the file or parsing TOML fails.
     pub fn load<P: AsRef<Path>>(path: P) -> Result<Self, Error> {
         let path = path.as_ref();
 
@@ -113,6 +129,13 @@ impl Workspace<'_> {
     }
 }
 
+/// Calls the [`load`] method of [`Workspace`] on the path provided.
+///
+/// # Errors
+///
+/// Returns [`struct@Error`] when loading fails.
+///
+/// [`load`]: Workspace::load
 pub fn load<P: AsRef<Path>>(path: P) -> Result<Workspace<'static>, Error> {
     Workspace::load(path)
 }
@@ -132,6 +155,11 @@ pub struct PyProject<'p> {
 }
 
 impl PyProject<'_> {
+    /// Loads [`Self`] from the given path.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`struct@Error`] if reading the file or parsing TOML fails.
     pub fn load<P: AsRef<Path>>(path: P) -> Result<Self, Error> {
         let path = path.as_ref();
 

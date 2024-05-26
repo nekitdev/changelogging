@@ -1,11 +1,12 @@
 //! Parsing dates and fetching the current date.
 //!
-//! This module provides two notable functions: [`date`] and [`today`].
+//! This module provides two notable functions: [`parse`] and [`today`].
 
 use miette::Diagnostic;
 use thiserror::Error;
 use time::{macros::format_description, Date, OffsetDateTime};
 
+/// Represents errors that can occur when parsing dates.
 #[derive(Debug, Error, Diagnostic)]
 #[error("failed to parse `{string}`")]
 #[diagnostic(
@@ -13,10 +14,12 @@ use time::{macros::format_description, Date, OffsetDateTime};
     help("dates must be in `[year]-[month]-[day]` (aka `YYYY-MM-DD`) format")
 )]
 pub struct Error {
+    /// The string passed to the [`parse`] function.
     pub string: String,
 }
 
 impl Error {
+    /// Constructs [`Self`].
     pub fn new<S: AsRef<str>>(string: S) -> Self {
         let string = string.as_ref().to_owned();
 
@@ -33,7 +36,7 @@ pub fn today() -> Date {
 ///
 /// # Errors
 ///
-/// Returns [`Error`] on invalid dates.
+/// Returns [`struct@Error`] on invalid dates.
 pub fn parse<S: AsRef<str>>(string: S) -> Result<Date, Error> {
     let string = string.as_ref();
 

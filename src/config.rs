@@ -152,7 +152,7 @@
 //!
 //! [`context`]: crate::context
 //! [`Context`]: crate::context::Context
-//! [`Fragment`]: crate::fragments::Fragment
+//! [`Fragment`]: crate::fragment::Fragment
 
 use std::{borrow::Cow, collections::HashMap, num::NonZeroUsize, path::Path};
 

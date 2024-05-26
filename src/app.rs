@@ -56,18 +56,24 @@ pub struct App {
     pub command: Option<Command>,
 }
 
-/// Represents errors that can occur during application runs.
+/// Represents sources of errors that can occur during application runs.
 #[derive(Debug, Error, Diagnostic)]
 #[error(transparent)]
 #[diagnostic(transparent)]
 pub enum ErrorSource {
+    /// Initialization errors.
     Init(#[from] crate::init::Error),
+    /// Workspace discovery errors.
     Discover(#[from] crate::discover::Error),
+    /// Workspace loading errors.
     Workspace(#[from] crate::workspace::Error),
+    /// `build` errors.
     Build(#[from] crate::build::Error),
+    /// `create` errors.
     Create(#[from] crate::create::Error),
 }
 
+/// Represents errors that can occur during application runs.
 #[derive(Debug, Error, Diagnostic)]
 #[error("error encoutered")]
 #[diagnostic(
@@ -75,32 +81,39 @@ pub enum ErrorSource {
     help("see the report for more information")
 )]
 pub struct Error {
+    /// The error source.
     #[source]
     #[diagnostic_source]
-    source: ErrorSource,
+    pub source: ErrorSource,
 }
 
 impl Error {
+    /// Constructs [`Self`].
     pub fn new(source: ErrorSource) -> Self {
         Self { source }
     }
 
+    /// Constructs [`Self`] from initialization error.
     pub fn init(source: crate::init::Error) -> Self {
         Self::new(source.into())
     }
 
+    /// Constructs [`Self`] from discovery error.
     pub fn discover(source: crate::discover::Error) -> Self {
         Self::new(source.into())
     }
 
+    /// Constructs [`Self`] from workspace error.
     pub fn workspace(source: crate::workspace::Error) -> Self {
         Self::new(source.into())
     }
 
+    /// Constructs [`Self`] from `build` error.
     pub fn build(source: crate::build::Error) -> Self {
         Self::new(source.into())
     }
 
+    /// Constructs [`Self`] from `create` error.
     pub fn create(source: crate::create::Error) -> Self {
         Self::new(source.into())
     }
@@ -108,6 +121,10 @@ impl Error {
 
 impl App {
     /// Runs the application.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`struct@Error`] when any error is encountered.
     pub fn run(self) -> Result<(), Error> {
         let globals = self.globals;
 
@@ -152,6 +169,8 @@ pub enum Command {
 #[derive(Debug, Args)]
 pub struct BuildCommand {
     /// The date to use. If not provided, [`today`] is used.
+    ///
+    /// [`today`]: crate::date::today
     #[arg(
         short = 'd',
         long,
@@ -172,6 +191,12 @@ pub struct BuildCommand {
 
 impl BuildCommand {
     /// Runs the `build` command.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error`] when any error is encountered.
+    ///
+    /// [`Error`]: crate::build::Error
     pub fn run(self, workspace: Workspace<'_>) -> Result<(), crate::build::Error> {
         run(workspace, self.date, self.preview)
     }
@@ -206,6 +231,12 @@ pub struct CreateCommand {
 
 impl CreateCommand {
     /// Runs the `create` command.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error`] when any error is encountered.
+    ///
+    /// [`Error`]: crate::create::Error
     pub fn run<D: AsRef<Path>>(self, directory: D) -> Result<(), crate::create::Error> {
         create(directory, self.name, self.content, self.edit)
     }

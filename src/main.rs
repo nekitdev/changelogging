@@ -1,3 +1,5 @@
+//! The `changelogging` binary.
+
 use changelogging::app::App;
 use clap::Parser;
 use miette::Result;

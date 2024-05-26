@@ -8,6 +8,7 @@ use std::{
 use miette::Diagnostic;
 use thiserror::Error;
 
+/// Represents errors that can occur during changing the current directory.
 #[derive(Debug, Error, Diagnostic)]
 #[error("failed to change the current directory to `{path}`")]
 #[diagnostic(
@@ -15,11 +16,14 @@ use thiserror::Error;
     help("check whether the directory exists and is accessible")
 )]
 pub struct ChangeCurrentDirectoryError {
+    /// The source of this error.
     pub source: std::io::Error,
+    /// The path provided.
     pub path: PathBuf,
 }
 
 impl ChangeCurrentDirectoryError {
+    /// Constructs [`Self`].
     pub fn new<P: AsRef<Path>>(source: std::io::Error, path: P) -> Self {
         let path = path.as_ref().to_owned();
 
@@ -27,13 +31,16 @@ impl ChangeCurrentDirectoryError {
     }
 }
 
+/// Represents sources of errors that can occur during initialization.
 #[derive(Debug, Error, Diagnostic)]
 #[error(transparent)]
 #[diagnostic(transparent)]
 pub enum ErrorSource {
+    /// Change current directory error.
     ChangeCurrentDirectory(#[from] ChangeCurrentDirectoryError),
 }
 
+/// Represents errors that can occur during initialization.
 #[derive(Debug, Error, Diagnostic)]
 #[error("failed to initialize")]
 #[diagnostic(
@@ -41,26 +48,34 @@ pub enum ErrorSource {
     help("see the report for more information")
 )]
 pub struct Error {
+    /// The error source.
     #[source]
     #[diagnostic_source]
-    source: ErrorSource,
+    pub source: ErrorSource,
 }
 
 impl Error {
+    /// Constructs [`Self`].
     pub fn new(source: ErrorSource) -> Self {
         Self { source }
     }
 
+    /// Constructs [`Self`] from [`ChangeCurrentDirectoryError`].
     pub fn change_current_directory(source: ChangeCurrentDirectoryError) -> Self {
         Self::new(source.into())
     }
 
+    /// Constructs [`ChangeCurrentDirectoryError`] and constructs [`Self`] from it.
     pub fn new_change_current_directory<P: AsRef<Path>>(source: std::io::Error, path: P) -> Self {
         Self::change_current_directory(ChangeCurrentDirectoryError::new(source, path))
     }
 }
 
-/// Initializes `changelogging`, optionally changing current directory.
+/// Initializes `changelogging`, optionally changing the current directory.
+///
+/// # Errors
+///
+/// [`struct@Error`] is returned when changing the current directory fails.
 pub fn init<D: AsRef<Path>>(directory: Option<D>) -> Result<(), Error> {
     if let Some(path) = directory {
         let path = path.as_ref();

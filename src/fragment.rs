@@ -16,23 +16,25 @@ use thiserror::Error;
 /// Represents IDs of fragments.
 pub type FragmentId = u32;
 
+/// Represents errors that can occur when parsing fragment IDs.
 #[derive(Debug, Error, Diagnostic)]
 #[error("invalid ID")]
 #[diagnostic(
-    code(changelogging::fragments::invalid_id),
+    code(changelogging::fragment::invalid_id),
     help("fragment IDs are integers")
 )]
 pub struct InvalidIdError(#[from] pub ParseIntError);
 
+/// Represents errors that can occur when there are not enough parts to parse.
 #[derive(Debug, Error, Diagnostic)]
 #[error("unexpected EOF")]
 #[diagnostic(
-    code(changelogging::fragments::unexpected_eof),
+    code(changelogging::fragment::unexpected_eof),
     help("make sure the name starts with `{{id}}.{{type}}`")
 )]
 pub struct UnexpectedEofError;
 
-/// Represents errors that can occur while parsing into [`PartialFragment`].
+/// Represents sources of errors that can occur while parsing into [`PartialFragment`].
 #[derive(Debug, Error, Diagnostic)]
 #[error(transparent)]
 #[diagnostic(transparent)]
@@ -43,38 +45,46 @@ pub enum ParseErrorSource {
     UnexpectedEof(#[from] UnexpectedEofError),
 }
 
+/// Represents errors that can occur while parsing into [`PartialFragment`].
 #[derive(Debug, Error, Diagnostic)]
 #[error("failed to parse `{name}`")]
 #[diagnostic(
-    code(changelogging::fragments::parse),
+    code(changelogging::fragment::parse),
     help("fragment names must start with `{{id}}.{{type}}`")
 )]
 pub struct ParseError {
+    /// The error source.
     #[source]
     #[diagnostic_source]
     pub source: ParseErrorSource,
+    /// The name provided.
     pub name: String,
 }
 
 impl ParseError {
+    /// Constructs [`Self`].
     pub fn new<S: AsRef<str>>(source: ParseErrorSource, name: S) -> Self {
         let name = name.as_ref().to_owned();
 
         Self { source, name }
     }
 
+    /// Constructs [`Self`] from [`InvalidIdError`].
     pub fn invalid_id<S: AsRef<str>>(source: InvalidIdError, name: S) -> Self {
         Self::new(source.into(), name)
     }
 
+    /// Constructs [`Self`] from [`UnexpectedEofError`].
     pub fn unexpected_eof<S: AsRef<str>>(source: UnexpectedEofError, name: S) -> Self {
         Self::new(source.into(), name)
     }
 
+    /// Constructs [`InvalidIdError`] and constructs [`Self`] from it.
     pub fn new_invalid_id<S: AsRef<str>>(source: ParseIntError, name: S) -> Self {
         Self::invalid_id(InvalidIdError(source), name)
     }
 
+    /// Constructs [`UnexpectedEofError`] and constructs [`Self`] from it.
     pub fn new_unexpected_eof<S: AsRef<str>>(name: S) -> Self {
         Self::unexpected_eof(UnexpectedEofError, name)
     }
@@ -132,67 +142,82 @@ pub fn validate<S: AsRef<str>>(string: S) -> Result<(), ParseError> {
     Ok(())
 }
 
+/// Represents errors that can occur when reading files.
 #[derive(Debug, Error, Diagnostic)]
 #[error("read failed")]
 #[diagnostic(
-    code(changelogging::fragments::read),
+    code(changelogging::fragment::read),
     help("check whether the file exists and is accessible")
 )]
 pub struct ReadError(#[from] pub std::io::Error);
 
+/// Represents errors that can occur when encountering invalid UTF-8 fragment names.
 #[derive(Debug, Error, Diagnostic)]
 #[error("invalid UTF-8 name")]
 #[diagnostic(
-    code(changelogging::fragments::invalid_utf8),
+    code(changelogging::fragment::invalid_utf8),
     help("fragment file names must be valid UTF-8")
 )]
 pub struct InvalidUtf8Error;
 
+/// Represents sources of errors that can occur when loading [`Fragment`] values.
 #[derive(Debug, Error, Diagnostic)]
 #[error(transparent)]
 #[diagnostic(transparent)]
 pub enum ErrorSource {
+    /// Invalid UTF-8 error.
     InvalidUtf8(#[from] InvalidUtf8Error),
+    /// Parse error.
     Parse(#[from] ParseError),
+    /// Read error.
     Read(#[from] ReadError),
 }
 
+/// Represents errors that can occur when loading [`Fragment`] values.
 #[derive(Debug, Error, Diagnostic)]
 #[error("failed to load `{path}`")]
 #[diagnostic(
-    code(changelogging::fragments::load),
+    code(changelogging::fragment::load),
     help("make sure the file is accessible and its name starts with `{{id}}.{{type}}`")
 )]
 pub struct Error {
+    /// The error source.
     #[source]
     #[diagnostic_source]
     pub source: ErrorSource,
+    /// The path provided.
     pub path: PathBuf,
 }
 
 impl Error {
+    /// Constructs [`Self`].
     pub fn new<P: AsRef<Path>>(source: ErrorSource, path: P) -> Self {
         let path = path.as_ref().to_owned();
 
         Self { source, path }
     }
 
+    /// Constructs [`Self`] from [`InvalidUtf8Error`].
     pub fn invalid_utf8<P: AsRef<Path>>(source: InvalidUtf8Error, path: P) -> Self {
         Self::new(source.into(), path)
     }
 
+    /// Constructs [`Self`] from [`ParseError`].
     pub fn parse<P: AsRef<Path>>(source: ParseError, path: P) -> Self {
         Self::new(source.into(), path)
     }
 
+    /// Constructs [`Self`] from [`ReadError`].
     pub fn read<P: AsRef<Path>>(source: ReadError, path: P) -> Self {
         Self::new(source.into(), path)
     }
 
+    /// Constructs [`InvalidUtf8Error`] and constructs [`Self`] from it.
     pub fn new_invalid_utf8<P: AsRef<Path>>(path: P) -> Self {
         Self::new(InvalidUtf8Error.into(), path)
     }
 
+    /// Constructs [`ReadError`] and constructs [`Self`] from it.
     pub fn new_read<P: AsRef<Path>>(source: std::io::Error, path: P) -> Self {
         Self::new(ReadError(source).into(), path)
     }
@@ -218,18 +243,11 @@ impl<'f> Fragment<'f> {
 }
 
 impl Fragment<'_> {
-    /// References the `partial` field.
-    pub fn partial(&self) -> &PartialFragment<'_> {
-        &self.partial
-    }
-
-    /// References the `content` field.
-    pub fn content(&self) -> &str {
-        self.content.as_ref()
-    }
-}
-
-impl Fragment<'_> {
+    /// Loads [`Self`] from the given path.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`struct@Error`] when loading the contents or parsing the name fails.
     pub fn load<P: AsRef<Path>>(path: P) -> Result<Self, Error> {
         let path = path.as_ref();
 

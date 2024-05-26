@@ -14,6 +14,7 @@ use thiserror::Error;
 
 use crate::fragment::{validate, ParseError};
 
+/// Represents errors that can occur when opening files.
 #[derive(Debug, Error, Diagnostic)]
 #[error("opening failed")]
 #[diagnostic(
@@ -22,6 +23,7 @@ use crate::fragment::{validate, ParseError};
 )]
 pub struct OpenError(#[from] pub std::io::Error);
 
+/// Represents errors that can occur when writing to files.
 #[derive(Debug, Error, Diagnostic)]
 #[error("writing failed")]
 #[diagnostic(
@@ -30,6 +32,7 @@ pub struct OpenError(#[from] pub std::io::Error);
 )]
 pub struct WriteError(#[from] pub std::io::Error);
 
+/// Represents errors that can occur when starting default editors.
 #[derive(Debug, Error, Diagnostic)]
 #[error("editing failed")]
 #[diagnostic(
@@ -38,16 +41,22 @@ pub struct WriteError(#[from] pub std::io::Error);
 )]
 pub struct EditError(#[from] pub std::io::Error);
 
+/// Represents sources of errors that can occur during fragment creation.
 #[derive(Debug, Error, Diagnostic)]
 #[error(transparent)]
 #[diagnostic(transparent)]
 pub enum ErrorSource {
+    /// Parse error.
     Parse(#[from] ParseError),
+    /// Open error.
     Open(#[from] OpenError),
+    /// Write error.
     Write(#[from] WriteError),
+    /// Edit error.
     Edit(#[from] EditError),
 }
 
+/// Represents errors that can occur during fragment creation.
 #[derive(Debug, Error, Diagnostic)]
 #[error("failed to create fragment `{path}`")]
 #[diagnostic(
@@ -55,51 +64,67 @@ pub enum ErrorSource {
     help("see the report for more information")
 )]
 pub struct Error {
+    /// The error source.
     #[source]
     #[diagnostic_source]
     pub source: ErrorSource,
+    /// The path provided.
     pub path: PathBuf,
 }
 
 impl Error {
+    /// Constructs [`Self`].
     pub fn new<P: AsRef<Path>>(source: ErrorSource, path: P) -> Self {
         let path = path.as_ref().to_owned();
 
         Self { source, path }
     }
 
+    /// Constructs [`Self`] from [`ParseError`].
     pub fn parse<P: AsRef<Path>>(source: ParseError, path: P) -> Self {
         Self::new(source.into(), path)
     }
 
+    /// Constructs [`Self`] from [`OpenError`].
     pub fn open<P: AsRef<Path>>(source: OpenError, path: P) -> Self {
         Self::new(source.into(), path)
     }
 
+    /// Constructs [`Self`] from [`WriteError`].
     pub fn write<P: AsRef<Path>>(source: WriteError, path: P) -> Self {
         Self::new(source.into(), path)
     }
 
+    /// Constructs [`Self`] from [`EditError`].
     pub fn edit<P: AsRef<Path>>(source: EditError, path: P) -> Self {
         Self::new(source.into(), path)
     }
 
+    /// Constructs [`OpenError`] and constructs [`Self`] from it.
     pub fn new_open<P: AsRef<Path>>(source: std::io::Error, path: P) -> Self {
         Self::open(OpenError(source), path)
     }
 
+    /// Constructs [`WriteError`] and constructs [`Self`] from it.
     pub fn new_write<P: AsRef<Path>>(source: std::io::Error, path: P) -> Self {
         Self::write(WriteError(source), path)
     }
 
+    /// Constructs [`EditError`] and constructs [`Self`] from it.
     pub fn new_edit<P: AsRef<Path>>(source: std::io::Error, path: P) -> Self {
         Self::edit(EditError(source), path)
     }
 }
 
-const PLACEHOLDER: &str = "Add the fragment content here.";
+/// The placeholder that gets written to fragment files if contents are not provided.
+pub const PLACEHOLDER: &str = "Add the fragment content here.";
 
 /// Creates changelog fragments.
+///
+/// # Errors
+///
+/// Returns [`struct@Error`] if parsing the fragment name, creating the fragment file
+/// and writing to it fails. Also returning if starting the default editor fails.
 pub fn create<D: AsRef<Path>, S: AsRef<str>, C: AsRef<str>>(
     directory: D,
     name: S,
