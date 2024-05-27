@@ -468,6 +468,7 @@ impl<'b> Builder<'b> {
 }
 
 const SPACE: char = ' ';
+const NEW_LINE: char = '\n';
 const DOUBLE_NEW_LINE: &str = "\n\n";
 const NO_SIGNIFICANT_CHANGES: &str = "No significant changes.";
 
@@ -522,13 +523,39 @@ impl Builder<'_> {
 
         let start = self.config.start.as_ref();
 
-        let parts = if let Some((before, after)) = contents.split_once(start) {
-            vec![before, start, DOUBLE_NEW_LINE, entry.as_ref(), after]
-        } else {
-            vec![entry.as_ref(), DOUBLE_NEW_LINE, contents.as_ref()]
-        };
+        let mut string = String::new();
 
-        let string: String = parts.into_iter().collect();
+        if let Some((before, after)) = contents.split_once(start) {
+            string.push_str(before);
+
+            string.push_str(start);
+
+            string.push_str(DOUBLE_NEW_LINE);
+
+            string.push_str(entry.as_ref());
+
+            string.push(NEW_LINE);
+
+            let trimmed = after.trim_start();
+
+            if !trimmed.is_empty() {
+                string.push(NEW_LINE);
+
+                string.push_str(trimmed);
+            }
+        } else {
+            string.push_str(entry.as_ref());
+
+            string.push(NEW_LINE);
+
+            let trimmed = contents.trim_start();
+
+            if !trimmed.is_empty() {
+                string.push(NEW_LINE);
+
+                string.push_str(trimmed);
+            }
+        };
 
         write!(file, "{string}").map_err(|error| WriteError::new_write_file(error, path))?;
 
