@@ -11,8 +11,6 @@ on:
 
 jobs:
   test:
-    name: Test
-
     strategy:
       matrix:
         os: [ubuntu, macos, windows]
