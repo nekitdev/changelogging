@@ -64,9 +64,10 @@ jobs:
 
         with:
           path: outputs
+          merge-multiple: true
 
       - name: Release
         uses: softprops/action-gh-release@v2
 
         with:
-          files: outputs/*.zip
+          files: outputs
