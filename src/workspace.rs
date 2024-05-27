@@ -41,9 +41,9 @@ pub struct ParseError(#[from] pub toml::de::Error);
 #[error(transparent)]
 #[diagnostic(transparent)]
 pub enum ErrorSource {
-    /// Read error.
+    /// Read errors.
     Read(#[from] ReadError),
-    /// Parse error.
+    /// Parse errors.
     Parse(#[from] ParseError),
 }
 

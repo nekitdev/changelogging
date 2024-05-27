@@ -68,13 +68,13 @@ impl NotFoundError {
 #[error(transparent)]
 #[diagnostic(transparent)]
 pub enum ErrorSource {
-    /// Current directory fetching error.
+    /// Current directory fetching errors.
     CurrentDirectory(#[from] CurrentDirectoryError),
-    /// Existence checking error.
+    /// Existence checking errors.
     Existence(#[from] ExistenceError),
-    /// Workspace loading error.
+    /// Workspace loading errors.
     Workspace(#[from] crate::workspace::Error),
-    /// Workspace not found error.
+    /// Workspace not found errors.
     NotFound(#[from] NotFoundError),
 }
 
@@ -86,7 +86,7 @@ pub enum ErrorSource {
     help("see the report for more information")
 )]
 pub struct Error {
-    /// The error source.
+    /// The source of this error.
     #[source]
     #[diagnostic_source]
     pub source: ErrorSource,
@@ -108,7 +108,7 @@ impl Error {
         Self::new(source.into())
     }
 
-    /// Constructs [`Self`] from workspace loading [`Error`].
+    /// Constructs [`Self`] from [`Error`].
     ///
     /// [`Error`]: crate::workspace::Error
     pub fn workspace(source: crate::workspace::Error) -> Self {

@@ -35,7 +35,7 @@ use crate::{
 )]
 pub struct InitError(#[from] pub TemplateError);
 
-/// Represents errors that can occur during building titles.
+/// Represents errors that can occur when building titles.
 #[derive(Debug, Error, Diagnostic)]
 #[error("failed to build the title")]
 #[diagnostic(
@@ -44,7 +44,7 @@ pub struct InitError(#[from] pub TemplateError);
 )]
 pub struct BuildTitleError(#[from] pub RenderError);
 
-/// Represents errors that can occur during building fragments.
+/// Represents errors that can occur when building fragments.
 #[derive(Debug, Error, Diagnostic)]
 #[error("failed to build the fragment")]
 #[diagnostic(
@@ -145,9 +145,9 @@ pub struct IterDirectoryError(#[from] std::io::Error);
 #[error(transparent)]
 #[diagnostic(transparent)]
 pub enum CollectErrorSource {
-    /// Read directory error.
+    /// Read directory errors.
     ReadDirectory(#[from] ReadDirectoryError),
-    /// Iterate directory error.
+    /// Iterate directory errors.
     IterDirectory(#[from] IterDirectoryError),
 }
 
@@ -159,7 +159,7 @@ pub enum CollectErrorSource {
     help("make sure the directory is accessible")
 )]
 pub struct CollectError {
-    /// The error source.
+    /// The source of this error.
     #[source]
     #[diagnostic_source]
     pub source: CollectErrorSource,
@@ -201,11 +201,11 @@ impl CollectError {
 #[error(transparent)]
 #[diagnostic(transparent)]
 pub enum BuildErrorSource {
-    /// Build title error.
+    /// Build title errors.
     BuildTitle(#[from] BuildTitleError),
-    /// Build fragment error.
+    /// Build fragment errors.
     BuildFragment(#[from] BuildFragmentError),
-    /// Collect error.
+    /// Collect errors.
     Collect(#[from] CollectError),
 }
 
@@ -217,7 +217,7 @@ pub enum BuildErrorSource {
     help("see the report for more information")
 )]
 pub struct BuildError {
-    /// The error source.
+    /// The source of this error.
     #[source]
     #[diagnostic_source]
     pub source: BuildErrorSource,
@@ -260,13 +260,13 @@ impl BuildError {
 #[error(transparent)]
 #[diagnostic(transparent)]
 pub enum WriteErrorSource {
-    /// Open file error.
+    /// Open file errors.
     OpenFile(#[from] OpenFileError),
-    /// Read file error.
+    /// Read file errors.
     ReadFile(#[from] ReadFileError),
-    /// Build error.
+    /// Build errors.
     Build(#[from] BuildError),
-    /// Write file error.
+    /// Write file errors.
     WriteFile(#[from] WriteFileError),
 }
 
@@ -278,7 +278,7 @@ pub enum WriteErrorSource {
     help("see the report for more information")
 )]
 pub struct WriteError {
-    /// The error source.
+    /// The source of this error.
     #[source]
     #[diagnostic_source]
     pub source: WriteErrorSource,
@@ -331,13 +331,13 @@ impl WriteError {
 #[error(transparent)]
 #[diagnostic(transparent)]
 pub enum ErrorSource {
-    /// Initialization error.
+    /// Initialization errors.
     Init(#[from] InitError),
-    /// Date parsing error.
+    /// Date parsing errors.
     Date(#[from] crate::date::Error),
-    /// Build error.
+    /// Build errors.
     Build(#[from] BuildError),
-    /// Write error.
+    /// Write errors.
     Write(#[from] WriteError),
 }
 
@@ -349,7 +349,7 @@ pub enum ErrorSource {
     help("see the report for more information")
 )]
 pub struct Error {
-    /// The error source.
+    /// The source of this error.
     #[source]
     #[diagnostic_source]
     pub source: ErrorSource,

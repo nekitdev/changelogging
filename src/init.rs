@@ -1,4 +1,6 @@
 //! Application initialization.
+//!
+//! This module provides the [`init`] function that handles initialization of `changelogging`.
 
 use std::{
     env::set_current_dir,
@@ -16,7 +18,7 @@ use thiserror::Error;
     help("check whether the directory exists and is accessible")
 )]
 pub struct ChangeCurrentDirectoryError {
-    /// The source of this error.
+    /// The underlying I/O error.
     pub source: std::io::Error,
     /// The path provided.
     pub path: PathBuf,
@@ -36,7 +38,7 @@ impl ChangeCurrentDirectoryError {
 #[error(transparent)]
 #[diagnostic(transparent)]
 pub enum ErrorSource {
-    /// Change current directory error.
+    /// Change current directory errors.
     ChangeCurrentDirectory(#[from] ChangeCurrentDirectoryError),
 }
 
@@ -48,7 +50,7 @@ pub enum ErrorSource {
     help("see the report for more information")
 )]
 pub struct Error {
-    /// The error source.
+    /// The source of this error.
     #[source]
     #[diagnostic_source]
     pub source: ErrorSource,

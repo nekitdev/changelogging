@@ -81,7 +81,7 @@ pub enum ErrorSource {
     help("see the report for more information")
 )]
 pub struct Error {
-    /// The error source.
+    /// The source of this error.
     #[source]
     #[diagnostic_source]
     pub source: ErrorSource,
@@ -93,27 +93,37 @@ impl Error {
         Self { source }
     }
 
-    /// Constructs [`Self`] from initialization error.
+    /// Constructs [`Self`] from [`Error`].
+    ///
+    /// [`Error`]: crate::init::Error
     pub fn init(source: crate::init::Error) -> Self {
         Self::new(source.into())
     }
 
-    /// Constructs [`Self`] from discovery error.
+    /// Constructs [`Self`] from [`Error`].
+    ///
+    /// [`Error`]: crate::discover::Error
     pub fn discover(source: crate::discover::Error) -> Self {
         Self::new(source.into())
     }
 
-    /// Constructs [`Self`] from workspace error.
+    /// Constructs [`Self`] from [`Error`].
+    ///
+    /// [`Error`]: crate::workspace::Error
     pub fn workspace(source: crate::workspace::Error) -> Self {
         Self::new(source.into())
     }
 
-    /// Constructs [`Self`] from `build` error.
+    /// Constructs [`Self`] from [`Error`].
+    ///
+    /// [`Error`]: crate::build::Error
     pub fn build(source: crate::build::Error) -> Self {
         Self::new(source.into())
     }
 
-    /// Constructs [`Self`] from `create` error.
+    /// Constructs [`Self`] from [`Error`].
+    ///
+    /// [`Error`]: crate::create::Error
     pub fn create(source: crate::create::Error) -> Self {
         Self::new(source.into())
     }

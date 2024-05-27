@@ -46,13 +46,13 @@ pub struct EditError(#[from] pub std::io::Error);
 #[error(transparent)]
 #[diagnostic(transparent)]
 pub enum ErrorSource {
-    /// Parse error.
+    /// Parse errors.
     Parse(#[from] ParseError),
-    /// Open error.
+    /// Open errors.
     Open(#[from] OpenError),
-    /// Write error.
+    /// Write errors.
     Write(#[from] WriteError),
-    /// Edit error.
+    /// Edit errors.
     Edit(#[from] EditError),
 }
 
@@ -64,7 +64,7 @@ pub enum ErrorSource {
     help("see the report for more information")
 )]
 pub struct Error {
-    /// The error source.
+    /// The source of this error.
     #[source]
     #[diagnostic_source]
     pub source: ErrorSource,

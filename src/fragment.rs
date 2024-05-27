@@ -39,9 +39,9 @@ pub struct UnexpectedEofError;
 #[error(transparent)]
 #[diagnostic(transparent)]
 pub enum ParseErrorSource {
-    /// Parse ID error.
+    /// Parse ID errors.
     InvalidId(#[from] InvalidIdError),
-    /// Unexpected EOF.
+    /// Unexpected EOF errors.
     UnexpectedEof(#[from] UnexpectedEofError),
 }
 
@@ -53,7 +53,7 @@ pub enum ParseErrorSource {
     help("fragment names must start with `{{id}}.{{type}}`")
 )]
 pub struct ParseError {
-    /// The error source.
+    /// The source of this error.
     #[source]
     #[diagnostic_source]
     pub source: ParseErrorSource,
@@ -165,11 +165,11 @@ pub struct InvalidUtf8Error;
 #[error(transparent)]
 #[diagnostic(transparent)]
 pub enum ErrorSource {
-    /// Invalid UTF-8 error.
+    /// Invalid UTF-8 errors.
     InvalidUtf8(#[from] InvalidUtf8Error),
-    /// Parse error.
+    /// Parse errors.
     Parse(#[from] ParseError),
-    /// Read error.
+    /// Read errors.
     Read(#[from] ReadError),
 }
 
@@ -181,7 +181,7 @@ pub enum ErrorSource {
     help("make sure the file is accessible and its name starts with `{{id}}.{{type}}`")
 )]
 pub struct Error {
-    /// The error source.
+    /// The source of this error.
     #[source]
     #[diagnostic_source]
     pub source: ErrorSource,
@@ -247,7 +247,7 @@ impl Fragment<'_> {
     ///
     /// # Errors
     ///
-    /// Returns [`struct@Error`] when loading the contents or parsing the name fails.
+    /// Returns [`struct@Error`] when reading the file contents or parsing the name fails.
     pub fn load<P: AsRef<Path>>(path: P) -> Result<Self, Error> {
         let path = path.as_ref();
 
