@@ -48,7 +48,7 @@ jobs:
         uses: actions/upload-artifact@v4
 
         with:
-          name: changelogging-${{ matrix.config.target }}${{ matrix.config.extension }}
+          name: changelogging-${{ matrix.config.target }}
           path: target/release/changelogging${{ matrix.config.extension }}
 
   release:
@@ -69,4 +69,4 @@ jobs:
         uses: softprops/action-gh-release@v2
 
         with:
-          files: outputs/changelogging-*
+          files: outputs/*.zip
