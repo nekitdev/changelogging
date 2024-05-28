@@ -106,6 +106,9 @@ jobs:
           git config --local user.name ${{ env.name }}
           git config --local user.email ${{ env.email }}
 
+      - name: Fetch
+        run: git fetch
+
       - name: Checkout
         run: git checkout main
 
