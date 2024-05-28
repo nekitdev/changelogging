@@ -12,25 +12,30 @@ jobs:
         config:
           - os: ubuntu
             target: x86_64-unknown-linux-gnu
-            extension: ""
+            output: changelogging
 
           - os: macos
             target: x86_64-apple-darwin
-            extension: ""
+            output: changelogging
 
           - os: macos
             target: aarch64-apple-darwin
-            extension: ""
+            output: changelogging
 
           - os: windows
             target: x86_64-pc-windows-msvc
-            extension: ".exe"
+            output: changelogging.exe
 
           - os: windows
             target: aarch64-pc-windows-msvc
-            extension: ".exe"
+            output: changelogging.exe
 
     runs-on: ${{ matrix.config.os }}-latest
+
+    env:
+      file: ${{ matrix.config.output }}
+      copy: target/release/${{ matrix.config.output }}
+      archive: changelogging-${{ github.ref_name }}-${{ matrix.config.target }}.zip
 
     steps:
       - name: Checkout
@@ -44,12 +49,18 @@ jobs:
       - name: Build
         run: cargo build --release
 
+      - name: Archive
+        shell: bash
+        run: |
+          cp ${{ env.copy }} ${{ env.file }}
+          zip ${{ env.archive }} ${{ env.file }}
+
       - name: Upload
         uses: actions/upload-artifact@v4
 
         with:
-          name: changelogging-${{ matrix.config.target }}
-          path: target/release/changelogging${{ matrix.config.extension }}
+          name: archives
+          path: ${{ env.archive }}
 
   release:
     needs: build
@@ -63,7 +74,11 @@ jobs:
         uses: actions/download-artifact@v4
 
         with:
-          path: outputs
+          path: archives
+          merge-multiple: true
 
-      - name: Check
-        run: ls -lR outputs
+      - name: Release
+        uses: softprops/action-gh-release@v2
+
+        with:
+          files: archives/*.zip
