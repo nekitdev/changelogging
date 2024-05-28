@@ -35,6 +35,7 @@ jobs:
     env:
       file: ${{ matrix.config.output }}
       copy: target/release/${{ matrix.config.output }}
+      name: changelogging-${{ github.ref_name }}-${{ matrix.config.target }}
       archive: changelogging-${{ github.ref_name }}-${{ matrix.config.target }}.zip
 
     steps:
@@ -59,7 +60,7 @@ jobs:
         uses: actions/upload-artifact@v4
 
         with:
-          name: archives
+          name: ${{ env.name }}
           path: ${{ env.archive }}
 
   release:
