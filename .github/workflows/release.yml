@@ -36,7 +36,6 @@ jobs:
       file: ${{ matrix.config.output }}
       copy: target/release/${{ matrix.config.output }}
       name: changelogging-${{ github.ref_name }}-${{ matrix.config.target }}
-      archive: changelogging-${{ github.ref_name }}-${{ matrix.config.target }}.zip
 
     steps:
       - name: Checkout
@@ -51,17 +50,29 @@ jobs:
         run: cargo build --release
 
       - name: Archive
-        shell: bash
+        if: matrix.config.os == 'ubuntu'
         run: |
           cp ${{ env.copy }} ${{ env.file }}
-          zip ${{ env.archive }} ${{ env.file }}
+          tar -cvzf ${{ env.name }}.tar.gz ${{ env.file }}
+
+      - name: Archive
+        if: matrix.config.os == 'macos'
+        run: |
+          cp ${{ env.copy }} ${{ env.file }}
+          zip ${{ env.name }}.zip ${{ env.file }}
+
+      - name: Archive
+        if: matrix.config.os == 'windows'
+        run: |
+          copy ${{ env.copy }} ${{ env.file }}
+          7z a ${{ env.name }}.zip ${{ env.file }}
 
       - name: Upload
         uses: actions/upload-artifact@v4
 
         with:
           name: ${{ env.name }}
-          path: ${{ env.archive }}
+          path: ${{ env.name }}.*
 
   release:
     needs: build
@@ -82,4 +93,4 @@ jobs:
         uses: softprops/action-gh-release@v2
 
         with:
-          files: archives/*.zip
+          files: archives
