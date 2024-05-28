@@ -101,19 +101,19 @@ jobs:
       - name: Build changelog
         run: cargo run build --stage --remove
 
-      - name: Setup git
+      - name: Setup git user
         run: |
           git config --local user.name ${{ env.name }}
           git config --local user.email ${{ env.email }}
 
-      - name: Pull
-        run: git pull origin main
+      - name: Checkout
+        run: git checkout main
 
       - name: Commit
         run: git commit --message "Add ${{ github.ref_name }} to the changelog."
 
       - name: Push
-        run: git push origin main
+        run: git push --set-upstream origin main
 
       - name: Release
         uses: softprops/action-gh-release@v2
