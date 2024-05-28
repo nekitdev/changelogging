@@ -49,19 +49,19 @@ jobs:
       - name: Build
         run: cargo build --release
 
-      - name: Archive
+      - name: Archive (ubuntu)
         if: matrix.config.os == 'ubuntu'
         run: |
           cp ${{ env.copy }} ${{ env.file }}
           tar -cvzf ${{ env.name }}.tar.gz ${{ env.file }}
 
-      - name: Archive
+      - name: Archive (macos)
         if: matrix.config.os == 'macos'
         run: |
           cp ${{ env.copy }} ${{ env.file }}
           zip ${{ env.name }}.zip ${{ env.file }}
 
-      - name: Archive
+      - name: Archive (windows)
         if: matrix.config.os == 'windows'
         run: |
           copy ${{ env.copy }} ${{ env.file }}
@@ -96,5 +96,5 @@ jobs:
         uses: softprops/action-gh-release@v2
 
         with:
-          files: archives
+          files: archives/*
           fail_on_unmatched_files: true
