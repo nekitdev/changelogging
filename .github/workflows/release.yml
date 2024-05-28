@@ -88,6 +88,7 @@ jobs:
 
     env:
       archives: archives
+      branch: main
       name: nekit[bot]
       email: bot@nekit.dev
 
@@ -135,7 +136,7 @@ jobs:
         run: git fetch
 
       - name: Checkout
-        run: git checkout main
+        run: git checkout ${{ env.branch }}
 
       - name: Commit
         run: git commit --message "Add ${{ env.version }} to the changelog."
@@ -144,7 +145,7 @@ jobs:
         run: git tag ${{ env.tag }}
 
       - name: Push
-        run: git push --set-upstream --atomic origin main ${{ env.tag }}
+        run: git push --set-upstream --atomic origin ${{ env.branch }} ${{ env.tag }}
 
       - name: Release
         uses: softprops/action-gh-release@v2
