@@ -1,9 +1,6 @@
 name: release
 
-on:
-  push:
-    tags:
-      - v*
+on: workflow_dispatch
 
 jobs:
   build:
@@ -35,7 +32,7 @@ jobs:
     env:
       file: ${{ matrix.config.output }}
       copy: target/release/${{ matrix.config.output }}
-      name: changelogging-${{ github.ref_name }}-${{ matrix.config.target }}
+      target: ${{ matrix.config.target }}
 
     steps:
       - name: Checkout
@@ -45,6 +42,17 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.config.target }}
+
+      - name: Install cargo-get
+        run: cargo install cargo-get
+
+      - name: Get version
+        shell: bash
+        run: echo "version=$(cargo get package.version)" >> "$GITHUB_ENV"
+
+      - name: Get name
+        shell: bash
+        run: echo "name=changelogging-$version-$target" >> "$GITHUB_ENV"
 
       - name: Build
         run: cargo build --release
@@ -80,7 +88,6 @@ jobs:
 
     env:
       archives: archives
-      changelog: CHANGELOG-${{ github.ref_name }}.md
       name: nekit[bot]
       email: bot@nekit.dev
 
@@ -95,7 +102,25 @@ jobs:
           path: ${{ env.archives }}
           merge-multiple: true
 
-      - name: Build changelog ${{ github.ref_name }}
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install cargo-get
+        run: cargo install cargo-get
+
+      - name: Get version
+        shell: bash
+        run: echo "version=$(cargo get package.version)" >> "$GITHUB_ENV"
+
+      - name: Get name
+        shell: bash
+        run: echo "changelog=CHANGELOG-$version.md" >> "$GITHUB_ENV"
+
+      - name: Get tag
+        shell: bash
+        run: echo "tag=v$version" >> "$GITHUB_ENV"
+
+      - name: Build changelog ${{ env.version }}
         run: cargo run preview > ${{ env.changelog }}
 
       - name: Build changelog
@@ -113,15 +138,18 @@ jobs:
         run: git checkout main
 
       - name: Commit
-        run: git commit --message "Add ${{ github.ref_name }} to the changelog."
+        run: git commit --message "Add ${{ env.version }} to the changelog."
+
+      - name: Tag
+        run: git tag ${{ env.tag }}
 
       - name: Push
-        run: git push --set-upstream origin main
+        run: git push --set-upstream --atomic origin main ${{ env.tag }}
 
       - name: Release
         uses: softprops/action-gh-release@v2
 
         with:
           body_path: ${{ env.changelog }}
-
+          tag_name: ${{ env.tag }}
           files: ${{ env.archives }}/*
