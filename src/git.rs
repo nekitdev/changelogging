@@ -30,7 +30,7 @@ pub const QUIET: &str = "-q";
 ///
 /// # Errors
 ///
-/// Returns [`Error`] when the command fails to execute.
+/// Returns [`struct@Error`] when the command fails to execute.
 pub fn add<P: AsRef<Path>, I: IntoIterator<Item = P>>(iterator: I) -> Result<ExitStatus, Error> {
     let mut command = Command::new(GIT);
 
@@ -47,7 +47,7 @@ pub fn add<P: AsRef<Path>, I: IntoIterator<Item = P>>(iterator: I) -> Result<Exi
 ///
 /// # Errors
 ///
-/// Returns [`Error`] when the command fails to execute.
+/// Returns [`struct@Error`] when the command fails to execute.
 pub fn remove<P: AsRef<Path>, I: IntoIterator<Item = P>>(iterator: I) -> Result<ExitStatus, Error> {
     let mut command = Command::new(GIT);
 

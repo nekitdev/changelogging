@@ -441,7 +441,7 @@ impl Builder<'_> {
     ///
     /// # Errors
     ///
-    /// Returns [`struct@Error`] when building fails, as well as when I/O operations fail.
+    /// Returns [`WriteError`] when building fails, as well as when I/O operations fail.
     pub fn write(&self) -> Result<(), WriteError> {
         let entry = self.build().map_err(|error| WriteError::build(error))?;
 
