@@ -44,7 +44,7 @@
 //!
 //! By default the application will look for the `changelogging.toml` file in the current directory.
 //! It also understands `pyproject.toml` if it contains the `[tool.changelogging]` section.
-//! In case both files are present, the former takes precendence.
+//! In case both files are present, the former takes precedence.
 //!
 //! See [`config`] (and [`options`]) for configuration, [`context`] for contexts and [`workspace`]
 //! that combines configuration and context into one structure.
@@ -147,13 +147,14 @@
 #![warn(missing_docs)]
 
 pub mod app;
-pub mod build;
+pub mod builder;
+pub mod commands;
 pub mod config;
 pub mod context;
-pub mod create;
 pub mod date;
 pub mod discover;
 pub mod fragment;
+pub mod git;
 pub mod init;
 pub mod options;
 pub mod workspace;

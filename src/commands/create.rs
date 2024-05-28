@@ -5,6 +5,7 @@
 use std::{
     fs::File,
     io::Write,
+    iter::once,
     path::{Path, PathBuf},
 };
 
@@ -12,7 +13,10 @@ use edit::edit_file;
 use miette::Diagnostic;
 use thiserror::Error;
 
-use crate::fragment::{validate, ParseError};
+use crate::{
+    fragment::{validate, ParseError},
+    git,
+};
 
 /// Represents errors that can occur when opening files.
 #[derive(Debug, Error, Diagnostic)]
@@ -54,6 +58,8 @@ pub enum ErrorSource {
     Write(#[from] WriteError),
     /// Edit errors.
     Edit(#[from] EditError),
+    /// `git` errors.
+    Git(#[from] crate::git::Error),
 }
 
 /// Represents errors that can occur during fragment creation.
@@ -100,6 +106,13 @@ impl Error {
         Self::new(source.into(), path)
     }
 
+    /// Constructs [`Self`] from [`Error`].
+    ///
+    /// [`Error`]: crate::git::Error
+    pub fn git<P: AsRef<Path>>(source: crate::git::Error, path: P) -> Self {
+        Self::new(source.into(), path)
+    }
+
     /// Constructs [`OpenError`] and constructs [`Self`] from it.
     pub fn new_open<P: AsRef<Path>>(source: std::io::Error, path: P) -> Self {
         Self::open(OpenError(source), path)
@@ -124,12 +137,13 @@ pub const PLACEHOLDER: &str = "Add the fragment content here.";
 /// # Errors
 ///
 /// Returns [`struct@Error`] if parsing the fragment name, creating the fragment file
-/// and writing to it fails. Also returning if starting the default editor fails.
+/// and writing to it fails. Also returned if starting the default editor fails.
 pub fn create<D: AsRef<Path>, S: AsRef<str>, C: AsRef<str>>(
     directory: D,
     name: S,
     content: Option<C>,
     edit: bool,
+    add: bool,
 ) -> Result<(), Error> {
     let name = name.as_ref();
 
@@ -151,6 +165,10 @@ pub fn create<D: AsRef<Path>, S: AsRef<str>, C: AsRef<str>>(
 
     if edit {
         edit_file(path).map_err(|error| Error::new_edit(error, path))?;
+    }
+
+    if add {
+        git::add(once(path)).map_err(|error| Error::git(error, path))?;
     }
 
     Ok(())

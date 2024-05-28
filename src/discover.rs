@@ -147,7 +147,7 @@ pub const PYPROJECT: &str = "pyproject.toml";
 /// This function looks for [`CHANGELOGGING`] as well as for [`PYPROJECT`]
 /// (if it defines `tool.changelogging` section) in the current directory.
 ///
-/// If both files are present, the former takes precendence.
+/// If both files are present, the former takes precedence.
 ///
 /// # Errors
 ///

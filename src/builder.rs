@@ -1,6 +1,4 @@
 //! Building changelogs from fragments.
-//!
-//! The [`run`] function implements the `build` subcommand.
 
 use std::{
     borrow::Cow,
@@ -21,8 +19,7 @@ use time::Date;
 use crate::{
     config::{Config, Level},
     context::Context,
-    date::{parse, today},
-    fragment::{Fragment, Fragments, Sections},
+    fragment::{is_valid_path, Fragment, Fragments, Sections},
     workspace::Workspace,
 };
 
@@ -30,7 +27,7 @@ use crate::{
 #[derive(Debug, Error, Diagnostic)]
 #[error("failed to initialize the renderer")]
 #[diagnostic(
-    code(changelogging::build::init),
+    code(changelogging::builder::init),
     help("make sure the formats configuration is valid")
 )]
 pub struct InitError(#[from] pub TemplateError);
@@ -39,7 +36,7 @@ pub struct InitError(#[from] pub TemplateError);
 #[derive(Debug, Error, Diagnostic)]
 #[error("failed to build the title")]
 #[diagnostic(
-    code(changelogging::build::build_title),
+    code(changelogging::builder::build_title),
     help("make sure the formats configuration is valid")
 )]
 pub struct BuildTitleError(#[from] pub RenderError);
@@ -48,7 +45,7 @@ pub struct BuildTitleError(#[from] pub RenderError);
 #[derive(Debug, Error, Diagnostic)]
 #[error("failed to build the fragment")]
 #[diagnostic(
-    code(changelogging::build::build_fragment),
+    code(changelogging::builder::build_fragment),
     help("make sure the formats configuration is valid")
 )]
 pub struct BuildFragmentError(#[from] pub RenderError);
@@ -57,7 +54,7 @@ pub struct BuildFragmentError(#[from] pub RenderError);
 #[derive(Debug, Error, Diagnostic)]
 #[error("failed to read from `{path}`")]
 #[diagnostic(
-    code(changelogging::build::read),
+    code(changelogging::builder::read_file),
     help("check whether the file exists and is accessible")
 )]
 pub struct ReadFileError {
@@ -80,7 +77,7 @@ impl ReadFileError {
 #[derive(Debug, Error, Diagnostic)]
 #[error("failed to write to `{path}`")]
 #[diagnostic(
-    code(changelogging::build::write),
+    code(changelogging::builder::write_file),
     help("check whether the file exists and is accessible")
 )]
 pub struct WriteFileError {
@@ -103,7 +100,7 @@ impl WriteFileError {
 #[derive(Debug, Error, Diagnostic)]
 #[error("failed to open `{path}`")]
 #[diagnostic(
-    code(changelogging::build::open),
+    code(changelogging::builder::open_file),
     help("check whether the file exists and is accessible")
 )]
 pub struct OpenFileError {
@@ -126,7 +123,7 @@ impl OpenFileError {
 #[derive(Debug, Error, Diagnostic)]
 #[error("failed to read directory")]
 #[diagnostic(
-    code(changelogging::build::read_directory),
+    code(changelogging::builder::read_directory),
     help("make sure the directory is accessible")
 )]
 pub struct ReadDirectoryError(#[from] std::io::Error);
@@ -135,7 +132,7 @@ pub struct ReadDirectoryError(#[from] std::io::Error);
 #[derive(Debug, Error, Diagnostic)]
 #[error("failed to iterate directory")]
 #[diagnostic(
-    code(changelogging::build::iter_directory),
+    code(changelogging::builder::iter_directory),
     help("make sure the directory is accessible")
 )]
 pub struct IterDirectoryError(#[from] std::io::Error);
@@ -155,7 +152,7 @@ pub enum CollectErrorSource {
 #[derive(Debug, Error, Diagnostic)]
 #[error("failed to collect from `{path}`")]
 #[diagnostic(
-    code(changelogging::build::collect),
+    code(changelogging::builder::collect),
     help("make sure the directory is accessible")
 )]
 pub struct CollectError {
@@ -213,7 +210,7 @@ pub enum BuildErrorSource {
 #[derive(Debug, Error, Diagnostic)]
 #[error("failed to build")]
 #[diagnostic(
-    code(changelogging::build::build),
+    code(changelogging::builder::build),
     help("see the report for more information")
 )]
 pub struct BuildError {
@@ -274,7 +271,7 @@ pub enum WriteErrorSource {
 #[derive(Debug, Error, Diagnostic)]
 #[error("failed to write")]
 #[diagnostic(
-    code(changelogging::build::write),
+    code(changelogging::builder::write),
     help("see the report for more information")
 )]
 pub struct WriteError {
@@ -323,64 +320,6 @@ impl WriteError {
     /// Constructs [`WriteFileError`] and constructs [`Self`] from it.
     pub fn new_write_file<P: AsRef<Path>>(source: std::io::Error, path: P) -> Self {
         Self::write_file(WriteFileError::new(source, path))
-    }
-}
-
-/// Represents sources of errors that can occur during build runs.
-#[derive(Debug, Error, Diagnostic)]
-#[error(transparent)]
-#[diagnostic(transparent)]
-pub enum ErrorSource {
-    /// Initialization errors.
-    Init(#[from] InitError),
-    /// Date parsing errors.
-    Date(#[from] crate::date::Error),
-    /// Build errors.
-    Build(#[from] BuildError),
-    /// Write errors.
-    Write(#[from] WriteError),
-}
-
-/// Represents errors that can occur during build runs.
-#[derive(Debug, Error, Diagnostic)]
-#[error("failed to run")]
-#[diagnostic(
-    code(changelogging::build::run),
-    help("see the report for more information")
-)]
-pub struct Error {
-    /// The source of this error.
-    #[source]
-    #[diagnostic_source]
-    pub source: ErrorSource,
-}
-
-impl Error {
-    /// Constructs [`Self`].
-    pub fn new(source: ErrorSource) -> Self {
-        Self { source }
-    }
-
-    /// Constructs [`Self`] from [`InitError`].
-    pub fn init(source: InitError) -> Self {
-        Self::new(source.into())
-    }
-
-    /// Constructs [`Self`] from [`Error`].
-    ///
-    /// [`Error`]: crate::date::Error
-    pub fn date(source: crate::date::Error) -> Self {
-        Self::new(source.into())
-    }
-
-    /// Constructs [`Self`] from [`BuildError`].
-    pub fn build(source: BuildError) -> Self {
-        Self::new(source.into())
-    }
-
-    /// Constructs [`Self`] from [`WriteError`].
-    pub fn write(source: WriteError) -> Self {
-        Self::new(source.into())
     }
 }
 
@@ -500,7 +439,7 @@ impl Builder<'_> {
     ///
     /// # Errors
     ///
-    /// Returns [`WriteError`] when building fails, as well as when I/O operations fail.
+    /// Returns [`struct@Error`] when building fails, as well as when I/O operations fail.
     pub fn write(&self) -> Result<(), WriteError> {
         let entry = self.build().map_err(|error| WriteError::build(error))?;
 
@@ -773,6 +712,29 @@ impl Builder<'_> {
         Ok(sections)
     }
 
+    /// Collects paths to fragments.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`CollectError`] if reading or iterating the fragments directory fails.
+    pub fn collect_paths(&self) -> Result<Vec<PathBuf>, CollectError> {
+        let directory = self.config.paths.directory.as_ref();
+
+        read_dir(directory)
+            .map_err(|error| CollectError::new_read_directory(error, directory))?
+            .map(|result| {
+                result
+                    .map(|entry| entry.path())
+                    .map_err(|error| CollectError::new_iter_directory(error, directory))
+            })
+            .process_results(|iterator| {
+                iterator
+                    .into_iter()
+                    .filter(|path| is_valid_path(path))
+                    .collect()
+            })
+    }
+
     // HEADING
 
     /// Constructs headings for the given level.
@@ -789,35 +751,4 @@ impl Builder<'_> {
     pub fn section_heading(&self) -> String {
         self.level_heading(self.config.levels.section)
     }
-}
-
-/// Builds changelog entries.
-///
-/// # Errors
-///
-/// Returns [`struct@Error`] when:
-///
-/// - parsing dates fails;
-/// - initializing builders fails;
-/// - building entries fails;
-/// - writing entries fails.
-pub fn run<S: AsRef<str>>(
-    workspace: Workspace<'_>,
-    string: Option<S>,
-    preview: bool,
-) -> Result<(), Error> {
-    let date = match string {
-        Some(content) => parse(content).map_err(|error| Error::date(error))?,
-        None => today(),
-    };
-
-    let builder = Builder::from_workspace(workspace, date).map_err(|error| Error::init(error))?;
-
-    if preview {
-        builder.preview().map_err(|error| Error::build(error))?;
-    } else {
-        builder.write().map_err(|error| Error::write(error))?;
-    }
-
-    Ok(())
 }
