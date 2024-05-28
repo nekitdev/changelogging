@@ -100,15 +100,14 @@
 //!
 //! - `--content (-c)` passes the content of the fragment through the argument.
 //! - `--edit (-e)` opens the default editor to enter the fragment's contents.
+//! - `--add (-a)` adds the fragment file via `git`.
 //!
-//! ## `build`
+//! ## `preview`
 //!
-//! The `build` command is used to build changelog entries from fragments.
-//!
-//! Firstly, one can preview the changelog entry:
+//! The `preview` command is used to preview changelog entries:
 //!
 //! ```console
-//! $ changelogging build --preview
+//! $ changelogging preview
 //! ## [0.1.0](https://github.com/nekitdev/changelogging/tree/v0.1.0) (YYYY-MM-DD)
 //!
 //! ### Features
@@ -124,7 +123,15 @@
 //! - Fixed annoying bugs! ([#34](https://github.com/nekitdev/changelogging/pull/34))
 //! ```
 //!
-//! And, finally, write it to the changelog:
+//! Here are the options (except for [globals](#globals)) that `preview` supports:
+//!
+//! - `--date (-d)` specifies the date to use instead of today.
+//!
+//! ## `build`
+//!
+//! The `build` command is used to build changelog entries from fragments.
+//!
+//! After one ensures that the changelog entry is correct, building the changelog is as simple as:
 //!
 //! ```console
 //! $ changelogging build
@@ -135,7 +142,8 @@
 //! Here are the options (except for [globals](#globals)) that `build` supports:
 //!
 //! - `--date (-d)` specifies the date to use instead of today.
-//! - `--preview (-p)` outputs the built entry instead of writing it to the changelog.
+//! - `--stage (-s)` stages the updated changelog via `git`.
+//! - `--remove (-r)` removes all fragment files with `git`.
 //!
 //! [changelog]: https://github.com/nekitdev/changelogging/blob/main/CHANGELOG.md
 //! [readme]: https://github.com/nekitdev/changelogging/blob/main/README.md
