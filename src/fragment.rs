@@ -129,7 +129,7 @@ impl FromStr for PartialFragment<'_> {
     }
 }
 
-/// Checks that the `string` represents some partial fragment.
+/// Validates that the `string` represents some partial fragment.
 ///
 /// This function parses the string provided, discarding the resulting partial fragment.
 ///
@@ -140,6 +140,25 @@ pub fn validate<S: AsRef<str>>(string: S) -> Result<(), ParseError> {
     let _check: PartialFragment<'_> = string.as_ref().parse()?;
 
     Ok(())
+}
+
+/// Checks if the `string` represents some partial fragment.
+///
+/// This function is equivalent to using [`validate`] and checking that the result is [`Ok`].
+pub fn is_valid<S: AsRef<str>>(string: S) -> bool {
+    validate(string).is_ok()
+}
+
+/// Checks if the [`path_name`] of the given path represents some partial fragment.
+pub fn is_valid_path<P: AsRef<Path>>(path: P) -> bool {
+    path_name(path.as_ref()).filter(|name| is_valid(name)).is_some()
+}
+
+/// Returns the [`file_name`] of the given path if it is valid UTF-8.
+///
+/// [`file_name`]: std::path::Path::file_name
+pub fn path_name(path: &Path) -> Option<&str> {
+    path.file_name().and_then(|os_string| os_string.to_str())
 }
 
 /// Represents errors that can occur when reading files.
@@ -251,10 +270,7 @@ impl Fragment<'_> {
     pub fn load<P: AsRef<Path>>(path: P) -> Result<Self, Error> {
         let path = path.as_ref();
 
-        let name = path
-            .file_name()
-            .and_then(|os_string| os_string.to_str())
-            .ok_or_else(|| Error::new_invalid_utf8(path))?;
+        let name = path_name(path).ok_or_else(|| Error::new_invalid_utf8(path))?;
 
         let info = name.parse().map_err(|error| Error::parse(error, path))?;
 

@@ -7,8 +7,7 @@ use miette::Diagnostic;
 use thiserror::Error;
 
 use crate::{
-    build::run,
-    create::create,
+    commands::{build::build, create::create, preview::preview},
     discover::discover,
     init::init,
     workspace::{load, Workspace},
@@ -68,14 +67,16 @@ pub enum ErrorSource {
     /// Workspace loading errors.
     Workspace(#[from] crate::workspace::Error),
     /// `build` errors.
-    Build(#[from] crate::build::Error),
+    Build(#[from] crate::commands::build::Error),
+    /// `preview` errors.
+    Preview(#[from] crate::commands::preview::Error),
     /// `create` errors.
-    Create(#[from] crate::create::Error),
+    Create(#[from] crate::commands::create::Error),
 }
 
 /// Represents errors that can occur during application runs.
 #[derive(Debug, Error, Diagnostic)]
-#[error("error encoutered")]
+#[error("error encountered")]
 #[diagnostic(
     code(changelogging::app::run),
     help("see the report for more information")
@@ -116,15 +117,22 @@ impl Error {
 
     /// Constructs [`Self`] from [`Error`].
     ///
-    /// [`Error`]: crate::build::Error
-    pub fn build(source: crate::build::Error) -> Self {
+    /// [`Error`]: crate::commands::build::Error
+    pub fn build(source: crate::commands::build::Error) -> Self {
+        Self::new(source.into())
+    }
+
+    /// Constructs [`Self`] from [`Error`]
+    ///
+    /// [`Error`]: crate::commands::preview::Error
+    pub fn preview(source: crate::commands::preview::Error) -> Self {
         Self::new(source.into())
     }
 
     /// Constructs [`Self`] from [`Error`].
     ///
-    /// [`Error`]: crate::create::Error
-    pub fn create(source: crate::create::Error) -> Self {
+    /// [`Error`]: crate::commands::create::Error
+    pub fn create(source: crate::commands::create::Error) -> Self {
         Self::new(source.into())
     }
 }
@@ -148,15 +156,18 @@ impl App {
         if let Some(command) = self.command {
             match command {
                 Command::Build(build) => {
-                    build.run(workspace).map_err(|error| Error::build(error))?;
-                }
+                    build.run(workspace).map_err(|error| Error::build(error))?
+                },
+                Command::Preview(preview) => {
+                    preview.run(workspace).map_err(|error| Error::preview(error))?
+                },
                 Command::Create(create) => {
                     let directory = workspace.options.into_config().paths.directory;
 
                     create
                         .run(directory)
                         .map_err(|error| Error::create(error))?;
-                }
+                },
             }
         };
 
@@ -167,15 +178,18 @@ impl App {
 /// Represents `changelogging` subcommands.
 #[derive(Debug, Subcommand)]
 pub enum Command {
-    /// The `build` command.
-    #[command(about = "Build changelog entries from fragments")]
+    /// The `build` subcommand.
+    #[command(about = "Build changelogs from fragments")]
     Build(BuildCommand),
-    /// The `create` command.
+    /// The `preview` subcommand.
+    #[command(about = "Preview changelog entries")]
+    Preview(PreviewCommand),
+    /// The `create` subcommand.
     #[command(about = "Create changelog fragments")]
     Create(CreateCommand),
 }
 
-/// Represents `build` commands.
+/// Represents the `build` subcommand.
 #[derive(Debug, Args)]
 pub struct BuildCommand {
     /// The date to use. If not provided, [`today`] is used.
@@ -189,30 +203,57 @@ pub struct BuildCommand {
     )]
     pub date: Option<String>,
 
-    /// Whether to preview or write the build result.
-    #[arg(
-        short = 'p',
-        long,
-        action,
-        help = "Output instead of writing to the file"
-    )]
-    pub preview: bool,
+    /// Whether to stage the changelog.
+    #[arg(short = 's', long, action, help = "Stage the changelog")]
+    pub stage: bool,
+
+    /// Whether to remove fragments.
+    #[arg(short = 'r', long, action, help = "Remove the fragments")]
+    pub remove: bool,
 }
 
 impl BuildCommand {
-    /// Runs the `build` command.
+    /// Runs the `build` subcommand.
     ///
     /// # Errors
     ///
     /// Returns [`Error`] when any error is encountered.
     ///
-    /// [`Error`]: crate::build::Error
-    pub fn run(self, workspace: Workspace<'_>) -> Result<(), crate::build::Error> {
-        run(workspace, self.date, self.preview)
+    /// [`Error`]: crate::commands::build::Error
+    pub fn run(self, workspace: Workspace<'_>) -> Result<(), crate::commands::build::Error> {
+        build(workspace, self.date, self.stage, self.remove)
     }
 }
 
-/// Represents `create` commands.
+/// Represents the `preview` subcommand.
+#[derive(Debug, Args)]
+pub struct PreviewCommand {
+    /// The date to use. If not provided, [`today`] is used.
+    ///
+    /// [`today`]: crate::date::today
+    #[arg(
+        short = 'd',
+        long,
+        name = "DATE",
+        help = "Use the date provided instead of today"
+    )]
+    pub date: Option<String>,
+}
+
+impl PreviewCommand {
+    /// Runs the `preview` subcommand.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error`] when any error is encountered.
+    ///
+    /// [`Error`]: crate::commands::preview::Error
+    pub fn run(self, workspace: Workspace<'_>) -> Result<(), crate::commands::preview::Error> {
+        preview(workspace, self.date)
+    }
+}
+
+/// Represents the `create` subcommand.
 #[derive(Debug, Args)]
 #[command(about = "Create changelog fragments")]
 pub struct CreateCommand {
@@ -222,7 +263,7 @@ pub struct CreateCommand {
 
     /// The fragment content, if it is passed as the argument.
     #[arg(
-        short,
+        short = 'c',
         long,
         name = "TEXT",
         help = "Pass the fragment content as this argument"
@@ -231,23 +272,32 @@ pub struct CreateCommand {
 
     /// Whether to open the default editor to edit the fragment content.
     #[arg(
-        short,
+        short = 'e',
         long,
         action,
         help = "Open the default editor to edit the content"
     )]
     pub edit: bool,
+
+    /// Whether to add the fragment via `git`.
+    #[arg(
+        short = 'a',
+        long,
+        action,
+        help = "Add the fragment via `git`"
+    )]
+    pub add: bool,
 }
 
 impl CreateCommand {
-    /// Runs the `create` command.
+    /// Runs the `create` subcommand.
     ///
     /// # Errors
     ///
     /// Returns [`Error`] when any error is encountered.
     ///
-    /// [`Error`]: crate::create::Error
-    pub fn run<D: AsRef<Path>>(self, directory: D) -> Result<(), crate::create::Error> {
-        create(directory, self.name, self.content, self.edit)
+    /// [`Error`]: crate::commands::create::Error
+    pub fn run<D: AsRef<Path>>(self, directory: D) -> Result<(), crate::commands::create::Error> {
+        create(directory, self.name, self.content, self.edit, self.add)
     }
 }
