@@ -8,11 +8,11 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use handlebars::{Handlebars, RenderError, TemplateError};
+use handlebars::{no_escape, Handlebars, RenderError, TemplateError};
 use itertools::Itertools;
 use miette::Diagnostic;
 use serde::Serialize;
-use textwrap::{fill, Options as WrapOptions};
+use textwrap::{fill, Options as WrapOptions, WordSeparator};
 use thiserror::Error;
 use time::Date;
 
@@ -394,6 +394,8 @@ impl<'b> Builder<'b> {
 
         renderer.set_strict_mode(true);
 
+        renderer.register_escape_fn(no_escape);
+
         renderer.register_template_string(TITLE, formats.title.as_ref())?;
         renderer.register_template_string(FRAGMENT, formats.fragment.as_ref())?;
 
@@ -646,6 +648,7 @@ impl Builder<'_> {
 
         let options = WrapOptions::new(self.config.wrap.into())
             .break_words(false)
+            .word_separator(WordSeparator::AsciiSpace)
             .initial_indent(initial_indent.as_ref())
             .subsequent_indent(subsequent_indent.as_ref());
 
