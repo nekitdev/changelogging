@@ -65,7 +65,7 @@ $ changelogging create --content "Fixed annoying bugs!" 64.fix.md
 And finally, preview the changelog entry!
 
 ```console
-$ changelogging build --preview
+$ changelogging preview
 ## 0.2.0 (YYYY-MM-DD)
 
 ### Features
