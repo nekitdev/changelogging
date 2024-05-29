@@ -154,3 +154,4 @@ jobs:
           body_path: ${{ env.changelog }}
           tag_name: ${{ env.tag }}
           files: ${{ env.archives }}/*
+          token: ${{ secrets.BOT_TOKEN }}
