@@ -145,7 +145,7 @@ jobs:
         run: git tag ${{ env.tag }}
 
       - name: Push
-        run: git push --set-upstream --atomic origin ${{ env.branch }} ${{ env.tag }}
+        run: git push --set-upstream --atomic origin ${{ env.branch }} --tags
 
       - name: Release
         uses: softprops/action-gh-release@v2
