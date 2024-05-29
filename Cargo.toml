@@ -1,6 +1,6 @@
 [package]
 name = "changelogging"
-version = "0.2.0"
+version = "0.2.1"
 authors = ["nekitdev"]
 edition = "2021"
 description = "Building changelogs from fragments."
