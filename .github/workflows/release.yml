@@ -155,3 +155,6 @@ jobs:
           tag_name: ${{ env.tag }}
           files: ${{ env.archives }}/*
           token: ${{ secrets.BOT_TOKEN }}
+
+      - name: Publish
+        run: cargo publish --token ${{ secrets.CARGO_TOKEN }}
