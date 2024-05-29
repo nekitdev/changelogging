@@ -1,0 +1,43 @@
+[project]
+name = "changelogging"
+version = "2.2.1"
+description = "Building changelogs from fragments."
+readme = "README.md"
+requires-python = ">= 3.8"
+license.file = "LICENSE"
+keywords = ["changelog", "changes"]
+
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Rust",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Utilities",
+]
+
+[[project.authors]]
+name = "nekitdev"
+email = "nekit@nekit.dev"
+
+[project.urls]
+Homepage = "https://github.com/nekitdev/changelogging"
+Chat = "https://nekit.dev/chat"
+Documentation = "https://docs.rs/changelogging"
+Funding = "https://nekit.dev/funding"
+Issues = "https://github.com/nekitdev/changelogging/issues"
+Repository = "https://github.com/nekitdev/changelogging"
+
+[tool.matruin]
+bindings = "bin"
+strip = true
+
+[build-system]
+requires = ["maturin >= 1.5.1"]
+build-backend = "maturin"
