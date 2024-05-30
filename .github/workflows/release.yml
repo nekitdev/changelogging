@@ -15,268 +15,6 @@ env:
   changelog: CHANGELOG-${{ inputs.version }}.md
 
 jobs:
-  build-source:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Build source
-        uses: PyO3/maturin-action@v1
-        with:
-          command: sdist
-          args: --out dist
-
-      - name: Upload source
-        uses: actions/upload-artifact@v4
-        with:
-          name: wheels-source
-          path: dist
-
-  build-macos:
-    runs-on: macos-latest
-
-    strategy:
-      matrix:
-        target:
-          - x86_64-apple-darwin
-          - aarch64-apple-darwin
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Build wheel
-        uses: PyO3/maturin-action@v1
-        with:
-          target: ${{ matrix.target }}
-          args: --release --out dist
-
-      - name: Upload wheel
-        uses: actions/upload-artifact@v4
-        with:
-          name: wheels-${{ matrix.target }}
-          path: dist
-
-      - name: Archive binary
-        run: |
-          ARCHIVE=${{ env.name }}-${{ inputs.version }}-${{ matrix.target }}.tar.gz
-          tar -czvf $ARCHIVE -C target/${{ matrix.target }}/release ${{ env.name }}
-          shasum -a 256 $ARCHIVE > $ARCHIVE.sha256
-
-      - name: Upload binary
-        uses: actions/upload-artifact@v4
-        with:
-          name: binaries-${{ matrix.target }}
-          path: |
-            *.tar.gz
-            *.sha256
-
-  build-windows:
-    runs-on: windows-latest
-
-    strategy:
-      matrix:
-        target:
-          - x86_64-pc-windows-msvc
-          - i686-pc-windows-msvc
-          - aarch64-pc-windows-msvc
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Build wheel
-        uses: PyO3/maturin-action@v1
-        with:
-          target: ${{ matrix.target }}
-          args: --release --out dist
-
-      - name: Upload wheel
-        uses: actions/upload-artifact@v4
-        with:
-          name: wheels-${{ matrix.target }}
-          path: dist
-
-      - name: Archive binary
-        shell: bash
-        run: |
-          ARCHIVE=${{ env.name }}-${{ inputs.version }}-${{ matrix.target }}.zip
-          7z a $ARCHIVE ./target/${{ matrix.target }}/release/${{ env.name }}.exe
-          sha256sum $ARCHIVE > $ARCHIVE.sha256
-
-      - name: Upload binary
-        uses: actions/upload-artifact@v4
-        with:
-          name: binaries-${{ matrix.target }}
-          path: |
-            *.zip
-            *.sha256
-
-  build-linux:
-    runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        target:
-          - x86_64-unknown-linux-gnu
-          - i686-unknown-linux-gnu
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Build wheel
-        uses: PyO3/maturin-action@v1
-        with:
-          target: ${{ matrix.target }}
-          manylinux: auto
-          args: --release --out dist
-
-      - name: Upload wheel
-        uses: actions/upload-artifact@v4
-        with:
-          name: wheels-${{ matrix.target }}
-          path: dist
-
-      - name: Archive binary
-        run: |
-          ARCHIVE=${{ env.name }}-${{ inputs.version }}-${{ matrix.target }}.tar.gz
-          tar -czvf $ARCHIVE -C target/${{ matrix.target }}/release ${{ env.name }}
-          shasum -a 256 $ARCHIVE > $ARCHIVE.sha256
-
-      - name: Upload binary
-        uses: actions/upload-artifact@v4
-        with:
-          name: binaries-${{ matrix.target }}
-          path: |
-            *.tar.gz
-            *.sha256
-
-  build-linux-cross:
-    runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        target:
-          - aarch64-unknown-linux-gnu
-          - armv7-unknown-linux-gnueabihf
-          - s390x-unknown-linux-gnu
-          - powerpc64le-unknown-linux-gnu
-          - powerpc64-unknown-linux-gnu
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Build wheel
-        uses: PyO3/maturin-action@v1
-        with:
-          target: ${{ matrix.target }}
-          manylinux: auto
-          args: --release --out dist
-
-      - name: Upload wheel
-        uses: actions/upload-artifact@v4
-        with:
-          name: wheels-${{ matrix.target }}
-          path: dist
-
-      - name: Archive binary
-        run: |
-          ARCHIVE=${{ env.name }}-${{ inputs.version }}-${{ matrix.target }}.tar.gz
-          tar -czvf $ARCHIVE -C target/${{ matrix.target }}/release ${{ env.name }}
-          shasum -a 256 $ARCHIVE > $ARCHIVE.sha256
-
-      - name: Upload binary
-        uses: actions/upload-artifact@v4
-        with:
-          name: binaries-${{ matrix.target }}
-          path: |
-            *.tar.gz
-            *.sha256
-
-  build-musl:
-    runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        target:
-          - x86_64-unknown-linux-musl
-          - i686-unknown-linux-musl
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Build wheel
-        uses: PyO3/maturin-action@v1
-        with:
-          target: ${{ matrix.target }}
-          manylinux: musllinux_1_2
-          args: --release --out dist
-
-      - name: Upload wheel
-        uses: actions/upload-artifact@v4
-        with:
-          name: wheels-${{ matrix.target }}
-          path: dist
-
-      - name: Archive binary
-        run: |
-          ARCHIVE=${{ env.name }}-${{ inputs.version }}-${{ matrix.target }}.tar.gz
-          tar -czvf $ARCHIVE -C target/${{ matrix.target }}/release ${{ env.name }}
-          shasum -a 256 $ARCHIVE > $ARCHIVE.sha256
-
-      - name: Upload binary
-        uses: actions/upload-artifact@v4
-        with:
-          name: binaries-${{ matrix.target }}
-          path: |
-            *.tar.gz
-            *.sha256
-
-  build-musl-cross:
-    runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        target:
-          - aarch64-unknown-linux-musl
-          - armv7-unknown-linux-musleabihf
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Build wheel
-        uses: PyO3/maturin-action@v1
-        with:
-          target: ${{ matrix.target }}
-          manylinux: musllinux_1_2
-          args: --release --out dist
-
-      - name: Upload wheel
-        uses: actions/upload-artifact@v4
-        with:
-          name: wheels-${{ matrix.target }}
-          path: dist
-
-      - name: Archive binary
-        run: |
-          ARCHIVE=${{ env.name }}-${{ inputs.version }}-${{ matrix.target }}.tar.gz
-          tar -czvf $ARCHIVE -C target/${{ matrix.target }}/release ${{ env.name }}
-          shasum -a 256 $ARCHIVE > $ARCHIVE.sha256
-
-      - name: Upload binary
-        uses: actions/upload-artifact@v4
-        with:
-          name: binaries-${{ matrix.target }}
-          path: |
-            *.tar.gz
-            *.sha256
-
   bootstrap:
     runs-on: ubuntu-latest
 
@@ -333,10 +71,278 @@ jobs:
           git tag v${{ inputs.version }}
           git push --tags
 
+  build-source:
+    runs-on: ubuntu-latest
+    needs: tag
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build source
+        uses: PyO3/maturin-action@v1
+        with:
+          command: sdist
+          args: --out dist
+
+      - name: Upload source
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheels-source
+          path: dist
+
+  build-macos:
+    runs-on: macos-latest
+    needs: tag
+
+    strategy:
+      matrix:
+        target:
+          - x86_64-apple-darwin
+          - aarch64-apple-darwin
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build wheel
+        uses: PyO3/maturin-action@v1
+        with:
+          target: ${{ matrix.target }}
+          args: --release --out dist
+
+      - name: Upload wheel
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheels-${{ matrix.target }}
+          path: dist
+
+      - name: Archive binary
+        run: |
+          ARCHIVE=${{ env.name }}-${{ inputs.version }}-${{ matrix.target }}.tar.gz
+          tar -czvf $ARCHIVE -C target/${{ matrix.target }}/release ${{ env.name }}
+          shasum -a 256 $ARCHIVE > $ARCHIVE.sha256
+
+      - name: Upload binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: binaries-${{ matrix.target }}
+          path: |
+            *.tar.gz
+            *.sha256
+
+  build-windows:
+    runs-on: windows-latest
+    needs: tag
+
+    strategy:
+      matrix:
+        target:
+          - x86_64-pc-windows-msvc
+          - i686-pc-windows-msvc
+          - aarch64-pc-windows-msvc
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build wheel
+        uses: PyO3/maturin-action@v1
+        with:
+          target: ${{ matrix.target }}
+          args: --release --out dist
+
+      - name: Upload wheel
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheels-${{ matrix.target }}
+          path: dist
+
+      - name: Archive binary
+        shell: bash
+        run: |
+          ARCHIVE=${{ env.name }}-${{ inputs.version }}-${{ matrix.target }}.zip
+          7z a $ARCHIVE ./target/${{ matrix.target }}/release/${{ env.name }}.exe
+          sha256sum $ARCHIVE > $ARCHIVE.sha256
+
+      - name: Upload binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: binaries-${{ matrix.target }}
+          path: |
+            *.zip
+            *.sha256
+
+  build-linux:
+    runs-on: ubuntu-latest
+    needs: tag
+
+    strategy:
+      matrix:
+        target:
+          - x86_64-unknown-linux-gnu
+          - i686-unknown-linux-gnu
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build wheel
+        uses: PyO3/maturin-action@v1
+        with:
+          target: ${{ matrix.target }}
+          manylinux: auto
+          args: --release --out dist
+
+      - name: Upload wheel
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheels-${{ matrix.target }}
+          path: dist
+
+      - name: Archive binary
+        run: |
+          ARCHIVE=${{ env.name }}-${{ inputs.version }}-${{ matrix.target }}.tar.gz
+          tar -czvf $ARCHIVE -C target/${{ matrix.target }}/release ${{ env.name }}
+          shasum -a 256 $ARCHIVE > $ARCHIVE.sha256
+
+      - name: Upload binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: binaries-${{ matrix.target }}
+          path: |
+            *.tar.gz
+            *.sha256
+
+  build-linux-cross:
+    runs-on: ubuntu-latest
+    needs: tag
+
+    strategy:
+      matrix:
+        target:
+          - aarch64-unknown-linux-gnu
+          - armv7-unknown-linux-gnueabihf
+          - s390x-unknown-linux-gnu
+          - powerpc64le-unknown-linux-gnu
+          - powerpc64-unknown-linux-gnu
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build wheel
+        uses: PyO3/maturin-action@v1
+        with:
+          target: ${{ matrix.target }}
+          manylinux: auto
+          args: --release --out dist
+
+      - name: Upload wheel
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheels-${{ matrix.target }}
+          path: dist
+
+      - name: Archive binary
+        run: |
+          ARCHIVE=${{ env.name }}-${{ inputs.version }}-${{ matrix.target }}.tar.gz
+          tar -czvf $ARCHIVE -C target/${{ matrix.target }}/release ${{ env.name }}
+          shasum -a 256 $ARCHIVE > $ARCHIVE.sha256
+
+      - name: Upload binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: binaries-${{ matrix.target }}
+          path: |
+            *.tar.gz
+            *.sha256
+
+  build-musl:
+    runs-on: ubuntu-latest
+    needs: tag
+
+    strategy:
+      matrix:
+        target:
+          - x86_64-unknown-linux-musl
+          - i686-unknown-linux-musl
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build wheel
+        uses: PyO3/maturin-action@v1
+        with:
+          target: ${{ matrix.target }}
+          manylinux: musllinux_1_2
+          args: --release --out dist
+
+      - name: Upload wheel
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheels-${{ matrix.target }}
+          path: dist
+
+      - name: Archive binary
+        run: |
+          ARCHIVE=${{ env.name }}-${{ inputs.version }}-${{ matrix.target }}.tar.gz
+          tar -czvf $ARCHIVE -C target/${{ matrix.target }}/release ${{ env.name }}
+          shasum -a 256 $ARCHIVE > $ARCHIVE.sha256
+
+      - name: Upload binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: binaries-${{ matrix.target }}
+          path: |
+            *.tar.gz
+            *.sha256
+
+  build-musl-cross:
+    runs-on: ubuntu-latest
+    needs: tag
+
+    strategy:
+      matrix:
+        target:
+          - aarch64-unknown-linux-musl
+          - armv7-unknown-linux-musleabihf
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build wheel
+        uses: PyO3/maturin-action@v1
+        with:
+          target: ${{ matrix.target }}
+          manylinux: musllinux_1_2
+          args: --release --out dist
+
+      - name: Upload wheel
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheels-${{ matrix.target }}
+          path: dist
+
+      - name: Archive binary
+        run: |
+          ARCHIVE=${{ env.name }}-${{ inputs.version }}-${{ matrix.target }}.tar.gz
+          tar -czvf $ARCHIVE -C target/${{ matrix.target }}/release ${{ env.name }}
+          shasum -a 256 $ARCHIVE > $ARCHIVE.sha256
+
+      - name: Upload binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: binaries-${{ matrix.target }}
+          path: |
+            *.tar.gz
+            *.sha256
+
   publish-python:
     runs-on: ubuntu-latest
     needs:
-      - tag
       - build-source
       - build-macos
       - build-windows
