@@ -3,14 +3,16 @@
 # `changelogging`
 
 [![License][License Badge]][License]
-[![Version][Version Badge]][Package]
-[![Downloads][Downloads Badge]][Package]
+[![Version][Version Badge]][Crate]
+[![PyPI Version][PyPI Version Badge]][PyPI]
+[![Downloads][Downloads Badge]][Crate]
+[![PyPI Downloads][PyPI Downloads Badge]][PyPI]
 [![Discord][Discord Badge]][Discord]
 [![Test][Test Badge]][Actions]
 
 > *Building changelogs from fragments.*
 
-## Installing
+## Installation
 
 The binaries can be downloaded from [releases][Releases].
 
@@ -182,11 +184,14 @@ If you are interested in contributing to `changelogging`, make sure to take a lo
 
 [License]: https://github.com/nekitdev/changelogging/blob/main/LICENSE
 
-[Package]: https://crates.io/crates/changelogging
+[Crate]: https://crates.io/crates/changelogging
+[PyPI]: https://pypi.org/project/changelogging
 [Documentation]: https://docs.rs/changelogging
 
 [Discord Badge]: https://img.shields.io/discord/728012506899021874
 [License Badge]: https://img.shields.io/crates/l/changelogging
 [Version Badge]: https://img.shields.io/crates/v/changelogging
+[PyPI Version Badge]: https://img.shields.io/pypi/v/changelogging
 [Downloads Badge]: https://img.shields.io/crates/dr/changelogging
+[PyPI Downloads Badge]: https://img.shields.io/pypi/dm/changelogging
 [Test Badge]: https://github.com/nekitdev/changelogging/workflows/test/badge.svg
