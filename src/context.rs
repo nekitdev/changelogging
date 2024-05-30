@@ -13,7 +13,7 @@
 //! ```toml
 //! [context]
 //! name = "changelogging"
-//! version = "0.2.2"
+//! version = "0.3.0"
 //! url = "https://github.com/nekitdev/changelogging"
 //! ```
 //!

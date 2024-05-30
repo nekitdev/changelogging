@@ -1,6 +1,6 @@
 [project]
 name = "changelogging"
-version = "2.2.2"
+version = "2.3.0"
 description = "Building changelogs from fragments."
 readme = "README.md"
 requires-python = ">= 3.8"
@@ -21,10 +21,6 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Topic :: Utilities",
 ]
-
-[[project.authors]]
-name = "nekitdev"
-email = "nekit@nekit.dev"
 
 [project.urls]
 Homepage = "https://github.com/nekitdev/changelogging"
