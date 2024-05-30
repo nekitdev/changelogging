@@ -104,7 +104,7 @@ jobs:
         run: |
           ARCHIVE=${{ env.name }}-${{ inputs.version }}-${{ matrix.target }}.zip
           7z a $ARCHIVE ./target/${{ matrix.target }}/release/${{ env.name }}.exe
-          shasum -a 256 $ARCHIVE > $ARCHIVE.sha256
+          sha256sum $ARCHIVE > $ARCHIVE.sha256
 
       - name: Upload binary
         uses: actions/upload-artifact@v4
