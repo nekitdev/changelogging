@@ -38,7 +38,7 @@
 //!
 //! *Sections* group and describe specific changes, e.g. *features*, *fixes*, *deprecations*, etc.
 //!
-//! # Configuration.
+//! # Configuration
 //!
 //! `changelogging` uses [TOML](https://github.com/toml-lang/toml) for its configuration.
 //!
@@ -108,7 +108,7 @@
 //!
 //! ```console
 //! $ changelogging preview
-//! ## [0.2.1](https://github.com/nekitdev/changelogging/tree/v0.2.1) (YYYY-MM-DD)
+//! ## [0.2.2](https://github.com/nekitdev/changelogging/tree/v0.2.2) (YYYY-MM-DD)
 //!
 //! ### Features
 //!

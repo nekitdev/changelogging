@@ -45,7 +45,7 @@ Create `changelogging.toml` and add the *name*, *version* and *URL* of the proje
 ```toml
 [context]
 name = "changelogging"
-version = "0.2.1"
+version = "0.2.2"
 url = "https://github.com/nekitdev/changelogging"
 ```
 
@@ -66,7 +66,7 @@ And finally, preview the changelog entry!
 
 ```console
 $ changelogging preview
-## 0.2.1 (YYYY-MM-DD)
+## 0.2.2 (YYYY-MM-DD)
 
 ### Features
 
@@ -101,7 +101,7 @@ $ cat CHANGELOG.md
 
 <!-- changelogging: start -->
 
-## 0.2.1 (YYYY-MM-DD)
+## 0.2.2 (YYYY-MM-DD)
 
 ### Features
 

@@ -1,160 +1,406 @@
 name: release
 
-on: workflow_dispatch
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: The version to release, without the leading `v`.
+        type: string
+        required: true
+
+env:
+  name: changelogging
+  bot-name: nekit[bot]
+  bot-email: bot@nekit.dev
+  changelog: CHANGELOG-${{ inputs.version }}.md
 
 jobs:
-  build:
-    strategy:
-      matrix:
-        config:
-          - os: ubuntu
-            target: x86_64-unknown-linux-gnu
-            output: changelogging
-
-          - os: macos
-            target: x86_64-apple-darwin
-            output: changelogging
-
-          - os: macos
-            target: aarch64-apple-darwin
-            output: changelogging
-
-          - os: windows
-            target: x86_64-pc-windows-msvc
-            output: changelogging.exe
-
-          - os: windows
-            target: aarch64-pc-windows-msvc
-            output: changelogging.exe
-
-    runs-on: ${{ matrix.config.os }}-latest
-
-    env:
-      file: ${{ matrix.config.output }}
-      copy: target/release/${{ matrix.config.output }}
-      target: ${{ matrix.config.target }}
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: ${{ matrix.config.target }}
-
-      - name: Install cargo-get
-        run: cargo install cargo-get
-
-      - name: Get version
-        shell: bash
-        run: echo "version=$(cargo get package.version)" >> "$GITHUB_ENV"
-
-      - name: Get name
-        shell: bash
-        run: echo "name=changelogging-$version-$target" >> "$GITHUB_ENV"
-
-      - name: Build
-        run: cargo build --release
-
-      - name: Archive (ubuntu)
-        if: matrix.config.os == 'ubuntu'
-        run: |
-          cp ${{ env.copy }} ${{ env.file }}
-          tar -cvzf ${{ env.name }}.tar.gz ${{ env.file }}
-
-      - name: Archive (macos)
-        if: matrix.config.os == 'macos'
-        run: |
-          cp ${{ env.copy }} ${{ env.file }}
-          zip ${{ env.name }}.zip ${{ env.file }}
-
-      - name: Archive (windows)
-        if: matrix.config.os == 'windows'
-        run: |
-          copy ${{ env.copy }} ${{ env.file }}
-          7z a ${{ env.name }}.zip ${{ env.file }}
-
-      - name: Upload
-        uses: actions/upload-artifact@v4
-
-        with:
-          name: ${{ env.name }}
-          path: ${{ env.name }}.*
-
-  release:
-    needs: build
+  build-source:
     runs-on: ubuntu-latest
 
-    env:
-      archives: archives
-      branch: main
-      name: nekit[bot]
-      email: bot@nekit.dev
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build source
+        uses: PyO3/maturin-action@v1
+        with:
+          command: sdist
+          args: --out dist
+
+      - name: Upload source
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheels-source
+          path: dist
+
+  build-macos:
+    runs-on: macos-latest
+
+    strategy:
+      matrix:
+        target:
+          - x86_64-apple-darwin
+          - aarch64-apple-darwin
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Download
-        uses: actions/download-artifact@v4
-
+      - name: Build wheel
+        uses: PyO3/maturin-action@v1
         with:
-          path: ${{ env.archives }}
-          merge-multiple: true
+          target: ${{ matrix.target }}
+          args: --release --out dist
+
+      - name: Upload wheel
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheels-${{ matrix.target }}
+          path: dist
+
+      - name: Archive binary
+        run: |
+          ARCHIVE=${{ env.name }}-${{ inputs.version }}-${{ matrix.target }}.tar.gz
+          tar -czvf $ARCHIVE -C target/${{ matrix.target }}/release ${{ env.name }}
+          shasum -a 256 $ARCHIVE > $ARCHIVE.sha256
+
+      - name: Upload binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: binaries-${{ matrix.target }}
+          path: |
+            *.tar.gz
+            *.sha256
+
+  build-windows:
+    runs-on: windows-latest
+
+    strategy:
+      matrix:
+        target:
+          - x86_64-pc-windows-msvc
+          - i686-pc-windows-msvc
+          - aarch64-pc-windows-msvc
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build wheel
+        uses: PyO3/maturin-action@v1
+        with:
+          target: ${{ matrix.target }}
+          args: --release --out dist
+
+      - name: Upload wheel
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheels-${{ matrix.target }}
+          path: dist
+
+      - name: Archive binary
+        shell: bash
+        run: |
+          ARCHIVE=${{ env.name }}-${{ inputs.version }}-${{ matrix.target }}.zip
+          7z a $ARCHIVE ./target/${{ matrix.target }}/release/${{ env.name }}.exe
+          shasum -a 256 $ARCHIVE > $ARCHIVE.sha256
+
+      - name: Upload binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: binaries-${{ matrix.target }}
+          path: |
+            *.zip
+            *.sha256
+
+  build-linux:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        target:
+          - x86_64-unknown-linux-gnu
+          - i686-unknown-linux-gnu
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build wheel
+        uses: PyO3/maturin-action@v1
+        with:
+          target: ${{ matrix.target }}
+          manylinux: auto
+          args: --release --out dist
+
+      - name: Upload wheel
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheels-${{ matrix.target }}
+          path: dist
+
+      - name: Archive binary
+        run: |
+          ARCHIVE=${{ env.name }}-${{ inputs.version }}-${{ matrix.target }}.tar.gz
+          tar -czvf $ARCHIVE -C target/${{ matrix.target }}/release ${{ env.name }}
+          shasum -a 256 $ARCHIVE > $ARCHIVE.sha256
+
+      - name: Upload binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: binaries-${{ matrix.target }}
+          path: |
+            *.tar.gz
+            *.sha256
+
+  build-linux-cross:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        target:
+          - aarch64-unknown-linux-gnu
+          - armv7-unknown-linux-gnueabihf
+          - s390x-unknown-linux-gnu
+          - powerpc64le-unknown-linux-gnu
+          - powerpc64-unknown-linux-gnu
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build wheel
+        uses: PyO3/maturin-action@v1
+        with:
+          target: ${{ matrix.target }}
+          manylinux: auto
+          args: --release --out dist
+
+      - name: Upload wheel
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheels-${{ matrix.target }}
+          path: dist
+
+      - name: Archive binary
+        run: |
+          ARCHIVE=${{ env.name }}-${{ inputs.version }}-${{ matrix.target }}.tar.gz
+          tar -czvf $ARCHIVE -C target/${{ matrix.target }}/release ${{ env.name }}
+          shasum -a 256 $ARCHIVE > $ARCHIVE.sha256
+
+      - name: Upload binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: binaries-${{ matrix.target }}
+          path: |
+            *.tar.gz
+            *.sha256
+
+  build-musl:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        target:
+          - x86_64-unknown-linux-musl
+          - i686-unknown-linux-musl
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build wheel
+        uses: PyO3/maturin-action@v1
+        with:
+          target: ${{ matrix.target }}
+          manylinux: auto
+          args: --release --out dist
+
+      - name: Upload wheel
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheels-${{ matrix.target }}
+          path: dist
+
+      - name: Archive binary
+        run: |
+          ARCHIVE=${{ env.name }}-${{ inputs.version }}-${{ matrix.target }}.tar.gz
+          tar -czvf $ARCHIVE -C target/${{ matrix.target }}/release ${{ env.name }}
+          shasum -a 256 $ARCHIVE > $ARCHIVE.sha256
+
+      - name: Upload binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: binaries-${{ matrix.target }}
+          path: |
+            *.tar.gz
+            *.sha256
+
+  build-musl-cross:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        target:
+          - aarch64-unknown-linux-musl
+          - armv7-unknown-linux-musleabihf
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build wheel
+        uses: PyO3/maturin-action@v1
+        with:
+          target: ${{ matrix.target }}
+          manylinux: auto
+          args: --release --out dist
+
+      - name: Upload wheel
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheels-${{ matrix.target }}
+          path: dist
+
+      - name: Archive binary
+        run: |
+          ARCHIVE=${{ env.name }}-${{ inputs.version }}-${{ matrix.target }}.tar.gz
+          tar -czvf $ARCHIVE -C target/${{ matrix.target }}/release ${{ env.name }}
+          shasum -a 256 $ARCHIVE > $ARCHIVE.sha256
+
+      - name: Upload binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: binaries-${{ matrix.target }}
+          path: |
+            *.tar.gz
+            *.sha256
+
+  bootstrap:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Install cargo-get
-        run: cargo install cargo-get
-
-      - name: Get version
-        shell: bash
-        run: echo "version=$(cargo get package.version)" >> "$GITHUB_ENV"
-
-      - name: Get name
-        shell: bash
-        run: echo "changelog=CHANGELOG-$version.md" >> "$GITHUB_ENV"
-
-      - name: Get tag
-        shell: bash
-        run: echo "tag=v$version" >> "$GITHUB_ENV"
-
-      - name: Build changelog ${{ env.version }}
+      - name: Build changelog ${{ inputs.version }}
         run: cargo run preview > ${{ env.changelog }}
+
+      - name: Upload changelog ${{ inputs.version }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: changelog
+          path: ${{ env.changelog }}
 
       - name: Build changelog
         run: cargo run build --stage --remove
 
-      - name: Setup git user
+      - name: Setup bot user
         run: |
-          git config --local user.name ${{ env.name }}
-          git config --local user.email ${{ env.email }}
+          git config --local user.name ${{ env.bot-name }}
+          git config --local user.email ${{ env.bot-email }}
 
-      - name: Fetch
-        run: git fetch
+      - name: Commit and push
+        run: |
+          git commit -m "Add ${{ inputs.version }} to the changelog."
+          git push
 
+  tag:
+    runs-on: ubuntu-latest
+    needs: bootstrap
+
+    permissions:
+      contents: write
+
+    steps:
       - name: Checkout
-        run: git checkout ${{ env.branch }}
+        uses: actions/checkout@v4
 
-      - name: Commit
-        run: git commit --message "Add ${{ env.version }} to the changelog."
+      - name: Setup bot user
+        run: |
+          git config --local user.name ${{ env.bot-name }}
+          git config --local user.email ${{ env.bot-email }}
 
-      - name: Tag
-        run: git tag ${{ env.tag }}
+      - name: Tag and push
+        run: |
+          git tag v${{ inputs.version }}
+          git push --tags
 
-      - name: Push
-        run: git push --set-upstream --atomic origin ${{ env.branch }} --tags
+  publish-python:
+    runs-on: ubuntu-latest
+    needs:
+      - tag
+      - build-source
+      - build-macos
+      - build-windows
+      - build-linux
+      - build-linux-cross
+      - build-musl
+      - build-musl-cross
 
-      - name: Release
+    permissions:
+      id-token: write
+
+    steps:
+      - name: Download wheels
+        uses: actions/download-artifact@v4
+        with:
+          pattern: wheels-*
+          path: wheels
+          merge-multiple: true
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          skip-existing: true
+          packages-dir: wheels
+
+  publish-release:
+    needs: publish-python
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download changelog
+        uses: actions/download-artifact@v4
+        with:
+          pattern: changelog
+          merge-multiple: true
+
+      - name: Download binaries
+        uses: actions/download-artifact@v4
+        with:
+          pattern: binaries-*
+          path: binaries
+          merge-multiple: true
+
+      - name: Publish to GitHub
         uses: softprops/action-gh-release@v2
-
         with:
           body_path: ${{ env.changelog }}
-          tag_name: ${{ env.tag }}
-          files: ${{ env.archives }}/*
+          files: binaries/*
+          tag_name: v${{ inputs.version }}
           token: ${{ secrets.BOT_TOKEN }}
 
-      - name: Publish
+  publish-crate:
+    needs: publish-release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Publish crate
         run: cargo publish --token ${{ secrets.CARGO_TOKEN }}
