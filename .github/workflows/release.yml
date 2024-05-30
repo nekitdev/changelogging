@@ -214,7 +214,7 @@ jobs:
         uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.target }}
-          manylinux: auto
+          manylinux: musllinux_1_2
           args: --release --out dist
 
       - name: Upload wheel
@@ -254,7 +254,7 @@ jobs:
         uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.target }}
-          manylinux: auto
+          manylinux: musllinux_1_2
           args: --release --out dist
 
       - name: Upload wheel
