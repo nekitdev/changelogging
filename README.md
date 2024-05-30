@@ -12,7 +12,37 @@
 
 ## Installing
 
-Installing the crate with `cargo` is quite simple:
+The binaries can be downloaded from [releases][Releases].
+
+### `pipx`
+
+Note: because `changelogging` was originally written in python, releases on PyPI have
+different versions: for instance, the `0.2.2` release is on PyPI with version `2.2.2`,
+meaning the major part of the version is always incremented twice to get the PyPI one.
+
+Installing `changelogging` with `pipx` is quite simple:
+
+```console
+$ pipx install changelogging
+```
+
+Alternatively, the package can be installed from source:
+
+```console
+$ pipx install git+https://github.com/nekitdev/changelogging.git
+```
+
+Or via cloning the repository:
+
+```console
+$ git clone https://github.com/nekitdev/changelogging.git
+$ cd changelogging
+$ pipx install .
+```
+
+### `cargo`
+
+Installing the crate with `cargo` is as simple as with `pipx`:
 
 ```console
 $ cargo install changelogging
@@ -31,8 +61,6 @@ $ git clone https://github.com/nekitdev/changelogging.git
 $ cd changelogging
 $ cargo install --path .
 ```
-
-The binaries can be downloaded from [releases][Releases].
 
 ## Example
 
