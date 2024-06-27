@@ -2,6 +2,13 @@
 
 <!-- changelogging: start -->
 
+## [0.4.0](https://github.com/nekitdev/changelogging/tree/v0.4.0) (2024-06-27)
+
+### Changes
+
+- Defaults are now specified in code instead of parsing.
+  ([#6](https://github.com/nekitdev/changelogging/pull/6))
+
 ## [0.3.0](https://github.com/nekitdev/changelogging/tree/v0.3.0) (2024-05-30)
 
 No significant changes.
