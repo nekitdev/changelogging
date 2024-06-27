@@ -162,7 +162,7 @@ impl App {
                     preview.run(workspace).map_err(|error| Error::preview(error))?
                 },
                 Command::Create(create) => {
-                    let directory = workspace.options.into_config().paths.directory;
+                    let directory = workspace.config.paths.directory;
 
                     create
                         .run(directory)

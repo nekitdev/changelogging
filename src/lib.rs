@@ -46,7 +46,7 @@
 //! It also understands `pyproject.toml` if it contains the `[tool.changelogging]` section.
 //! In case both files are present, the former takes precedence.
 //!
-//! See [`config`] (and [`options`]) for configuration, [`context`] for contexts and [`workspace`]
+//! See [`config`] for configuration, [`context`] for contexts and [`workspace`]
 //! that combines configuration and context into one structure.
 //!
 //! # Usage
@@ -108,7 +108,7 @@
 //!
 //! ```console
 //! $ changelogging preview
-//! ## [0.3.0](https://github.com/nekitdev/changelogging/tree/v0.3.0) (YYYY-MM-DD)
+//! ## [0.4.0](https://github.com/nekitdev/changelogging/tree/v0.4.0) (YYYY-MM-DD)
 //!
 //! ### Features
 //!
@@ -152,7 +152,7 @@
 //! [rendered]: https://github.com/nekitdev/changelogging/blob/main/examples/CHANGELOG.md
 
 #![forbid(unsafe_code)]
-#![warn(missing_docs)]
+#![deny(missing_docs)]
 
 pub mod app;
 pub mod builder;
@@ -164,5 +164,4 @@ pub mod discover;
 pub mod fragment;
 pub mod git;
 pub mod init;
-pub mod options;
 pub mod workspace;

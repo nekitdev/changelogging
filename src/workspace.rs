@@ -2,10 +2,10 @@
 //!
 //! This module provides two notable structures, [`Workspace`] and [`PyProject`].
 //!
-//! See also [`context`] and [`options`].
+//! See also [`context`] and [`config`].
 //!
 //! [`context`]: crate::context
-//! [`options`]: crate::options
+//! [`config`]: crate::config
 
 use std::{
     fs::read_to_string,
@@ -16,7 +16,7 @@ use miette::Diagnostic;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
-use crate::{context::Context, options::Options};
+use crate::{config::Config, context::Context};
 
 /// Represents errors that can occur when reading files.
 #[derive(Debug, Error, Diagnostic)]
@@ -92,22 +92,22 @@ impl Error {
     }
 }
 
-/// Combines [`Context`] and [`Options`] into one structure.
+/// Combines [`Context`] and [`Config`] into one structure.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Workspace<'w> {
     /// The context of the workspace.
     pub context: Context<'w>,
-    /// The options of the workspace.
+    /// The config of the workspace.
     ///
     /// This field is flattened during (de)serialization.
     #[serde(flatten)]
-    pub options: Options<'w>,
+    pub config: Config<'w>,
 }
 
 impl<'w> Workspace<'w> {
     /// Constructs [`Self`].
-    pub fn new(context: Context<'w>, options: Options<'w>) -> Self {
-        Self { context, options }
+    pub fn new(context: Context<'w>, config: Config<'w>) -> Self {
+        Self { context, config }
     }
 }
 

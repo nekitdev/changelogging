@@ -8,7 +8,7 @@
 //!
 //! The `paths` section specifies the location of *fragments* and the *changelog*.
 //!
-//! This section is optional, so are its fields (see [defaults] for more information):
+//! This section is optional, so are its fields (see defaults for more information):
 //!
 //! - `directory` is the directory containing fragments;
 //! - `output` is the file containing the changelog.
@@ -30,7 +30,7 @@
 //! In case the `start` string is not present in the changelog, the entries will be written
 //! at the beginning of the changelog.
 //!
-//! This field is optional, and its default value can be found in [defaults].
+//! This field is optional, and its default value can be found in defaults.
 //!
 //! Here is an example of this field:
 //!
@@ -44,7 +44,7 @@
 //!
 //! The `levels` section is used to tell `changelogging` which heading levels to use.
 //!
-//! This section is optional, so are its fields (see [defaults] for more information):
+//! This section is optional, so are its fields (see defaults for more information):
 //!
 //! - `entry` specifies the heading level of the entry title;
 //! - `section` specifies the heading level of individual sections.
@@ -63,7 +63,7 @@
 //!
 //! The `indents` section specifies which characters to use for indenting.
 //!
-//! This section is optional, so are its fields (see [defaults] for more information):
+//! This section is optional, so are its fields (see defaults for more information):
 //!
 //! - `heading` defines the character to use for headings;
 //! - `bullet` defines the character to use for indenting.
@@ -82,7 +82,7 @@
 //!
 //! The `formats` section defines formats (templates) to use for rendering titles and fragments.
 //!
-//! This section is optional, so are its fields (see [defaults] for more information):
+//! This section is optional, so are its fields (see defaults for more information):
 //!
 //! - `title` specifies the format to use for rendering titles.
 //! - `fragment` specifies the format to use for rendering fragments.
@@ -103,7 +103,7 @@
 //! The `wrap` field specifies the line length to use when wrapping entries.
 //! Please note that entries are **always** wrapped.
 //!
-//! This field is optional, and its default value can be found in [defaults].
+//! This field is optional, and its default value can be found in defaults.
 //!
 //! Here is an example of this field:
 //!
@@ -117,7 +117,7 @@
 //!
 //! The `order` field defines which *types* to include, and in what order to do so.
 //!
-//! This field is optional, and its default value can be found in [defaults].
+//! This field is optional, and its default value can be found in defaults.
 //!
 //! Here is an example of this field:
 //!
@@ -131,7 +131,7 @@
 //!
 //! The `types` section specifies the *mapping* of *types* to their *titles*.
 //! This section behaves slightly differently than others. Instead of using `types` directly,
-//! the mapping specified extends the default mapping. (see [defaults] for the default mapping).
+//! the mapping specified extends the default mapping. (see defaults for the default mapping).
 //!
 //! Here is an example of this section:
 //!
@@ -148,8 +148,6 @@
 //!
 //! This section is represented as the `types` field of [`Config`].
 //!
-//! [defaults]: https://github.com/nekitdev/changelogging/blob/main/src/defaults.toml
-//!
 //! [`context`]: crate::context
 //! [`Context`]: crate::context::Context
 //! [`Fragment`]: crate::fragment::Fragment
@@ -158,13 +156,15 @@ use std::{borrow::Cow, collections::HashMap, num::NonZeroUsize, path::Path};
 
 use serde::{Deserialize, Serialize};
 
-use crate::options::Options;
-
 /// Marks the location in the changelog to start writing entries after.
 pub type Start<'s> = Cow<'s, str>;
 
+/// The default `start` value.
+pub const DEFAULT_START: &str = "<!-- changelogging: start -->";
+
 /// Specifies fragment directories and changelog files.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default)]
 pub struct Paths<'p> {
     /// The directory to fetch fragments from.
     pub directory: Cow<'p, Path>,
@@ -172,11 +172,27 @@ pub struct Paths<'p> {
     pub output: Cow<'p, Path>,
 }
 
+/// The default `paths.directory` value.
+pub const DEFAULT_DIRECTORY: &str = "changes";
+
+/// The default `paths.output` value.
+pub const DEFAULT_OUTPUT: &str = "CHANGELOG.md";
+
+impl Default for Paths<'_> {
+    fn default() -> Self {
+        let directory = Path::new(DEFAULT_DIRECTORY).into();
+        let output = Path::new(DEFAULT_OUTPUT).into();
+
+        Self { directory, output }
+    }
+}
+
 /// Represents heading levels.
 pub type Level = NonZeroUsize;
 
 /// Defines which heading levels to use.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default)]
 pub struct Levels {
     /// The heading level of the entry title.
     pub entry: Level,
@@ -184,8 +200,24 @@ pub struct Levels {
     pub section: Level,
 }
 
+/// The default `levels.entry` value.
+pub const DEFAULT_ENTRY: usize = 2;
+
+/// The default `levels.section` value.
+pub const DEFAULT_SECTION: usize = 3;
+
+impl Default for Levels {
+    fn default() -> Self {
+        let entry = Level::new(DEFAULT_ENTRY).unwrap();
+        let section = Level::new(DEFAULT_SECTION).unwrap();
+
+        Self { entry, section }
+    }
+}
+
 /// Specifies characters to use for headings and indentation.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default)]
 pub struct Indents {
     /// The character to use for headings.
     pub heading: char,
@@ -193,8 +225,24 @@ pub struct Indents {
     pub bullet: char,
 }
 
+/// The default `indents.heading` value.
+pub const DEFAULT_HEADING: char = '#';
+
+/// The default `indents.bullet` value.
+pub const DEFAULT_BULLET: char = '-';
+
+impl Default for Indents {
+    fn default() -> Self {
+        let heading = DEFAULT_HEADING;
+        let bullet = DEFAULT_BULLET;
+
+        Self { heading, bullet }
+    }
+}
+
 /// Defines formats to use for rendering titles and fragments.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default)]
 pub struct Formats<'f> {
     /// The format to use for rendering titles.
     pub title: Cow<'f, str>,
@@ -202,17 +250,49 @@ pub struct Formats<'f> {
     pub fragment: Cow<'f, str>,
 }
 
+/// The default `formats.title` value.
+pub const DEFAULT_TITLE: &str = "{{version}} ({{date}})";
+
+/// The default `formats.fragment` value.
+pub const DEFAULT_FRAGMENT: &str = "{{content}} (#{{id}})";
+
+impl Default for Formats<'_> {
+    fn default() -> Self {
+        let title = DEFAULT_TITLE.into();
+        let fragment = DEFAULT_FRAGMENT.into();
+
+        Self { title, fragment }
+    }
+}
+
 /// Specifies the line length to use when wrapping entries.
 pub type Wrap = NonZeroUsize;
 
+/// The default `wrap` value.
+pub const DEFAULT_WRAP: usize = 100;
+
 /// Defines which types to include, and in what order to do so.
 pub type Order<'o> = Vec<Cow<'o, str>>;
+
+/// Returns the default `order` value.
+pub fn default_order() -> Vec<&'static str> {
+    vec![
+        "security",
+        "feature",
+        "change",
+        "fix",
+        "deprecation",
+        "removal",
+        "internal",
+    ]
+}
 
 /// Specifies the mapping of types to their titles.
 pub type Types<'t> = HashMap<Cow<'t, str>, Cow<'t, str>>;
 
 /// Represents configurations.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default)]
 pub struct Config<'c> {
     /// The `paths` section.
     pub paths: Paths<'c>,
@@ -232,12 +312,67 @@ pub struct Config<'c> {
     pub types: Types<'c>,
 }
 
-const DEFAULTS: &str = include_str!("defaults.toml");
+macro_rules! hash_map {
+    ($($key: expr => $value: expr),* $(,)?) => {
+        {
+            let mut hash_map = std::collections::HashMap::new();
+
+            $(
+                hash_map.insert($key, $value);
+            )*
+
+            hash_map
+        }
+    }
+}
+
+/// Returns the default `types` value.
+pub fn default_types() -> HashMap<&'static str, &'static str> {
+    hash_map! {
+        "security" => "Security",
+        "feature" => "Features",
+        "change" => "Changes",
+        "fix" => "Fixes",
+        "deprecation" => "Deprecations",
+        "removal" => "Removals",
+        "internal" => "Internal",
+    }
+}
 
 impl Default for Config<'_> {
     fn default() -> Self {
-        // SAFETY: defaults must be valid
-        toml::from_str(DEFAULTS).unwrap()
+        let paths = Paths::default();
+
+        let start = DEFAULT_START.into();
+
+        let levels = Levels::default();
+
+        let indents = Indents::default();
+
+        let formats = Formats::default();
+
+        let wrap = Wrap::new(DEFAULT_WRAP).unwrap();
+
+        let order = default_order()
+            .into_iter()
+            .map(|name| name.into())
+            .collect();
+
+        let types = default_types()
+            .into_iter()
+            .map(|(name, title)| (name.into(), title.into()))
+            .collect();
+
+        Self {
+            paths,
+            start,
+            levels,
+            indents,
+            formats,
+            wrap,
+            order,
+            types,
+        }
     }
 }
 
@@ -270,62 +405,5 @@ impl Config<'_> {
     /// Returns [`Types`] reference.
     pub fn types_ref(&self) -> &Types<'_> {
         &self.types
-    }
-}
-
-impl<'a> From<Options<'a>> for Config<'a> {
-    fn from(options: Options<'a>) -> Self {
-        let default = Self::default();
-
-        let default_paths = default.paths;
-        let default_levels = default.levels;
-        let default_indents = default.indents;
-        let default_formats = default.formats;
-
-        let paths_options = options.paths.unwrap_or_default();
-        let levels_options = options.levels.unwrap_or_default();
-        let indents_options = options.indents.unwrap_or_default();
-        let formats_options = options.formats.unwrap_or_default();
-
-        let paths = Paths {
-            directory: paths_options.directory.unwrap_or(default_paths.directory),
-            output: paths_options.output.unwrap_or(default_paths.output),
-        };
-
-        let levels = Levels {
-            entry: levels_options.entry.unwrap_or(default_levels.entry),
-            section: levels_options.section.unwrap_or(default_levels.section),
-        };
-
-        let indents = Indents {
-            heading: indents_options.heading.unwrap_or(default_indents.heading),
-            bullet: indents_options.bullet.unwrap_or(default_indents.bullet),
-        };
-
-        let formats = Formats {
-            title: formats_options.title.unwrap_or(default_formats.title),
-            fragment: formats_options.fragment.unwrap_or(default_formats.fragment),
-        };
-
-        let start = options.start.unwrap_or(default.start);
-
-        let wrap = options.wrap.unwrap_or(default.wrap);
-
-        let order = options.order.unwrap_or(default.order);
-
-        let mut types = default.types;
-
-        types.extend(options.types.into_iter().flatten());
-
-        Self {
-            paths,
-            start,
-            levels,
-            indents,
-            formats,
-            wrap,
-            order,
-            types,
-        }
     }
 }
