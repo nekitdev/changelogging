@@ -142,6 +142,9 @@ jobs:
           - i686-pc-windows-msvc
           - aarch64-pc-windows-msvc
 
+    env:
+      XWIN_VERSION: 16
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
