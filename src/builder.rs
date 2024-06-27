@@ -379,7 +379,7 @@ impl<'b> Builder<'b> {
     ///
     /// Returns [`InitError`] if initializing the renderer fails.
     pub fn from_workspace(workspace: Workspace<'b>, date: Date) -> Result<Self, InitError> {
-        Self::new(workspace.context, workspace.options.into_config(), date)
+        Self::new(workspace.context, workspace.config, date)
     }
 
     /// Constructs [`Self`].
