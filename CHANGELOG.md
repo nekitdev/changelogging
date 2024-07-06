@@ -2,6 +2,12 @@
 
 <!-- changelogging: start -->
 
+## [0.4.1](https://github.com/nekitdev/changelogging/tree/v0.4.1) (2024-07-06)
+
+### Fixes
+
+- Fixed `types` computation. ([#7](https://github.com/nekitdev/changelogging/pull/7))
+
 ## [0.4.0](https://github.com/nekitdev/changelogging/tree/v0.4.0) (2024-06-27)
 
 ### Changes
