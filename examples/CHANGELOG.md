@@ -2,7 +2,7 @@
 
 <!-- changelogging: start -->
 
-## [0.4.0](https://github.com/nekitdev/changelogging/tree/v0.4.0) (YYYY-MM-DD)
+## [0.4.1](https://github.com/nekitdev/changelogging/tree/v0.4.1) (YYYY-MM-DD)
 
 ### Features
 
