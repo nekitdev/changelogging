@@ -287,6 +287,10 @@ pub fn default_order() -> Vec<&'static str> {
     ]
 }
 
+fn into_order(vec: Vec<&str>) -> Order<'_> {
+    vec.into_iter().map(|name| name.into()).collect()
+}
+
 /// Specifies the mapping of types to their titles.
 pub type Types<'t> = HashMap<Cow<'t, str>, Cow<'t, str>>;
 
@@ -339,6 +343,13 @@ pub fn default_types() -> HashMap<&'static str, &'static str> {
     }
 }
 
+fn into_types<'t>(hash_map: HashMap<&'t str, &'t str>) -> Types<'t> {
+    hash_map
+        .into_iter()
+        .map(|(name, title)| (name.into(), title.into()))
+        .collect()
+}
+
 impl Default for Config<'_> {
     fn default() -> Self {
         let paths = Paths::default();
@@ -353,15 +364,9 @@ impl Default for Config<'_> {
 
         let wrap = Wrap::new(DEFAULT_WRAP).unwrap();
 
-        let order = default_order()
-            .into_iter()
-            .map(|name| name.into())
-            .collect();
+        let order = into_order(default_order());
 
-        let types = default_types()
-            .into_iter()
-            .map(|(name, title)| (name.into(), title.into()))
-            .collect();
+        let types = into_types(default_types());
 
         Self {
             paths,
@@ -405,5 +410,16 @@ impl Config<'_> {
     /// Returns [`Types`] reference.
     pub fn types_ref(&self) -> &Types<'_> {
         &self.types
+    }
+}
+
+impl Config<'_> {
+    /// Returns `types` with defaults included.
+    pub fn types_with_defaults(&self) -> Types<'_> {
+        let mut types_with_defaults = into_types(default_types());
+
+        types_with_defaults.extend(self.types.clone());
+
+        types_with_defaults
     }
 }

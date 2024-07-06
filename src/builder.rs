@@ -626,7 +626,7 @@ impl Builder<'_> {
     ///
     /// Returns [`BuildFragmentError`] when building any of the sections fails.
     pub fn build_sections(&self, sections: &Sections<'_>) -> Result<String, BuildFragmentError> {
-        let types = self.config.types_ref();
+        let types = self.config.types_with_defaults();
 
         let string = self
             .config
