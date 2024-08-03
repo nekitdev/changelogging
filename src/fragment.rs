@@ -151,7 +151,9 @@ pub fn is_valid<S: AsRef<str>>(string: S) -> bool {
 
 /// Checks if the [`path_name`] of the given path represents some partial fragment.
 pub fn is_valid_path<P: AsRef<Path>>(path: P) -> bool {
-    path_name(path.as_ref()).filter(|name| is_valid(name)).is_some()
+    path_name(path.as_ref())
+        .filter(|name| is_valid(name))
+        .is_some()
 }
 
 /// Returns the [`file_name`] of the given path if it is valid UTF-8.

@@ -157,17 +157,17 @@ impl App {
             match command {
                 Command::Build(build) => {
                     build.run(workspace).map_err(|error| Error::build(error))?
-                },
-                Command::Preview(preview) => {
-                    preview.run(workspace).map_err(|error| Error::preview(error))?
-                },
+                }
+                Command::Preview(preview) => preview
+                    .run(workspace)
+                    .map_err(|error| Error::preview(error))?,
                 Command::Create(create) => {
                     let directory = workspace.config.paths.directory;
 
                     create
                         .run(directory)
                         .map_err(|error| Error::create(error))?;
-                },
+                }
             }
         };
 
@@ -280,12 +280,7 @@ pub struct CreateCommand {
     pub edit: bool,
 
     /// Whether to add the fragment via `git`.
-    #[arg(
-        short = 'a',
-        long,
-        action,
-        help = "Add the fragment via `git`"
-    )]
+    #[arg(short = 'a', long, action, help = "Add the fragment via `git`")]
     pub add: bool,
 }
 

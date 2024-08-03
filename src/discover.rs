@@ -47,7 +47,7 @@ impl ExistenceError {
 #[error("workspace not found in `{directory}`")]
 #[diagnostic(
     code(changelogging::discover::not_found),
-    help("workspaces must contain `{CHANGELOGGING}` or `{PYPROJECT}`")
+    help("workspaces must contain `{CHANGELOGGING}` or `{PYPROJECT}` (or use the `--config (-C)` option)")
 )]
 pub struct NotFoundError {
     /// The current directory.

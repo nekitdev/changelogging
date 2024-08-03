@@ -1,6 +1,6 @@
 [project]
 name = "changelogging"
-version = "2.4.1"
+version = "2.4.2"
 description = "Building changelogs from fragments."
 readme = "README.md"
 requires-python = ">= 3.8"
@@ -36,5 +36,5 @@ bindings = "bin"
 strip = true
 
 [build-system]
-requires = ["maturin >= 1.6.0"]
+requires = ["maturin >= 1.7.0"]
 build-backend = "maturin"

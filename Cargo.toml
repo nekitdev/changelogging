@@ -1,6 +1,6 @@
 [package]
 name = "changelogging"
-version = "0.4.1"
+version = "0.4.2"
 authors = ["nekitdev <nekit@nekit.dev>"]
 edition = "2021"
 description = "Building changelogs from fragments."
@@ -12,37 +12,37 @@ keywords = ["changelog", "changes"]
 categories = ["command-line-utilities", "development-tools"]
 
 [dependencies.clap]
-version = "4.5.4"
+version = "4.5.13"
 features = ["derive"]
 
 [dependencies.edit]
 version = "0.1.5"
 
-[dependencies.itertools]
-version = "0.13.0"
-
 [dependencies.handlebars]
 version = "6.0.0"
+
+[dependencies.itertools]
+version = "0.13.0"
 
 [dependencies.miette]
 version = "7.2.0"
 features = ["fancy"]
 
-[dependencies.thiserror]
-version = "1.0.60"
+[dependencies.serde]
+version = "1.0.204"
+features = ["derive"]
 
 [dependencies.textwrap]
 version = "0.16.1"
 default-features = false
+
+[dependencies.thiserror]
+version = "1.0.63"
 
 [dependencies.time]
 version = "0.3.36"
 features = ["serde", "parsing", "macros"]
 
 [dependencies.toml]
-version = "0.8.12"
+version = "0.8.19"
 features = ["parse"]
-
-[dependencies.serde]
-version = "1.0.201"
-features = ["derive"]
