@@ -2,6 +2,10 @@
 
 <!-- changelogging: start -->
 
+## [0.4.3](https://github.com/nekitdev/changelogging/tree/v0.4.3) (2024-08-05)
+
+No significant changes.
+
 ## [0.4.3](https://github.com/nekitdev/changelogging/tree/v0.4.3) (2024-08-03)
 
 No significant changes.
