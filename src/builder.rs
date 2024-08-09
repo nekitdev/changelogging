@@ -12,7 +12,7 @@ use handlebars::{no_escape, Handlebars, RenderError, TemplateError};
 use itertools::Itertools;
 use miette::Diagnostic;
 use serde::Serialize;
-use textwrap::{fill, Options as WrapOptions, WordSeparator};
+use textwrap::{fill, Options as WrapOptions, WordSeparator, WordSplitter};
 use thiserror::Error;
 use time::Date;
 
@@ -649,6 +649,7 @@ impl Builder<'_> {
         let options = WrapOptions::new(self.config.wrap.into())
             .break_words(false)
             .word_separator(WordSeparator::AsciiSpace)
+            .word_splitter(WordSplitter::NoHyphenation)
             .initial_indent(initial_indent.as_ref())
             .subsequent_indent(subsequent_indent.as_ref());
 
