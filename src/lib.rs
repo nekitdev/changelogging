@@ -108,7 +108,7 @@
 //!
 //! ```console
 //! $ changelogging preview
-//! ## [0.4.3](https://github.com/nekitdev/changelogging/tree/v0.4.3) (YYYY-MM-DD)
+//! ## [0.4.4](https://github.com/nekitdev/changelogging/tree/v0.4.4) (YYYY-MM-DD)
 //!
 //! ### Features
 //!
