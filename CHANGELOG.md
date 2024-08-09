@@ -2,6 +2,13 @@
 
 <!-- changelogging: start -->
 
+## [0.4.4](https://github.com/nekitdev/changelogging/tree/v0.4.4) (2024-08-09)
+
+### Fixes
+
+- `WordSplitter::NoHyphenation` is now used in wrapping options.
+  ([#9](https://github.com/nekitdev/changelogging/pull/9))
+
 ## [0.4.3](https://github.com/nekitdev/changelogging/tree/v0.4.3) (2024-08-05)
 
 No significant changes.
