@@ -26,9 +26,7 @@ pub struct ChangeCurrentDirectoryError {
 
 impl ChangeCurrentDirectoryError {
     /// Constructs [`Self`].
-    pub fn new<P: AsRef<Path>>(source: std::io::Error, path: P) -> Self {
-        let path = path.as_ref().to_owned();
-
+    pub fn new(source: std::io::Error, path: PathBuf) -> Self {
         Self { source, path }
     }
 }
@@ -68,7 +66,7 @@ impl Error {
     }
 
     /// Constructs [`ChangeCurrentDirectoryError`] and constructs [`Self`] from it.
-    pub fn new_change_current_directory<P: AsRef<Path>>(source: std::io::Error, path: P) -> Self {
+    pub fn new_change_current_directory(source: std::io::Error, path: PathBuf) -> Self {
         Self::change_current_directory(ChangeCurrentDirectoryError::new(source, path))
     }
 }
@@ -82,7 +80,8 @@ pub fn init<D: AsRef<Path>>(directory: Option<D>) -> Result<(), Error> {
     if let Some(path) = directory {
         let path = path.as_ref();
 
-        set_current_dir(path).map_err(|error| Error::new_change_current_directory(error, path))?;
+        set_current_dir(path)
+            .map_err(|error| Error::new_change_current_directory(error, path.to_owned()))?;
     };
 
     Ok(())

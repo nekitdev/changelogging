@@ -164,4 +164,5 @@ pub mod discover;
 pub mod fragment;
 pub mod git;
 pub mod init;
+pub mod load;
 pub mod workspace;

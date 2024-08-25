@@ -54,30 +54,30 @@ impl Error {
     /// Constructs [`Self`] from [`Error`].
     ///
     /// [`Error`]: crate::date::Error
-    pub fn date(source: crate::date::Error) -> Self {
-        Self::new(source.into())
+    pub fn date(error: crate::date::Error) -> Self {
+        Self::new(error.into())
     }
 
     /// Constructs [`Self`] from [`InitError`].
-    pub fn init(source: InitError) -> Self {
-        Self::new(source.into())
+    pub fn init(error: InitError) -> Self {
+        Self::new(error.into())
     }
 
     /// Constructs [`Self`] from [`WriteError`].
-    pub fn write(source: WriteError) -> Self {
-        Self::new(source.into())
+    pub fn write(error: WriteError) -> Self {
+        Self::new(error.into())
     }
 
     /// Constructs [`Self`] from [`CollectError`].
-    pub fn collect(source: CollectError) -> Self {
-        Self::new(source.into())
+    pub fn collect(error: CollectError) -> Self {
+        Self::new(error.into())
     }
 
     /// Constructs [`Self`] from [`Error`].
     ///
     /// [`Error`]: crate::git::Error
-    pub fn git(source: crate::git::Error) -> Self {
-        Self::new(source.into())
+    pub fn git(error: crate::git::Error) -> Self {
+        Self::new(error.into())
     }
 }
 
@@ -94,26 +94,24 @@ pub fn build<S: AsRef<str>>(
     remove: bool,
 ) -> Result<(), Error> {
     let date = match date {
-        Some(string) => parse(string).map_err(|error| Error::date(error))?,
+        Some(string) => parse(string).map_err(Error::date)?,
         None => today(),
     };
 
-    let builder = Builder::from_workspace(workspace, date).map_err(|error| Error::init(error))?;
+    let builder = Builder::from_workspace(workspace, date).map_err(Error::init)?;
 
-    builder.write().map_err(|error| Error::write(error))?;
+    builder.write().map_err(Error::write)?;
 
     if stage {
         let path = builder.config.paths.output.as_ref();
 
-        git::add(once(path)).map_err(|error| Error::git(error))?;
+        git::add(once(path)).map_err(Error::git)?;
     }
 
     if remove {
-        let paths = builder
-            .collect_paths()
-            .map_err(|error| Error::collect(error))?;
+        let paths = builder.collect_paths().map_err(Error::collect)?;
 
-        git::remove(paths).map_err(|error| Error::git(error))?;
+        git::remove(paths).map_err(Error::git)?;
     }
 
     Ok(())

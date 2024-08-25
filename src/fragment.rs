@@ -4,7 +4,6 @@ use std::{
     borrow::Cow,
     collections::HashMap,
     fs::read_to_string,
-    num::ParseIntError,
     path::{Path, PathBuf},
     str::FromStr,
 };
@@ -13,17 +12,86 @@ use miette::Diagnostic;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
-/// Represents IDs of fragments.
-pub type FragmentId = u32;
+use crate::load::Load;
+
+/// Represents integer IDs of fragments.
+pub type Integer = u32;
+
+/// Represents fragment IDs.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum Id<'i> {
+    /// Integer fragment ID.
+    Integer(Integer),
+    /// String fragment ID.
+    String(Cow<'i, str>),
+}
+
+impl<'i> Id<'i> {
+    /// Constructs [`Self`] from [`Integer`].
+    pub fn integer(value: Integer) -> Self {
+        Self::Integer(value)
+    }
+
+    /// Constructs [`Self`] from [`String`].
+    pub fn owned(string: String) -> Self {
+        Self::String(Cow::Owned(string))
+    }
+
+    /// Constructs [`Self`] from [`str`].
+    pub fn borrowed(string: &'i str) -> Self {
+        Self::String(Cow::Borrowed(string))
+    }
+}
+
+impl Id<'_> {
+    /// Checks if [`Self`] is [`Integer`].
+    pub fn is_integer(&self) -> bool {
+        matches!(self, Self::Integer(_))
+    }
+
+    /// Checks if [`Self`] is [`String`].
+    pub fn is_string(&self) -> bool {
+        matches!(self, Self::String(_))
+    }
+}
+
+impl FromStr for Id<'_> {
+    type Err = InvalidIdError;
+
+    fn from_str(string: &str) -> Result<Self, Self::Err> {
+        if let Some(stripped) = string.strip_prefix(STRING_PREFIX) {
+            Ok(Self::owned(stripped.to_owned()))
+        } else {
+            string
+                .parse()
+                .map(Self::integer)
+                .map_err(|_| Self::Err::new(string.to_owned()))
+        }
+    }
+}
 
 /// Represents errors that can occur when parsing fragment IDs.
 #[derive(Debug, Error, Diagnostic)]
-#[error("invalid ID")]
+#[error("failed to parse `{string}` into fragment ID")]
 #[diagnostic(
     code(changelogging::fragment::invalid_id),
-    help("fragment IDs are integers")
+    help("fragment IDs are either integers or strings in the `{STRING_PREFIX}string` form")
 )]
-pub struct InvalidIdError(#[from] pub ParseIntError);
+pub struct InvalidIdError {
+    /// The string that could not be parsed into any valid ID.
+    pub string: String,
+}
+
+impl InvalidIdError {
+    /// Constructs [`Self`].
+    pub fn new(string: String) -> Self {
+        Self { string }
+    }
+}
+
+/// The prefix used for non-integer fragment IDs.
+pub const STRING_PREFIX: char = '~';
 
 /// Represents errors that can occur when there are not enough parts to parse.
 #[derive(Debug, Error, Diagnostic)]
@@ -34,7 +102,7 @@ pub struct InvalidIdError(#[from] pub ParseIntError);
 )]
 pub struct UnexpectedEofError;
 
-/// Represents sources of errors that can occur while parsing into [`PartialFragment`].
+/// Represents sources of errors that can occur while parsing into [`Partial`].
 #[derive(Debug, Error, Diagnostic)]
 #[error(transparent)]
 #[diagnostic(transparent)]
@@ -45,7 +113,7 @@ pub enum ParseErrorSource {
     UnexpectedEof(#[from] UnexpectedEofError),
 }
 
-/// Represents errors that can occur while parsing into [`PartialFragment`].
+/// Represents errors that can occur while parsing into [`Partial`].
 #[derive(Debug, Error, Diagnostic)]
 #[error("failed to parse `{name}`")]
 #[diagnostic(
@@ -63,52 +131,60 @@ pub struct ParseError {
 
 impl ParseError {
     /// Constructs [`Self`].
-    pub fn new<S: AsRef<str>>(source: ParseErrorSource, name: S) -> Self {
-        let name = name.as_ref().to_owned();
-
+    pub fn new(source: ParseErrorSource, name: String) -> Self {
         Self { source, name }
     }
 
     /// Constructs [`Self`] from [`InvalidIdError`].
-    pub fn invalid_id<S: AsRef<str>>(source: InvalidIdError, name: S) -> Self {
-        Self::new(source.into(), name)
+    pub fn invalid_id(error: InvalidIdError, name: String) -> Self {
+        Self::new(error.into(), name)
     }
 
     /// Constructs [`Self`] from [`UnexpectedEofError`].
-    pub fn unexpected_eof<S: AsRef<str>>(source: UnexpectedEofError, name: S) -> Self {
-        Self::new(source.into(), name)
+    pub fn unexpected_eof(error: UnexpectedEofError, name: String) -> Self {
+        Self::new(error.into(), name)
     }
 
     /// Constructs [`InvalidIdError`] and constructs [`Self`] from it.
-    pub fn new_invalid_id<S: AsRef<str>>(source: ParseIntError, name: S) -> Self {
-        Self::invalid_id(InvalidIdError(source), name)
+    pub fn new_invalid_id(string: String, name: String) -> Self {
+        Self::invalid_id(InvalidIdError::new(string), name)
     }
 
     /// Constructs [`UnexpectedEofError`] and constructs [`Self`] from it.
-    pub fn new_unexpected_eof<S: AsRef<str>>(name: S) -> Self {
+    pub fn new_unexpected_eof(name: String) -> Self {
         Self::unexpected_eof(UnexpectedEofError, name)
     }
 }
 
 /// Represents partial fragments.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
-pub struct PartialFragment<'p> {
+pub struct Partial<'p> {
     /// The ID of the fragment.
-    pub id: FragmentId,
+    pub id: Id<'p>,
     /// The type of the fragment.
     pub type_name: Cow<'p, str>,
 }
 
-impl<'p> PartialFragment<'p> {
+impl<'p> Partial<'p> {
     /// Constructs [`Self`].
-    pub fn new(id: FragmentId, type_name: Cow<'p, str>) -> Self {
+    pub fn new(id: Id<'p>, type_name: Cow<'p, str>) -> Self {
         Self { id, type_name }
+    }
+
+    /// Constructs [`Self`] with the owned type.
+    pub fn owned(id: Id<'p>, type_name: String) -> Self {
+        Self::new(id, Cow::Owned(type_name))
+    }
+
+    /// Constructs [`Self`] with the borrowed type.
+    pub fn borrowed(id: Id<'p>, type_name: &'p str) -> Self {
+        Self::new(id, Cow::Borrowed(type_name))
     }
 }
 
 const DOT: char = '.';
 
-impl FromStr for PartialFragment<'_> {
+impl FromStr for Partial<'_> {
     type Err = ParseError;
 
     fn from_str(name: &str) -> Result<Self, Self::Err> {
@@ -116,16 +192,16 @@ impl FromStr for PartialFragment<'_> {
 
         let id = split
             .next()
-            .ok_or_else(|| ParseError::new_unexpected_eof(name))?
+            .ok_or_else(|| ParseError::new_unexpected_eof(name.to_owned()))?
             .parse()
-            .map_err(|error| ParseError::new_invalid_id(error, name))?;
+            .map_err(|error| ParseError::invalid_id(error, name.to_owned()))?;
 
         let type_name = split
             .next()
-            .ok_or_else(|| ParseError::new_unexpected_eof(name))?
+            .ok_or_else(|| ParseError::new_unexpected_eof(name.to_owned()))?
             .to_owned();
 
-        Ok(Self::new(id, type_name.into()))
+        Ok(Self::owned(id, type_name))
     }
 }
 
@@ -136,24 +212,31 @@ impl FromStr for PartialFragment<'_> {
 /// # Errors
 ///
 /// Returns [`ParseError`] if `string` is invalid.
-pub fn validate<S: AsRef<str>>(string: S) -> Result<(), ParseError> {
-    let _check: PartialFragment<'_> = string.as_ref().parse()?;
+pub fn validate_str(string: &str) -> Result<(), ParseError> {
+    let _: Partial<'_> = string.parse()?;
 
     Ok(())
 }
 
-/// Checks if the `string` represents some partial fragment.
+/// Similar to [`validate_str`], except the input is [`AsRef<str>`]
 ///
-/// This function is equivalent to using [`validate`] and checking that the result is [`Ok`].
-pub fn is_valid<S: AsRef<str>>(string: S) -> bool {
-    validate(string).is_ok()
+/// # Errors
+///
+/// Returns [`ParseError`] if `string` is invalid.
+pub fn validate<S: AsRef<str>>(string: S) -> Result<(), ParseError> {
+    validate_str(string.as_ref())
 }
 
 /// Checks if the [`path_name`] of the given path represents some partial fragment.
-pub fn is_valid_path<P: AsRef<Path>>(path: P) -> bool {
-    path_name(path.as_ref())
-        .filter(|name| is_valid(name))
+pub fn is_valid_path_ref(path: &Path) -> bool {
+    path_name(path)
+        .filter(|name| validate_str(name).is_ok())
         .is_some()
+}
+
+/// Similar to [`is_valid_path_ref`], except the input is [`AsRef<Path>`].
+pub fn is_valid_path<P: AsRef<Path>>(path: P) -> bool {
+    is_valid_path_ref(path.as_ref())
 }
 
 /// Returns the [`file_name`] of the given path if it is valid UTF-8.
@@ -212,35 +295,33 @@ pub struct Error {
 
 impl Error {
     /// Constructs [`Self`].
-    pub fn new<P: AsRef<Path>>(source: ErrorSource, path: P) -> Self {
-        let path = path.as_ref().to_owned();
-
+    pub fn new(source: ErrorSource, path: PathBuf) -> Self {
         Self { source, path }
     }
 
     /// Constructs [`Self`] from [`InvalidUtf8Error`].
-    pub fn invalid_utf8<P: AsRef<Path>>(source: InvalidUtf8Error, path: P) -> Self {
-        Self::new(source.into(), path)
+    pub fn invalid_utf8(error: InvalidUtf8Error, path: PathBuf) -> Self {
+        Self::new(error.into(), path)
     }
 
     /// Constructs [`Self`] from [`ParseError`].
-    pub fn parse<P: AsRef<Path>>(source: ParseError, path: P) -> Self {
-        Self::new(source.into(), path)
+    pub fn parse(error: ParseError, path: PathBuf) -> Self {
+        Self::new(error.into(), path)
     }
 
     /// Constructs [`Self`] from [`ReadError`].
-    pub fn read<P: AsRef<Path>>(source: ReadError, path: P) -> Self {
-        Self::new(source.into(), path)
+    pub fn read(error: ReadError, path: PathBuf) -> Self {
+        Self::new(error.into(), path)
     }
 
     /// Constructs [`InvalidUtf8Error`] and constructs [`Self`] from it.
-    pub fn new_invalid_utf8<P: AsRef<Path>>(path: P) -> Self {
-        Self::new(InvalidUtf8Error.into(), path)
+    pub fn new_invalid_utf8(path: PathBuf) -> Self {
+        Self::invalid_utf8(InvalidUtf8Error, path)
     }
 
     /// Constructs [`ReadError`] and constructs [`Self`] from it.
-    pub fn new_read<P: AsRef<Path>>(source: std::io::Error, path: P) -> Self {
-        Self::new(ReadError(source).into(), path)
+    pub fn new_read(error: std::io::Error, path: PathBuf) -> Self {
+        Self::read(ReadError(error), path)
     }
 }
 
@@ -251,33 +332,42 @@ pub struct Fragment<'f> {
     ///
     /// This field is flattened during (de)serialization.
     #[serde(flatten)]
-    pub partial: PartialFragment<'f>,
+    pub partial: Partial<'f>,
     /// The fragment content.
     pub content: Cow<'f, str>,
 }
 
 impl<'f> Fragment<'f> {
     /// Constructs [`Self`].
-    pub fn new(partial: PartialFragment<'f>, content: Cow<'f, str>) -> Self {
+    pub fn new(partial: Partial<'f>, content: Cow<'f, str>) -> Self {
         Self { partial, content }
+    }
+
+    /// Constructs [`Self`] with the owned content.
+    pub fn owned(partial: Partial<'f>, content: String) -> Self {
+        Self::new(partial, Cow::Owned(content))
+    }
+
+    /// Constructs [`Self`] with the borrowed content.
+    pub fn borrowed(partial: Partial<'f>, content: &'f str) -> Self {
+        Self::new(partial, Cow::Borrowed(content))
     }
 }
 
-impl Fragment<'_> {
-    /// Loads [`Self`] from the given path.
-    ///
-    /// # Errors
-    ///
-    /// Returns [`struct@Error`] when reading the file contents or parsing the name fails.
-    pub fn load<P: AsRef<Path>>(path: P) -> Result<Self, Error> {
+impl Load for Fragment<'_> {
+    type Error = Error;
+
+    fn load<P: AsRef<Path>>(path: P) -> Result<Self, Error> {
         let path = path.as_ref();
 
-        let name = path_name(path).ok_or_else(|| Error::new_invalid_utf8(path))?;
+        let name = path_name(path).ok_or_else(|| Error::new_invalid_utf8(path.to_owned()))?;
 
-        let info = name.parse().map_err(|error| Error::parse(error, path))?;
+        let info = name
+            .parse()
+            .map_err(|error| Error::parse(error, path.to_owned()))?;
 
         let content = read_to_string(path)
-            .map_err(|error| Error::new_read(error, path))?
+            .map_err(|error| Error::new_read(error, path.to_owned()))?
             .trim()
             .to_owned();
 

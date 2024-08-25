@@ -1,14 +1,14 @@
 //! Discovering workspaces.
 
-use std::{
-    env::current_dir,
-    path::{Path, PathBuf},
-};
+use std::{env::current_dir, path::PathBuf};
 
 use miette::Diagnostic;
 use thiserror::Error;
 
-use crate::workspace::{PyProject, Workspace};
+use crate::{
+    load::load,
+    workspace::{PyProject, Workspace},
+};
 
 /// Represents errors that can occur when fetching the current directory fails.
 #[derive(Debug, Error, Diagnostic)]
@@ -35,9 +35,7 @@ pub struct ExistenceError {
 
 impl ExistenceError {
     /// Constructs [`Self`].
-    pub fn new<P: AsRef<Path>>(source: std::io::Error, path: P) -> Self {
-        let path = path.as_ref().to_owned();
-
+    pub fn new(source: std::io::Error, path: PathBuf) -> Self {
         Self { source, path }
     }
 }
@@ -56,9 +54,7 @@ pub struct NotFoundError {
 
 impl NotFoundError {
     /// Constructs [`Self`].
-    pub fn new<D: AsRef<Path>>(directory: D) -> Self {
-        let directory = directory.as_ref().to_owned();
-
+    pub fn new(directory: PathBuf) -> Self {
         Self { directory }
     }
 }
@@ -126,12 +122,12 @@ impl Error {
     }
 
     /// Constructs [`ExistenceError`] and constructs [`Self`] from it.
-    pub fn new_existence<P: AsRef<Path>>(source: std::io::Error, path: P) -> Self {
+    pub fn new_existence(source: std::io::Error, path: PathBuf) -> Self {
         Self::existence(ExistenceError::new(source, path))
     }
 
     /// Constructs [`NotFoundError`] and constructs [`Self`] from it.
-    pub fn new_not_found<D: AsRef<Path>>(directory: D) -> Self {
+    pub fn new_not_found(directory: PathBuf) -> Self {
         Self::not_found(NotFoundError::new(directory))
     }
 }
@@ -154,7 +150,7 @@ pub const PYPROJECT: &str = "pyproject.toml";
 /// Returns [`struct@Error`] if fetching the current directory, checking the existence
 /// or loading the workspace fails. Also returned when no workspace can be found.
 pub fn discover() -> Result<Workspace<'static>, Error> {
-    let mut path = current_dir().map_err(|error| Error::new_current_directory(error))?;
+    let mut path = current_dir().map_err(Error::new_current_directory)?;
 
     // try `changelogging.toml`
 
@@ -162,9 +158,9 @@ pub fn discover() -> Result<Workspace<'static>, Error> {
 
     if path
         .try_exists()
-        .map_err(|error| Error::new_existence(error, path.as_path()))?
+        .map_err(|error| Error::new_existence(error, path.clone()))?
     {
-        let workspace = Workspace::load(path.as_path()).map_err(|error| Error::workspace(error))?;
+        let workspace = load(path.as_path()).map_err(Error::workspace)?;
 
         return Ok(workspace);
     }
@@ -177,11 +173,11 @@ pub fn discover() -> Result<Workspace<'static>, Error> {
 
     if path
         .try_exists()
-        .map_err(|error| Error::new_existence(error, path.as_path()))?
+        .map_err(|error| Error::new_existence(error, path.clone()))?
     {
-        let pyproject = PyProject::load(path.as_path()).map_err(|error| Error::workspace(error))?;
+        let pyproject: PyProject<'_> = load(path.as_path()).map_err(Error::workspace)?;
 
-        if let Some(workspace) = pyproject.tool.and_then(|tools| tools.changelogging) {
+        if let Some(workspace) = pyproject.into_workspace() {
             return Ok(workspace);
         }
     }

@@ -92,11 +92,21 @@ $ changelogging create --content "Added cool features!" 13.feature.md
 $ changelogging create --content "Fixed annoying bugs!" 64.fix.md
 ```
 
+There are also *unlinked* fragments, which have non-integer IDs:
+
+```console
+$ changelogging create --content "Fixed security issues!" ~issue.security.md
+```
+
 And finally, preview the changelog entry!
 
 ```console
 $ changelogging preview
 ## 0.4.4 (YYYY-MM-DD)
+
+### Security
+
+- Fixed security issues!
 
 ### Features
 
@@ -132,6 +142,10 @@ $ cat CHANGELOG.md
 <!-- changelogging: start -->
 
 ## 0.4.4 (YYYY-MM-DD)
+
+### Security
+
+- Fixed security issues!
 
 ### Features
 

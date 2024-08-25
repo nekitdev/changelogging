@@ -10,7 +10,8 @@ use crate::{
     commands::{build::build, create::create, preview::preview},
     discover::discover,
     init::init,
-    workspace::{load, Workspace},
+    load::load,
+    workspace::Workspace,
 };
 
 /// Represents global options of `changelogging`.
@@ -146,27 +147,26 @@ impl App {
     pub fn run(self) -> Result<(), Error> {
         let globals = self.globals;
 
-        init(globals.directory).map_err(|error| Error::init(error))?;
+        init(globals.directory).map_err(Error::init)?;
 
-        let workspace = match globals.config {
-            Some(path) => load(path).map_err(|error| Error::workspace(error))?,
-            None => discover().map_err(|error| Error::discover(error))?,
+        let workspace = if let Some(path) = globals.config {
+            load(path).map_err(Error::workspace)?
+        } else {
+            discover().map_err(Error::discover)?
         };
 
         if let Some(command) = self.command {
             match command {
                 Command::Build(build) => {
-                    build.run(workspace).map_err(|error| Error::build(error))?
+                    build.run(workspace).map_err(Error::build)?;
                 }
-                Command::Preview(preview) => preview
-                    .run(workspace)
-                    .map_err(|error| Error::preview(error))?,
+                Command::Preview(preview) => {
+                    preview.run(workspace).map_err(Error::preview)?;
+                }
                 Command::Create(create) => {
                     let directory = workspace.config.paths.directory;
 
-                    create
-                        .run(directory)
-                        .map_err(|error| Error::create(error))?;
+                    create.run(directory).map_err(Error::create)?;
                 }
             }
         };

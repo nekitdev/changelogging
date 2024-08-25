@@ -8,7 +8,7 @@ use time::{macros::format_description, Date, OffsetDateTime};
 
 /// Represents errors that can occur when parsing dates.
 #[derive(Debug, Error, Diagnostic)]
-#[error("failed to parse `{string}`")]
+#[error("failed to parse `{string}` into date")]
 #[diagnostic(
     code(changelogging::date::date),
     help("dates must be in `[year]-[month]-[day]` (aka `YYYY-MM-DD`) format")
@@ -20,9 +20,7 @@ pub struct Error {
 
 impl Error {
     /// Constructs [`Self`].
-    pub fn new<S: AsRef<str>>(string: S) -> Self {
-        let string = string.as_ref().to_owned();
-
+    pub fn new(string: String) -> Self {
         Self { string }
     }
 }
@@ -37,10 +35,17 @@ pub fn today() -> Date {
 /// # Errors
 ///
 /// Returns [`struct@Error`] on invalid dates.
-pub fn parse<S: AsRef<str>>(string: S) -> Result<Date, Error> {
-    let string = string.as_ref();
-
+pub fn parse_str(string: &str) -> Result<Date, Error> {
     let description = format_description!("[year]-[month]-[day]");
 
-    Date::parse(string, description).map_err(|_| Error::new(string))
+    Date::parse(string, description).map_err(|_| Error::new(string.to_owned()))
+}
+
+/// Similar to [`parse_str`], except the input is [`AsRef<str>`].
+///
+/// # Errors
+///
+/// Returns [`struct@Error`] on invalid dates.
+pub fn parse<S: AsRef<str>>(string: S) -> Result<Date, Error> {
+    parse_str(string.as_ref())
 }

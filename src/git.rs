@@ -40,7 +40,7 @@ pub fn add<P: AsRef<Path>, I: IntoIterator<Item = P>>(iterator: I) -> Result<Exi
         command.arg(path.as_ref());
     }
 
-    command.status().map_err(|error| error.into())
+    command.status().map_err(Into::into)
 }
 
 /// Removes paths from the provided iterator via `git rm`, forcefully and quietly.
@@ -57,5 +57,5 @@ pub fn remove<P: AsRef<Path>, I: IntoIterator<Item = P>>(iterator: I) -> Result<
         command.arg(path.as_ref());
     }
 
-    command.status().map_err(|error| error.into())
+    command.status().map_err(Into::into)
 }

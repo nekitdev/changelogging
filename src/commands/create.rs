@@ -80,52 +80,50 @@ pub struct Error {
 
 impl Error {
     /// Constructs [`Self`].
-    pub fn new<P: AsRef<Path>>(source: ErrorSource, path: P) -> Self {
-        let path = path.as_ref().to_owned();
-
+    pub fn new(source: ErrorSource, path: PathBuf) -> Self {
         Self { source, path }
     }
 
     /// Constructs [`Self`] from [`ParseError`].
-    pub fn parse<P: AsRef<Path>>(source: ParseError, path: P) -> Self {
-        Self::new(source.into(), path)
+    pub fn parse(error: ParseError, path: PathBuf) -> Self {
+        Self::new(error.into(), path)
     }
 
     /// Constructs [`Self`] from [`OpenError`].
-    pub fn open<P: AsRef<Path>>(source: OpenError, path: P) -> Self {
-        Self::new(source.into(), path)
+    pub fn open(error: OpenError, path: PathBuf) -> Self {
+        Self::new(error.into(), path)
     }
 
     /// Constructs [`Self`] from [`WriteError`].
-    pub fn write<P: AsRef<Path>>(source: WriteError, path: P) -> Self {
-        Self::new(source.into(), path)
+    pub fn write(error: WriteError, path: PathBuf) -> Self {
+        Self::new(error.into(), path)
     }
 
     /// Constructs [`Self`] from [`EditError`].
-    pub fn edit<P: AsRef<Path>>(source: EditError, path: P) -> Self {
-        Self::new(source.into(), path)
+    pub fn edit(error: EditError, path: PathBuf) -> Self {
+        Self::new(error.into(), path)
     }
 
     /// Constructs [`Self`] from [`Error`].
     ///
     /// [`Error`]: crate::git::Error
-    pub fn git<P: AsRef<Path>>(source: crate::git::Error, path: P) -> Self {
-        Self::new(source.into(), path)
+    pub fn git(error: crate::git::Error, path: PathBuf) -> Self {
+        Self::new(error.into(), path)
     }
 
     /// Constructs [`OpenError`] and constructs [`Self`] from it.
-    pub fn new_open<P: AsRef<Path>>(source: std::io::Error, path: P) -> Self {
-        Self::open(OpenError(source), path)
+    pub fn new_open(error: std::io::Error, path: PathBuf) -> Self {
+        Self::open(OpenError(error), path)
     }
 
     /// Constructs [`WriteError`] and constructs [`Self`] from it.
-    pub fn new_write<P: AsRef<Path>>(source: std::io::Error, path: P) -> Self {
-        Self::write(WriteError(source), path)
+    pub fn new_write(error: std::io::Error, path: PathBuf) -> Self {
+        Self::write(WriteError(error), path)
     }
 
     /// Constructs [`EditError`] and constructs [`Self`] from it.
-    pub fn new_edit<P: AsRef<Path>>(source: std::io::Error, path: P) -> Self {
-        Self::edit(EditError(source), path)
+    pub fn new_edit(error: std::io::Error, path: PathBuf) -> Self {
+        Self::edit(EditError(error), path)
     }
 }
 
@@ -147,28 +145,26 @@ pub fn create<D: AsRef<Path>, S: AsRef<str>, C: AsRef<str>>(
 ) -> Result<(), Error> {
     let name = name.as_ref();
 
-    let joined = directory.as_ref().join(name);
+    let path = directory.as_ref().join(name);
 
-    let path = joined.as_path();
-
-    validate(name).map_err(|error| Error::parse(error, path))?;
+    validate(name).map_err(|error| Error::parse(error, path.clone()))?;
 
     let mut file = File::options()
         .create_new(true)
         .write(true)
-        .open(path)
-        .map_err(|error| Error::new_open(error, path))?;
+        .open(&path)
+        .map_err(|error| Error::new_open(error, path.clone()))?;
 
     let string = content.as_ref().map_or(PLACEHOLDER, |slice| slice.as_ref());
 
-    writeln!(file, "{string}").map_err(|error| Error::new_write(error, path))?;
+    writeln!(file, "{string}").map_err(|error| Error::new_write(error, path.clone()))?;
 
     if edit {
-        edit_file(path).map_err(|error| Error::new_edit(error, path))?;
+        edit_file(&path).map_err(|error| Error::new_edit(error, path.clone()))?;
     }
 
     if add {
-        git::add(once(path)).map_err(|error| Error::git(error, path))?;
+        git::add(once(&path)).map_err(|error| Error::git(error, path.clone()))?;
     }
 
     Ok(())

@@ -288,7 +288,7 @@ pub fn default_order() -> Vec<&'static str> {
 }
 
 fn into_order(vec: Vec<&str>) -> Order<'_> {
-    vec.into_iter().map(|name| name.into()).collect()
+    vec.into_iter().map(Cow::Borrowed).collect()
 }
 
 /// Specifies the mapping of types to their titles.
@@ -346,7 +346,7 @@ pub fn default_types() -> HashMap<&'static str, &'static str> {
 fn into_types<'t>(hash_map: HashMap<&'t str, &'t str>) -> Types<'t> {
     hash_map
         .into_iter()
-        .map(|(name, title)| (name.into(), title.into()))
+        .map(|(name, title)| (Cow::Borrowed(name), Cow::Borrowed(title)))
         .collect()
 }
 
@@ -383,32 +383,32 @@ impl Default for Config<'_> {
 
 impl Config<'_> {
     /// Returns [`Paths`] reference.
-    pub fn paths_ref(&self) -> &Paths<'_> {
+    pub fn paths(&self) -> &Paths<'_> {
         &self.paths
     }
 
     /// Returns [`Levels`] reference.
-    pub fn levels_ref(&self) -> &Levels {
+    pub fn levels(&self) -> &Levels {
         &self.levels
     }
 
     /// Returns [`Indents`] reference.
-    pub fn indents_ref(&self) -> &Indents {
+    pub fn indents(&self) -> &Indents {
         &self.indents
     }
 
     /// Returns [`Formats`] reference.
-    pub fn formats_ref(&self) -> &Formats<'_> {
+    pub fn formats(&self) -> &Formats<'_> {
         &self.formats
     }
 
     /// Returns [`Order`] reference.
-    pub fn order_ref(&self) -> &Order<'_> {
+    pub fn order(&self) -> &Order<'_> {
         &self.order
     }
 
     /// Returns [`Types`] reference.
-    pub fn types_ref(&self) -> &Types<'_> {
+    pub fn types(&self) -> &Types<'_> {
         &self.types
     }
 }

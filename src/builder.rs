@@ -5,7 +5,7 @@ use std::{
     fs::{read_dir, File},
     io::{read_to_string, Write},
     iter::{once, repeat},
-    path::{Path, PathBuf},
+    path::PathBuf,
 };
 
 use handlebars::{no_escape, Handlebars, RenderError, TemplateError};
@@ -20,6 +20,7 @@ use crate::{
     config::{Config, Level},
     context::Context,
     fragment::{is_valid_path, Fragment, Fragments, Sections},
+    load::load,
     workspace::Workspace,
 };
 
@@ -66,9 +67,7 @@ pub struct ReadFileError {
 
 impl ReadFileError {
     /// Constructs [`Self`].
-    pub fn new<P: AsRef<Path>>(source: std::io::Error, path: P) -> Self {
-        let path = path.as_ref().to_owned();
-
+    pub fn new(source: std::io::Error, path: PathBuf) -> Self {
         Self { source, path }
     }
 }
@@ -89,9 +88,7 @@ pub struct WriteFileError {
 
 impl WriteFileError {
     /// Constructs [`Self`].
-    pub fn new<P: AsRef<Path>>(source: std::io::Error, path: P) -> Self {
-        let path = path.as_ref().to_owned();
-
+    pub fn new(source: std::io::Error, path: PathBuf) -> Self {
         Self { source, path }
     }
 }
@@ -112,9 +109,7 @@ pub struct OpenFileError {
 
 impl OpenFileError {
     /// Constructs [`Self`].
-    pub fn new<P: AsRef<Path>>(source: std::io::Error, path: P) -> Self {
-        let path = path.as_ref().to_owned();
-
+    pub fn new(source: std::io::Error, path: PathBuf) -> Self {
         Self { source, path }
     }
 }
@@ -166,29 +161,27 @@ pub struct CollectError {
 
 impl CollectError {
     /// Constructs [`Self`].
-    pub fn new<P: AsRef<Path>>(source: CollectErrorSource, path: P) -> Self {
-        let path = path.as_ref().to_owned();
-
+    pub fn new(source: CollectErrorSource, path: PathBuf) -> Self {
         Self { source, path }
     }
 
     /// Constructs [`Self`] from [`ReadDirectoryError`].
-    pub fn read_directory<P: AsRef<Path>>(source: ReadDirectoryError, path: P) -> Self {
+    pub fn read_directory(source: ReadDirectoryError, path: PathBuf) -> Self {
         Self::new(source.into(), path)
     }
 
     /// Constructs [`Self`] from [`IterDirectoryError`].
-    pub fn iter_directory<P: AsRef<Path>>(source: IterDirectoryError, path: P) -> Self {
+    pub fn iter_directory(source: IterDirectoryError, path: PathBuf) -> Self {
         Self::new(source.into(), path)
     }
 
     /// Constructs [`ReadDirectoryError`] and constructs [`Self`] from it.
-    pub fn new_read_directory<P: AsRef<Path>>(source: std::io::Error, path: P) -> Self {
+    pub fn new_read_directory(source: std::io::Error, path: PathBuf) -> Self {
         Self::read_directory(ReadDirectoryError(source), path)
     }
 
     /// Constructs [`IterDirectoryError`] and constructs [`Self`] from it.
-    pub fn new_iter_directory<P: AsRef<Path>>(source: std::io::Error, path: P) -> Self {
+    pub fn new_iter_directory(source: std::io::Error, path: PathBuf) -> Self {
         Self::iter_directory(IterDirectoryError(source), path)
     }
 }
@@ -308,17 +301,17 @@ impl WriteError {
     }
 
     /// Constructs [`OpenFileError`] and constructs [`Self`] from it.
-    pub fn new_open_file<P: AsRef<Path>>(source: std::io::Error, path: P) -> Self {
+    pub fn new_open_file(source: std::io::Error, path: PathBuf) -> Self {
         Self::open_file(OpenFileError::new(source, path))
     }
 
     /// Constructs [`ReadFileError`] and constructs [`Self`] from it.
-    pub fn new_read_file<P: AsRef<Path>>(source: std::io::Error, path: P) -> Self {
+    pub fn new_read_file(source: std::io::Error, path: PathBuf) -> Self {
         Self::read_file(ReadFileError::new(source, path))
     }
 
     /// Constructs [`WriteFileError`] and constructs [`Self`] from it.
-    pub fn new_write_file<P: AsRef<Path>>(source: std::io::Error, path: P) -> Self {
+    pub fn new_write_file(source: std::io::Error, path: PathBuf) -> Self {
         Self::write_file(WriteFileError::new(source, path))
     }
 }
@@ -334,7 +327,7 @@ impl<'t> RenderTitleData<'t> {
     fn new(context: &'t Context<'_>, date: Date) -> Self {
         Self {
             context,
-            date: date.to_string().into(),
+            date: Cow::Owned(date.to_string()),
         }
     }
 }
@@ -390,7 +383,7 @@ impl<'b> Builder<'b> {
     pub fn new(context: Context<'b>, config: Config<'b>, date: Date) -> Result<Self, InitError> {
         let mut renderer = Handlebars::new();
 
-        let formats = config.formats_ref();
+        let formats = config.formats();
 
         renderer.set_strict_mode(true);
 
@@ -426,12 +419,12 @@ fn indent(character: char) -> String {
 
 impl Builder<'_> {
     /// Returns [`Context`] reference.
-    pub fn context_ref(&self) -> &Context<'_> {
+    pub fn context(&self) -> &Context<'_> {
         &self.context
     }
 
     /// Returns [`Config`] reference.
-    pub fn config_ref(&self) -> &Config<'_> {
+    pub fn config(&self) -> &Config<'_> {
         &self.config
     }
 
@@ -443,24 +436,24 @@ impl Builder<'_> {
     ///
     /// Returns [`WriteError`] when building fails, as well as when I/O operations fail.
     pub fn write(&self) -> Result<(), WriteError> {
-        let entry = self.build().map_err(|error| WriteError::build(error))?;
+        let entry = self.build().map_err(WriteError::build)?;
 
         let path = self.config.paths.output.as_ref();
 
         let file = File::options()
             .read(true)
             .open(path)
-            .map_err(|error| WriteError::new_open_file(error, path))?;
+            .map_err(|error| WriteError::new_open_file(error, path.to_owned()))?;
 
-        let contents =
-            read_to_string(file).map_err(|error| WriteError::new_read_file(error, path))?;
+        let contents = read_to_string(file)
+            .map_err(|error| WriteError::new_read_file(error, path.to_owned()))?;
 
         let mut file = File::options()
             .create(true)
             .write(true)
             .truncate(true)
             .open(path)
-            .map_err(|error| WriteError::new_open_file(error, path))?;
+            .map_err(|error| WriteError::new_open_file(error, path.to_owned()))?;
 
         let start = self.config.start.as_ref();
 
@@ -473,7 +466,7 @@ impl Builder<'_> {
 
             string.push_str(DOUBLE_NEW_LINE);
 
-            string.push_str(entry.as_ref());
+            string.push_str(&entry);
 
             string.push(NEW_LINE);
 
@@ -485,7 +478,7 @@ impl Builder<'_> {
                 string.push_str(trimmed);
             }
         } else {
-            string.push_str(entry.as_ref());
+            string.push_str(&entry);
 
             string.push(NEW_LINE);
 
@@ -498,7 +491,8 @@ impl Builder<'_> {
             }
         };
 
-        write!(file, "{string}").map_err(|error| WriteError::new_write_file(error, path))?;
+        write!(file, "{string}")
+            .map_err(|error| WriteError::new_write_file(error, path.to_owned()))?;
 
         Ok(())
     }
@@ -528,7 +522,7 @@ impl Builder<'_> {
 
         string.push_str(DOUBLE_NEW_LINE);
 
-        let sections = self.collect().map_err(|error| BuildError::collect(error))?;
+        let sections = self.collect().map_err(BuildError::collect)?;
 
         let built = self
             .build_sections(&sections)
@@ -537,7 +531,7 @@ impl Builder<'_> {
         let contents = if built.is_empty() {
             NO_SIGNIFICANT_CHANGES
         } else {
-            built.as_ref()
+            &built
         };
 
         string.push_str(contents);
@@ -555,18 +549,25 @@ impl Builder<'_> {
 
         let title = self.render_title()?;
 
-        string.push_str(title.as_ref());
+        string.push_str(&title);
 
         Ok(string)
     }
 
     /// Builds section titles.
-    pub fn build_section_title<S: AsRef<str>>(&self, title: S) -> String {
+    pub fn build_section_title_str(&self, title: &str) -> String {
         let mut string = self.section_heading();
 
-        string.push_str(title.as_ref());
+        string.push_str(title);
 
         string
+    }
+
+    /// Similar to [`build_section_title_str`], except the input is [`AsRef<str>`].
+    ///
+    /// [`build_section_title_str`]: Self::build_section_title_str
+    pub fn build_section_title<S: AsRef<str>>(&self, title: S) -> String {
+        self.build_section_title_str(title.as_ref())
     }
 
     /// Builds fragments.
@@ -605,9 +606,9 @@ impl Builder<'_> {
     ///
     /// [`build_section_title`]: Self::build_section_title
     /// [`build_fragments`]: Self::build_fragments
-    pub fn build_section<S: AsRef<str>>(
+    pub fn build_section_str(
         &self,
-        title: S,
+        title: &str,
         fragments: &Fragments<'_>,
     ) -> Result<String, BuildFragmentError> {
         let mut string = self.build_section_title(title);
@@ -615,9 +616,22 @@ impl Builder<'_> {
         let built = self.build_fragments(fragments)?;
 
         string.push_str(DOUBLE_NEW_LINE);
-        string.push_str(built.as_ref());
+        string.push_str(&built);
 
         Ok(string)
+    }
+
+    /// Similar to [`build_section_str`], except the input is [`AsRef<str>`].
+    ///
+    /// # Errors
+    ///
+    /// Returns [`BuildFragmentError`] when building any of the fragments fails.
+    pub fn build_section<S: AsRef<str>>(
+        &self,
+        title: S,
+        fragments: &Fragments<'_>,
+    ) -> Result<String, BuildFragmentError> {
+        self.build_section_str(title.as_ref(), fragments)
     }
 
     /// Builds multiple sections and joins them together.
@@ -642,18 +656,25 @@ impl Builder<'_> {
     // WRAPPING
 
     /// Wraps the given string.
-    pub fn wrap<S: AsRef<str>>(&self, string: S) -> String {
+    pub fn wrap_str(&self, string: &str) -> String {
         let initial_indent = indent(self.config.indents.bullet);
         let subsequent_indent = indent(SPACE);
 
-        let options = WrapOptions::new(self.config.wrap.into())
+        let options = WrapOptions::new(self.config.wrap.get())
             .break_words(false)
             .word_separator(WordSeparator::AsciiSpace)
             .word_splitter(WordSplitter::NoHyphenation)
-            .initial_indent(initial_indent.as_ref())
-            .subsequent_indent(subsequent_indent.as_ref());
+            .initial_indent(&initial_indent)
+            .subsequent_indent(&subsequent_indent);
 
-        fill(string.as_ref(), options)
+        fill(string, options)
+    }
+
+    /// Similar to [`wrap_str`], except the input is [`AsRef<str>`].
+    ///
+    /// [`wrap_str`]: Self::wrap_str
+    pub fn wrap<S: AsRef<str>>(&self, string: S) -> String {
+        self.wrap_str(string.as_ref())
     }
 
     // RENDERING
@@ -664,7 +685,7 @@ impl Builder<'_> {
     ///
     /// Returns [`RenderError`] if rendering the title fails.
     pub fn render_title(&self) -> Result<String, RenderError> {
-        let data = RenderTitleData::new(self.context_ref(), self.date);
+        let data = RenderTitleData::new(self.context(), self.date);
 
         self.renderer.render(TITLE, &data)
     }
@@ -675,9 +696,13 @@ impl Builder<'_> {
     ///
     /// Returns [`RenderError`] if rendering the given fragment fails.
     pub fn render_fragment(&self, fragment: &Fragment<'_>) -> Result<String, RenderError> {
-        let data = RenderFragmentData::new(self.context_ref(), fragment);
+        if fragment.partial.id.is_integer() {
+            let data = RenderFragmentData::new(self.context(), fragment);
 
-        self.renderer.render(FRAGMENT, &data)
+            self.renderer.render(FRAGMENT, &data)
+        } else {
+            Ok(fragment.content.as_ref().to_owned())
+        }
     }
 
     // COLLECTING
@@ -693,16 +718,16 @@ impl Builder<'_> {
         let mut sections = Sections::new();
 
         read_dir(directory)
-            .map_err(|error| CollectError::new_read_directory(error, directory))?
+            .map_err(|error| CollectError::new_read_directory(error, directory.to_owned()))?
             .map(|result| {
                 result
                     .map(|entry| entry.path())
-                    .map_err(|error| CollectError::new_iter_directory(error, directory))
+                    .map_err(|error| CollectError::new_iter_directory(error, directory.to_owned()))
             })
             .process_results(|iterator| {
                 iterator
                     .into_iter()
-                    .filter_map(|path| Fragment::load(path).ok()) // ignore errors
+                    .filter_map(|path| load::<Fragment<'_>, _>(path).ok()) // ignore errors
                     .for_each(|fragment| {
                         sections
                             .entry(fragment.partial.type_name.clone())
@@ -725,11 +750,11 @@ impl Builder<'_> {
         let directory = self.config.paths.directory.as_ref();
 
         read_dir(directory)
-            .map_err(|error| CollectError::new_read_directory(error, directory))?
+            .map_err(|error| CollectError::new_read_directory(error, directory.to_owned()))?
             .map(|result| {
                 result
                     .map(|entry| entry.path())
-                    .map_err(|error| CollectError::new_iter_directory(error, directory))
+                    .map_err(|error| CollectError::new_iter_directory(error, directory.to_owned()))
             })
             .process_results(|iterator| {
                 iterator

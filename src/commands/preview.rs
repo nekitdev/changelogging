@@ -47,18 +47,18 @@ impl Error {
     /// Constructs [`Self`] from [`Error`].
     ///
     /// [`Error`]: crate::date::Error
-    pub fn date(source: crate::date::Error) -> Self {
-        Self::new(source.into())
+    pub fn date(error: crate::date::Error) -> Self {
+        Self::new(error.into())
     }
 
     /// Constructs [`Self`] from [`InitError`].
-    pub fn init(source: InitError) -> Self {
-        Self::new(source.into())
+    pub fn init(error: InitError) -> Self {
+        Self::new(error.into())
     }
 
     /// Constructs [`Self`] from [`BuildError`].
-    pub fn build(source: BuildError) -> Self {
-        Self::new(source.into())
+    pub fn build(error: BuildError) -> Self {
+        Self::new(error.into())
     }
 }
 
@@ -69,13 +69,13 @@ impl Error {
 /// Returns [`struct@Error`] if parsing the date, initializing the builder or previewing fails.
 pub fn preview<S: AsRef<str>>(workspace: Workspace<'_>, date: Option<S>) -> Result<(), Error> {
     let date = match date {
-        Some(string) => parse(string).map_err(|error| Error::date(error))?,
+        Some(string) => parse(string).map_err(Error::date)?,
         None => today(),
     };
 
-    let builder = Builder::from_workspace(workspace, date).map_err(|error| Error::init(error))?;
+    let builder = Builder::from_workspace(workspace, date).map_err(Error::init)?;
 
-    builder.preview().map_err(|error| Error::build(error))?;
+    builder.preview().map_err(Error::build)?;
 
     Ok(())
 }

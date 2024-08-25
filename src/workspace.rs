@@ -16,7 +16,7 @@ use miette::Diagnostic;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
-use crate::{config::Config, context::Context};
+use crate::{config::Config, context::Context, load::Load};
 
 /// Represents errors that can occur when reading files.
 #[derive(Debug, Error, Diagnostic)]
@@ -65,29 +65,27 @@ pub struct Error {
 
 impl Error {
     /// Constructs [`Self`].
-    pub fn new<P: AsRef<Path>>(source: ErrorSource, path: P) -> Self {
-        let path = path.as_ref().to_owned();
-
+    pub fn new(source: ErrorSource, path: PathBuf) -> Self {
         Self { source, path }
     }
 
     /// Constructs [`Self`] from [`ReadError`].
-    pub fn read<P: AsRef<Path>>(source: ReadError, path: P) -> Self {
+    pub fn read(source: ReadError, path: PathBuf) -> Self {
         Self::new(source.into(), path)
     }
 
     /// Constructs [`Self`] from [`ParseError`].
-    pub fn parse<P: AsRef<Path>>(source: ParseError, path: P) -> Self {
+    pub fn parse(source: ParseError, path: PathBuf) -> Self {
         Self::new(source.into(), path)
     }
 
     /// Constructs [`ReadError`] and constructs [`Self`] from it.
-    pub fn new_read<P: AsRef<Path>>(source: std::io::Error, path: P) -> Self {
+    pub fn new_read(source: std::io::Error, path: PathBuf) -> Self {
         Self::read(ReadError(source), path)
     }
 
     /// Constructs [`ParseError`] and constructs [`Self`] from it.
-    pub fn new_parse<P: AsRef<Path>>(source: toml::de::Error, path: P) -> Self {
+    pub fn new_parse(source: toml::de::Error, path: PathBuf) -> Self {
         Self::parse(ParseError(source), path)
     }
 }
@@ -111,33 +109,20 @@ impl<'w> Workspace<'w> {
     }
 }
 
-impl Workspace<'_> {
-    /// Loads [`Self`] from the given path.
-    ///
-    /// # Errors
-    ///
-    /// Returns [`struct@Error`] if reading the file or parsing TOML fails.
-    pub fn load<P: AsRef<Path>>(path: P) -> Result<Self, Error> {
+impl Load for Workspace<'_> {
+    type Error = Error;
+
+    fn load<P: AsRef<Path>>(path: P) -> Result<Self, Error> {
         let path = path.as_ref();
 
-        let string = read_to_string(path).map_err(|error| Error::new_read(error, path))?;
+        let string =
+            read_to_string(path).map_err(|error| Error::new_read(error, path.to_owned()))?;
 
         let workspace =
-            toml::from_str(string.as_ref()).map_err(|error| Error::new_parse(error, path))?;
+            toml::from_str(&string).map_err(|error| Error::new_parse(error, path.to_owned()))?;
 
         Ok(workspace)
     }
-}
-
-/// Calls the [`load`] method of [`Workspace`] on the path provided.
-///
-/// # Errors
-///
-/// Returns [`struct@Error`] when loading fails.
-///
-/// [`load`]: Workspace::load
-pub fn load<P: AsRef<Path>>(path: P) -> Result<Workspace<'static>, Error> {
-    Workspace::load(path)
 }
 
 /// Represents `tool` sections in `pyproject.toml` files.
@@ -154,20 +139,25 @@ pub struct PyProject<'p> {
     pub tool: Option<Tools<'p>>,
 }
 
-impl PyProject<'_> {
-    /// Loads [`Self`] from the given path.
-    ///
-    /// # Errors
-    ///
-    /// Returns [`struct@Error`] if reading the file or parsing TOML fails.
-    pub fn load<P: AsRef<Path>>(path: P) -> Result<Self, Error> {
+impl Load for PyProject<'_> {
+    type Error = Error;
+
+    fn load<P: AsRef<Path>>(path: P) -> Result<Self, Error> {
         let path = path.as_ref();
 
-        let string = read_to_string(path).map_err(|error| Error::new_read(error, path))?;
+        let string =
+            read_to_string(path).map_err(|error| Error::new_read(error, path.to_owned()))?;
 
         let workspace =
-            toml::from_str(string.as_ref()).map_err(|error| Error::new_parse(error, path))?;
+            toml::from_str(&string).map_err(|error| Error::new_parse(error, path.to_owned()))?;
 
         Ok(workspace)
+    }
+}
+
+impl<'p> PyProject<'p> {
+    /// Converts [`Self`] to [`Workspace`], provided that the `tool.changelogging` table is present.
+    pub fn into_workspace(self) -> Option<Workspace<'p>> {
+        self.tool.and_then(|tools| tools.changelogging)
     }
 }
