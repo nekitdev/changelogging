@@ -166,23 +166,23 @@ impl CollectError {
     }
 
     /// Constructs [`Self`] from [`ReadDirectoryError`].
-    pub fn read_directory(source: ReadDirectoryError, path: PathBuf) -> Self {
-        Self::new(source.into(), path)
+    pub fn read_directory(error: ReadDirectoryError, path: PathBuf) -> Self {
+        Self::new(error.into(), path)
     }
 
     /// Constructs [`Self`] from [`IterDirectoryError`].
-    pub fn iter_directory(source: IterDirectoryError, path: PathBuf) -> Self {
-        Self::new(source.into(), path)
+    pub fn iter_directory(error: IterDirectoryError, path: PathBuf) -> Self {
+        Self::new(error.into(), path)
     }
 
     /// Constructs [`ReadDirectoryError`] and constructs [`Self`] from it.
-    pub fn new_read_directory(source: std::io::Error, path: PathBuf) -> Self {
-        Self::read_directory(ReadDirectoryError(source), path)
+    pub fn new_read_directory(error: std::io::Error, path: PathBuf) -> Self {
+        Self::read_directory(ReadDirectoryError(error), path)
     }
 
     /// Constructs [`IterDirectoryError`] and constructs [`Self`] from it.
-    pub fn new_iter_directory(source: std::io::Error, path: PathBuf) -> Self {
-        Self::iter_directory(IterDirectoryError(source), path)
+    pub fn new_iter_directory(error: std::io::Error, path: PathBuf) -> Self {
+        Self::iter_directory(IterDirectoryError(error), path)
     }
 }
 
@@ -220,28 +220,28 @@ impl BuildError {
     }
 
     /// Constructs [`Self`] from [`BuildTitleError`].
-    pub fn build_title(source: BuildTitleError) -> Self {
-        Self::new(source.into())
+    pub fn build_title(error: BuildTitleError) -> Self {
+        Self::new(error.into())
     }
 
     /// Constructs [`Self`] from [`BuildFragmentError`].
-    pub fn build_fragment(source: BuildFragmentError) -> Self {
-        Self::new(source.into())
+    pub fn build_fragment(error: BuildFragmentError) -> Self {
+        Self::new(error.into())
     }
 
     /// Constructs [`Self`] from [`CollectError`].
-    pub fn collect(source: CollectError) -> Self {
-        Self::new(source.into())
+    pub fn collect(error: CollectError) -> Self {
+        Self::new(error.into())
     }
 
     /// Constructs [`BuildTitleError`] and constructs [`Self`] from it.
-    pub fn new_build_title(source: RenderError) -> Self {
-        Self::build_title(BuildTitleError(source))
+    pub fn new_build_title(error: RenderError) -> Self {
+        Self::build_title(BuildTitleError(error))
     }
 
     /// Constructs [`BuildFragmentError`] and constructs [`Self`] from it.
-    pub fn new_build_fragment(source: RenderError) -> Self {
-        Self::build_fragment(BuildFragmentError(source))
+    pub fn new_build_fragment(error: RenderError) -> Self {
+        Self::build_fragment(BuildFragmentError(error))
     }
 }
 
@@ -281,38 +281,38 @@ impl WriteError {
     }
 
     /// Constructs [`Self`] from [`OpenFileError`].
-    pub fn open_file(source: OpenFileError) -> Self {
-        Self::new(source.into())
+    pub fn open_file(error: OpenFileError) -> Self {
+        Self::new(error.into())
     }
 
     /// Constructs [`Self`] from [`ReadFileError`].
-    pub fn read_file(source: ReadFileError) -> Self {
-        Self::new(source.into())
+    pub fn read_file(error: ReadFileError) -> Self {
+        Self::new(error.into())
     }
 
     /// Constructs [`Self`] from [`BuildError`].
-    pub fn build(source: BuildError) -> Self {
-        Self::new(source.into())
+    pub fn build(error: BuildError) -> Self {
+        Self::new(error.into())
     }
 
     /// Constructs [`Self`] from [`WriteFileError`].
-    pub fn write_file(source: WriteFileError) -> Self {
-        Self::new(source.into())
+    pub fn write_file(error: WriteFileError) -> Self {
+        Self::new(error.into())
     }
 
     /// Constructs [`OpenFileError`] and constructs [`Self`] from it.
-    pub fn new_open_file(source: std::io::Error, path: PathBuf) -> Self {
-        Self::open_file(OpenFileError::new(source, path))
+    pub fn new_open_file(error: std::io::Error, path: PathBuf) -> Self {
+        Self::open_file(OpenFileError::new(error, path))
     }
 
     /// Constructs [`ReadFileError`] and constructs [`Self`] from it.
-    pub fn new_read_file(source: std::io::Error, path: PathBuf) -> Self {
-        Self::read_file(ReadFileError::new(source, path))
+    pub fn new_read_file(error: std::io::Error, path: PathBuf) -> Self {
+        Self::read_file(ReadFileError::new(error, path))
     }
 
     /// Constructs [`WriteFileError`] and constructs [`Self`] from it.
-    pub fn new_write_file(source: std::io::Error, path: PathBuf) -> Self {
-        Self::write_file(WriteFileError::new(source, path))
+    pub fn new_write_file(error: std::io::Error, path: PathBuf) -> Self {
+        Self::write_file(WriteFileError::new(error, path))
     }
 }
 
