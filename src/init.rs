@@ -67,7 +67,7 @@ impl Error {
 
     /// Constructs [`ChangeCurrentDirectoryError`] and constructs [`Self`] from it.
     pub fn new_change_current_directory(error: std::io::Error, path: PathBuf) -> Self {
-        Self::change_current_directory(ChangeCurrentDirectoryError::new(source, path))
+        Self::change_current_directory(ChangeCurrentDirectoryError::new(error, path))
     }
 }
 
