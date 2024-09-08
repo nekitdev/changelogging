@@ -95,35 +95,35 @@ impl Error {
     }
 
     /// Constructs [`Self`] from [`CurrentDirectoryError`].
-    pub fn current_directory(source: CurrentDirectoryError) -> Self {
-        Self::new(source.into())
+    pub fn current_directory(error: CurrentDirectoryError) -> Self {
+        Self::new(error.into())
     }
 
     /// Constructs [`Self`] from [`ExistenceError`].
-    pub fn existence(source: ExistenceError) -> Self {
-        Self::new(source.into())
+    pub fn existence(error: ExistenceError) -> Self {
+        Self::new(error.into())
     }
 
     /// Constructs [`Self`] from [`Error`].
     ///
     /// [`Error`]: crate::workspace::Error
-    pub fn workspace(source: crate::workspace::Error) -> Self {
-        Self::new(source.into())
+    pub fn workspace(error: crate::workspace::Error) -> Self {
+        Self::new(error.into())
     }
 
     /// Constructs [`Self`] from [`NotFoundError`].
-    pub fn not_found(source: NotFoundError) -> Self {
-        Self::new(source.into())
+    pub fn not_found(error: NotFoundError) -> Self {
+        Self::new(error.into())
     }
 
     /// Constructs [`CurrentDirectoryError`] and constructs [`Self`] from it.
-    pub fn new_current_directory(source: std::io::Error) -> Self {
-        Self::current_directory(CurrentDirectoryError(source))
+    pub fn new_current_directory(error: std::io::Error) -> Self {
+        Self::current_directory(CurrentDirectoryError(error))
     }
 
     /// Constructs [`ExistenceError`] and constructs [`Self`] from it.
-    pub fn new_existence(source: std::io::Error, path: PathBuf) -> Self {
-        Self::existence(ExistenceError::new(source, path))
+    pub fn new_existence(error: std::io::Error, path: PathBuf) -> Self {
+        Self::existence(ExistenceError::new(error, path))
     }
 
     /// Constructs [`NotFoundError`] and constructs [`Self`] from it.

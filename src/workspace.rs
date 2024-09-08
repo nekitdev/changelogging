@@ -70,23 +70,23 @@ impl Error {
     }
 
     /// Constructs [`Self`] from [`ReadError`].
-    pub fn read(source: ReadError, path: PathBuf) -> Self {
-        Self::new(source.into(), path)
+    pub fn read(error: ReadError, path: PathBuf) -> Self {
+        Self::new(error.into(), path)
     }
 
     /// Constructs [`Self`] from [`ParseError`].
-    pub fn parse(source: ParseError, path: PathBuf) -> Self {
-        Self::new(source.into(), path)
+    pub fn parse(error: ParseError, path: PathBuf) -> Self {
+        Self::new(error.into(), path)
     }
 
     /// Constructs [`ReadError`] and constructs [`Self`] from it.
-    pub fn new_read(source: std::io::Error, path: PathBuf) -> Self {
-        Self::read(ReadError(source), path)
+    pub fn new_read(error: std::io::Error, path: PathBuf) -> Self {
+        Self::read(ReadError(error), path)
     }
 
     /// Constructs [`ParseError`] and constructs [`Self`] from it.
-    pub fn new_parse(source: toml::de::Error, path: PathBuf) -> Self {
-        Self::parse(ParseError(source), path)
+    pub fn new_parse(error: toml::de::Error, path: PathBuf) -> Self {
+        Self::parse(ParseError(error), path)
     }
 }
 

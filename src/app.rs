@@ -98,43 +98,43 @@ impl Error {
     /// Constructs [`Self`] from [`Error`].
     ///
     /// [`Error`]: crate::init::Error
-    pub fn init(source: crate::init::Error) -> Self {
-        Self::new(source.into())
+    pub fn init(error: crate::init::Error) -> Self {
+        Self::new(error.into())
     }
 
     /// Constructs [`Self`] from [`Error`].
     ///
     /// [`Error`]: crate::discover::Error
-    pub fn discover(source: crate::discover::Error) -> Self {
-        Self::new(source.into())
+    pub fn discover(error: crate::discover::Error) -> Self {
+        Self::new(error.into())
     }
 
     /// Constructs [`Self`] from [`Error`].
     ///
     /// [`Error`]: crate::workspace::Error
-    pub fn workspace(source: crate::workspace::Error) -> Self {
-        Self::new(source.into())
+    pub fn workspace(error: crate::workspace::Error) -> Self {
+        Self::new(error.into())
     }
 
     /// Constructs [`Self`] from [`Error`].
     ///
     /// [`Error`]: crate::commands::build::Error
-    pub fn build(source: crate::commands::build::Error) -> Self {
-        Self::new(source.into())
+    pub fn build(error: crate::commands::build::Error) -> Self {
+        Self::new(error.into())
     }
 
     /// Constructs [`Self`] from [`Error`]
     ///
     /// [`Error`]: crate::commands::preview::Error
-    pub fn preview(source: crate::commands::preview::Error) -> Self {
-        Self::new(source.into())
+    pub fn preview(error: crate::commands::preview::Error) -> Self {
+        Self::new(error.into())
     }
 
     /// Constructs [`Self`] from [`Error`].
     ///
     /// [`Error`]: crate::commands::create::Error
-    pub fn create(source: crate::commands::create::Error) -> Self {
-        Self::new(source.into())
+    pub fn create(error: crate::commands::create::Error) -> Self {
+        Self::new(error.into())
     }
 }
 
