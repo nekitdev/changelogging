@@ -155,7 +155,9 @@ pub fn create<D: AsRef<Path>, S: AsRef<str>, C: AsRef<str>>(
         .open(&path)
         .map_err(|error| Error::new_open(error, path.clone()))?;
 
-    let string = content.as_ref().map_or(PLACEHOLDER, |slice| slice.as_ref());
+    let string = content
+        .as_ref()
+        .map_or(PLACEHOLDER, |reference| reference.as_ref());
 
     writeln!(file, "{string}").map_err(|error| Error::new_write(error, path.clone()))?;
 
