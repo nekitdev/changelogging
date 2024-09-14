@@ -170,16 +170,6 @@ impl<'p> Partial<'p> {
     pub fn new(id: Id<'p>, type_name: Cow<'p, str>) -> Self {
         Self { id, type_name }
     }
-
-    /// Constructs [`Self`] with the owned type.
-    pub fn owned(id: Id<'p>, type_name: String) -> Self {
-        Self::new(id, Cow::Owned(type_name))
-    }
-
-    /// Constructs [`Self`] with the borrowed type.
-    pub fn borrowed(id: Id<'p>, type_name: &'p str) -> Self {
-        Self::new(id, Cow::Borrowed(type_name))
-    }
 }
 
 const DOT: char = '.';
@@ -201,7 +191,7 @@ impl FromStr for Partial<'_> {
             .ok_or_else(|| ParseError::new_unexpected_eof(name.to_owned()))?
             .to_owned();
 
-        Ok(Self::owned(id, type_name))
+        Ok(Self::new(id, Cow::Owned(type_name)))
     }
 }
 
@@ -371,7 +361,7 @@ impl Load for Fragment<'_> {
             .trim()
             .to_owned();
 
-        Ok(Self::new(info, content.into()))
+        Ok(Self::new(info, Cow::Owned(content)))
     }
 }
 

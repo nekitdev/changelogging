@@ -516,9 +516,7 @@ impl Builder<'_> {
     ///
     /// Returns [`BuildError`] when rendering titles and fragments or collecting fragments fails.
     pub fn build(&self) -> Result<String, BuildError> {
-        let mut string = self
-            .build_title()
-            .map_err(|error| BuildError::new(error.into()))?;
+        let mut string = self.build_title().map_err(BuildError::build_title)?;
 
         string.push_str(DOUBLE_NEW_LINE);
 
@@ -526,7 +524,7 @@ impl Builder<'_> {
 
         let built = self
             .build_sections(&sections)
-            .map_err(|error| BuildError::new(error.into()))?;
+            .map_err(BuildError::build_fragment)?;
 
         let contents = if built.is_empty() {
             NO_SIGNIFICANT_CHANGES
@@ -626,6 +624,8 @@ impl Builder<'_> {
     /// # Errors
     ///
     /// Returns [`BuildFragmentError`] when building any of the fragments fails.
+    ///
+    /// [`build_section_str`]: Self::build_section_str
     pub fn build_section<S: AsRef<str>>(
         &self,
         title: S,

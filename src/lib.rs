@@ -73,21 +73,21 @@
 //! If the content is not provided, the placeholder gets written instead:
 //!
 //! ```console
-//! $ changelogging create 22.change.md
-//! $ cat changes/22.change.md
+//! $ changelogging create 64.change.md
+//! $ cat changes/64.change.md
 //! Add the fragment content here.
 //! ```
 //!
 //! Let us add some content to this fragment:
 //!
 //! ```console
-//! $ echo "Changed some things!" > changes/22.change.md
+//! $ echo "Changed some things!" > changes/64.change.md
 //! ```
 //!
 //! Alternatively, the default editor can be used to write the fragment content:
 //!
 //! ```console
-//! $ changelogging create --edit 34.fix.md
+//! $ changelogging create --edit ~bug.fix.md
 //! ```
 //!
 //! And, inside the editor:
@@ -116,11 +116,11 @@
 //!
 //! ### Changes
 //!
-//! - Changed some things! ([#22](https://github.com/nekitdev/changelogging/pull/22))
+//! - Changed some things! ([#64](https://github.com/nekitdev/changelogging/pull/64))
 //!
 //! ### Fixes
 //!
-//! - Fixed annoying bugs! ([#34](https://github.com/nekitdev/changelogging/pull/34))
+//! - Fixed annoying bugs!
 //! ```
 //!
 //! Here are the options (except for [globals](#globals)) that `preview` supports:

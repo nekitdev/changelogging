@@ -180,15 +180,30 @@ pub const DEFAULT_OUTPUT: &str = "CHANGELOG.md";
 
 impl Default for Paths<'_> {
     fn default() -> Self {
-        let directory = Path::new(DEFAULT_DIRECTORY).into();
-        let output = Path::new(DEFAULT_OUTPUT).into();
+        let directory = Cow::Borrowed(Path::new(DEFAULT_DIRECTORY));
+        let output = Cow::Borrowed(Path::new(DEFAULT_OUTPUT));
 
         Self { directory, output }
     }
 }
 
+macro_rules! unwrap {
+    ($option: expr) => {
+        match $option {
+            Some(value) => value,
+            None => panic!("unwrap called on none"),
+        }
+    };
+}
+
 /// Represents heading levels.
 pub type Level = NonZeroUsize;
+
+/// The default `levels.entry` value.
+pub const DEFAULT_ENTRY: Level = unwrap!(Level::new(2));
+
+/// The default `levels.section` value.
+pub const DEFAULT_SECTION: Level = unwrap!(Level::new(3));
 
 /// Defines which heading levels to use.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -200,16 +215,10 @@ pub struct Levels {
     pub section: Level,
 }
 
-/// The default `levels.entry` value.
-pub const DEFAULT_ENTRY: usize = 2;
-
-/// The default `levels.section` value.
-pub const DEFAULT_SECTION: usize = 3;
-
 impl Default for Levels {
     fn default() -> Self {
-        let entry = Level::new(DEFAULT_ENTRY).unwrap();
-        let section = Level::new(DEFAULT_SECTION).unwrap();
+        let entry = DEFAULT_ENTRY;
+        let section = DEFAULT_SECTION;
 
         Self { entry, section }
     }
@@ -258,8 +267,8 @@ pub const DEFAULT_FRAGMENT: &str = "{{content}} (#{{id}})";
 
 impl Default for Formats<'_> {
     fn default() -> Self {
-        let title = DEFAULT_TITLE.into();
-        let fragment = DEFAULT_FRAGMENT.into();
+        let title = Cow::Borrowed(DEFAULT_TITLE);
+        let fragment = Cow::Borrowed(DEFAULT_FRAGMENT);
 
         Self { title, fragment }
     }
@@ -269,7 +278,7 @@ impl Default for Formats<'_> {
 pub type Wrap = NonZeroUsize;
 
 /// The default `wrap` value.
-pub const DEFAULT_WRAP: usize = 100;
+pub const DEFAULT_WRAP: Wrap = unwrap!(Wrap::new(100));
 
 /// Defines which types to include, and in what order to do so.
 pub type Order<'o> = Vec<Cow<'o, str>>;
@@ -318,15 +327,11 @@ pub struct Config<'c> {
 
 macro_rules! hash_map {
     ($($key: expr => $value: expr),* $(,)?) => {
-        {
-            let mut hash_map = std::collections::HashMap::new();
-
+        ::std::collections::HashMap::from([
             $(
-                hash_map.insert($key, $value);
+                ($key, $value),
             )*
-
-            hash_map
-        }
+        ])
     }
 }
 
@@ -354,7 +359,7 @@ impl Default for Config<'_> {
     fn default() -> Self {
         let paths = Paths::default();
 
-        let start = DEFAULT_START.into();
+        let start = Cow::Borrowed(DEFAULT_START);
 
         let levels = Levels::default();
 
@@ -362,7 +367,7 @@ impl Default for Config<'_> {
 
         let formats = Formats::default();
 
-        let wrap = Wrap::new(DEFAULT_WRAP).unwrap();
+        let wrap = DEFAULT_WRAP;
 
         let order = into_order(default_order());
 
