@@ -19,7 +19,7 @@ The binaries can be downloaded from [releases][Releases].
 ### `pipx`
 
 Note: because `changelogging` was originally written in python, releases on PyPI have
-different versions: for instance, the `0.5.0` release is on PyPI with version `2.5.0`,
+different versions: for instance, the `0.6.0` release is on PyPI with version `2.6.0`,
 meaning the major part of the version is always incremented twice to get the PyPI one.
 
 Installing `changelogging` with `pipx` is quite simple:
@@ -75,7 +75,7 @@ Create `changelogging.toml` and add the *name*, *version* and *URL* of the proje
 ```toml
 [context]
 name = "changelogging"
-version = "0.5.0"
+version = "0.6.0"
 url = "https://github.com/nekitdev/changelogging"
 ```
 
@@ -102,7 +102,7 @@ And finally, preview the changelog entry!
 
 ```console
 $ changelogging preview
-## 0.5.0 (YYYY-MM-DD)
+## 0.6.0 (YYYY-MM-DD)
 
 ### Security
 
@@ -141,7 +141,7 @@ $ cat CHANGELOG.md
 
 <!-- changelogging: start -->
 
-## 0.5.0 (YYYY-MM-DD)
+## 0.6.0 (YYYY-MM-DD)
 
 ### Security
 
