@@ -347,7 +347,7 @@ impl<'f> Fragment<'f> {
 impl Load for Fragment<'_> {
     type Error = Error;
 
-    fn load<P: AsRef<Path>>(path: P) -> Result<Self, Error> {
+    fn load<P: AsRef<Path>>(path: P) -> Result<Self, Self::Error> {
         let path = path.as_ref();
 
         let name = path_name(path).ok_or_else(|| Error::new_invalid_utf8(path.to_owned()))?;

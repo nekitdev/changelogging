@@ -112,7 +112,7 @@ impl<'w> Workspace<'w> {
 impl Load for Workspace<'_> {
     type Error = Error;
 
-    fn load<P: AsRef<Path>>(path: P) -> Result<Self, Error> {
+    fn load<P: AsRef<Path>>(path: P) -> Result<Self, Self::Error> {
         let path = path.as_ref();
 
         let string =
@@ -142,7 +142,7 @@ pub struct PyProject<'p> {
 impl Load for PyProject<'_> {
     type Error = Error;
 
-    fn load<P: AsRef<Path>>(path: P) -> Result<Self, Error> {
+    fn load<P: AsRef<Path>>(path: P) -> Result<Self, Self::Error> {
         let path = path.as_ref();
 
         let string =

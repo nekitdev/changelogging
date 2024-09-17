@@ -160,9 +160,7 @@ pub fn discover() -> Result<Workspace<'static>, Error> {
         .try_exists()
         .map_err(|error| Error::new_existence(error, path.clone()))?
     {
-        let workspace = load(path.as_path()).map_err(Error::workspace)?;
-
-        return Ok(workspace);
+        return load(path.as_path()).map_err(Error::workspace);
     }
 
     // try `pyproject.toml` if it contains `tool.changelogging`
