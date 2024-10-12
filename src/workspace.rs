@@ -116,10 +116,10 @@ impl Load for Workspace<'_> {
         let path = path.as_ref();
 
         let string =
-            read_to_string(path).map_err(|error| Error::new_read(error, path.to_owned()))?;
+            read_to_string(path).map_err(|error| Self::Error::new_read(error, path.to_owned()))?;
 
-        let workspace =
-            toml::from_str(&string).map_err(|error| Error::new_parse(error, path.to_owned()))?;
+        let workspace = toml::from_str(&string)
+            .map_err(|error| Self::Error::new_parse(error, path.to_owned()))?;
 
         Ok(workspace)
     }
@@ -146,10 +146,10 @@ impl Load for PyProject<'_> {
         let path = path.as_ref();
 
         let string =
-            read_to_string(path).map_err(|error| Error::new_read(error, path.to_owned()))?;
+            read_to_string(path).map_err(|error| Self::Error::new_read(error, path.to_owned()))?;
 
-        let workspace =
-            toml::from_str(&string).map_err(|error| Error::new_parse(error, path.to_owned()))?;
+        let workspace = toml::from_str(&string)
+            .map_err(|error| Self::Error::new_parse(error, path.to_owned()))?;
 
         Ok(workspace)
     }

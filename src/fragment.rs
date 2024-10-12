@@ -350,14 +350,14 @@ impl Load for Fragment<'_> {
     fn load<P: AsRef<Path>>(path: P) -> Result<Self, Self::Error> {
         let path = path.as_ref();
 
-        let name = path_name(path).ok_or_else(|| Error::new_invalid_utf8(path.to_owned()))?;
+        let name = path_name(path).ok_or_else(|| Self::Error::new_invalid_utf8(path.to_owned()))?;
 
         let info = name
             .parse()
-            .map_err(|error| Error::parse(error, path.to_owned()))?;
+            .map_err(|error| Self::Error::parse(error, path.to_owned()))?;
 
         let content = read_to_string(path)
-            .map_err(|error| Error::new_read(error, path.to_owned()))?
+            .map_err(|error| Self::Error::new_read(error, path.to_owned()))?
             .trim()
             .to_owned();
 
