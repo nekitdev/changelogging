@@ -53,7 +53,7 @@ pub struct App {
     pub globals: Globals,
     /// The subcommand to run, if any.
     #[command(subcommand)]
-    pub command: Option<Command>,
+    pub command: Command,
 }
 
 /// Represents sources of errors that can occur during application runs.
@@ -155,19 +155,17 @@ impl App {
             discover().map_err(Error::discover)?
         };
 
-        if let Some(command) = self.command {
-            match command {
-                Command::Build(build) => {
-                    build.run(workspace).map_err(Error::build)?;
-                }
-                Command::Preview(preview) => {
-                    preview.run(workspace).map_err(Error::preview)?;
-                }
-                Command::Create(create) => {
-                    let directory = workspace.config.paths.directory;
+        match self.command {
+            Command::Build(build) => {
+                build.run(workspace).map_err(Error::build)?;
+            }
+            Command::Preview(preview) => {
+                preview.run(workspace).map_err(Error::preview)?;
+            }
+            Command::Create(create) => {
+                let directory = workspace.config.paths.directory;
 
-                    create.run(directory).map_err(Error::create)?;
-                }
+                create.run(directory).map_err(Error::create)?;
             }
         };
 
