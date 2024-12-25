@@ -187,23 +187,14 @@ impl Default for Paths<'_> {
     }
 }
 
-macro_rules! unwrap {
-    ($option: expr) => {
-        match $option {
-            Some(value) => value,
-            None => panic!("unwrap called on none"),
-        }
-    };
-}
-
 /// Represents heading levels.
 pub type Level = NonZeroUsize;
 
 /// The default `levels.entry` value.
-pub const DEFAULT_ENTRY: Level = unwrap!(Level::new(2));
+pub const DEFAULT_ENTRY: Level = Level::new(2).unwrap();
 
 /// The default `levels.section` value.
-pub const DEFAULT_SECTION: Level = unwrap!(Level::new(3));
+pub const DEFAULT_SECTION: Level = Level::new(3).unwrap();
 
 /// Defines which heading levels to use.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -278,7 +269,7 @@ impl Default for Formats<'_> {
 pub type Wrap = NonZeroUsize;
 
 /// The default `wrap` value.
-pub const DEFAULT_WRAP: Wrap = unwrap!(Wrap::new(100));
+pub const DEFAULT_WRAP: Wrap = Wrap::new(100).unwrap();
 
 /// Defines which types to include, and in what order to do so.
 pub type Order<'o> = Vec<Cow<'o, str>>;
