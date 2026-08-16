@@ -108,7 +108,7 @@
 //!
 //! ```console
 //! $ changelogging preview
-//! ## [0.7.0](https://github.com/nekitdev/changelogging/tree/v0.7.0) (YYYY-MM-DD)
+//! ## [0.8.0](https://github.com/nekitdev/changelogging/tree/v0.8.0) (YYYY-MM-DD)
 //!
 //! ### Features
 //!
@@ -152,17 +152,23 @@
 //! [rendered]: https://github.com/nekitdev/changelogging/blob/main/examples/CHANGELOG.md
 
 #![forbid(unsafe_code)]
-#![deny(missing_docs)]
+// #![deny(missing_docs)]
 
 pub mod app;
-pub mod builder;
+pub mod build;
+pub mod by;
 pub mod commands;
 pub mod config;
 pub mod context;
 pub mod date;
 pub mod discover;
-pub mod fragment;
+pub mod file;
+pub mod fragments;
 pub mod git;
 pub mod init;
-pub mod load;
+pub mod prepare;
+pub mod toml;
 pub mod workspace;
+
+pub(crate) mod internals;
+pub(crate) mod trim_in_place;

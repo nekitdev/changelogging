@@ -1,9 +1,9 @@
 [project]
 name = "changelogging"
-version = "2.7.0"
+version = "2.8.0"
 description = "Building changelogs from fragments."
 readme = "README.md"
-requires-python = ">= 3.8"
+requires-python = ">= 3.10"
 license.file = "LICENSE"
 keywords = ["changelog", "changes"]
 
@@ -15,11 +15,11 @@ classifiers = [
     "Programming Language :: Rust",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Topic :: Utilities",
 ]
 
@@ -36,5 +36,5 @@ bindings = "bin"
 strip = true
 
 [build-system]
-requires = ["maturin >= 1.7.0"]
+requires = ["maturin >= 1.9.6"]
 build-backend = "maturin"

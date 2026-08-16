@@ -2,50 +2,48 @@
 //!
 //! This module provides two notable functions: [`parse`] and [`today`].
 
-use miette::Diagnostic;
+use jiff::{Error as DateError, Zoned, civil};
+use non_empty_str::NonEmptyStr;
 use thiserror::Error;
-use time::{macros::format_description, Date, OffsetDateTime};
+use tracing::debug;
 
-/// Represents errors that can occur when parsing dates.
-#[derive(Debug, Error, Diagnostic)]
-#[error("failed to parse `{string}` into date")]
-#[diagnostic(
-    code(changelogging::date::date),
-    help("dates must be in `[year]-[month]-[day]` (aka `YYYY-MM-DD`) format")
-)]
+pub type Date = civil::Date;
+
+#[derive(Debug, Error)]
+#[error("failed to parse date (make sure it is in the `YYYY-MM-DD` format)")]
 pub struct Error {
-    /// The string passed to the [`parse`] function.
-    pub string: String,
+    #[from]
+    #[source]
+    pub error: DateError,
 }
 
 impl Error {
     /// Constructs [`Self`].
-    pub fn new(string: String) -> Self {
-        Self { string }
+    pub const fn new(error: DateError) -> Self {
+        Self { error }
     }
 }
 
 /// Returns the current [`Date`].
 pub fn today() -> Date {
-    OffsetDateTime::now_utc().date()
+    Zoned::now().date()
 }
 
-/// Parses strings in the `[year]-[month]-[day]` (aka `YYYY-MM-DD`) format into [`Date`] values.
+pub fn parse<S: AsRef<NonEmptyStr>>(string: S) -> Result<Date, Error> {
+    let date = string.as_ref().parse()?;
+
+    Ok(date)
+}
+
+/// Similar to [`parse`], but defaults to the current date via [`today`] if the input is `None`.
 ///
 /// # Errors
 ///
-/// Returns [`struct@Error`] on invalid dates.
-pub fn parse_str(string: &str) -> Result<Date, Error> {
-    let description = format_description!("[year]-[month]-[day]");
+/// Returns [`struct@Error`] on invalid strings.
+pub fn parse_or_today<S: AsRef<NonEmptyStr>>(option: Option<S>) -> Result<Date, Error> {
+    let date = option.map(parse).transpose()?.unwrap_or_else(today);
 
-    Date::parse(string, description).map_err(|_| Error::new(string.to_owned()))
-}
+    debug!("using date `{date}`");
 
-/// Similar to [`parse_str`], except the input is [`AsRef<str>`].
-///
-/// # Errors
-///
-/// Returns [`struct@Error`] on invalid dates.
-pub fn parse<S: AsRef<str>>(string: S) -> Result<Date, Error> {
-    parse_str(string.as_ref())
+    Ok(date)
 }

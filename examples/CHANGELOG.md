@@ -2,16 +2,16 @@
 
 <!-- changelogging: start -->
 
-## [0.7.0](https://github.com/nekitdev/changelogging/tree/v0.7.0) (YYYY-MM-DD)
+## [0.8.0](https://github.com/nekitdev/changelogging/tree/v0.8.0) (YYYY-MM-DD)
 
 ### Features
 
-- Added cool features! ([#13](https://github.com/nekitdev/changelogging/pull/13))
+- Added cool features! ([#13](https://github.com/nekitdev/changelogging/pull/13)
 
 ### Changes
 
-- Changed some things! ([#22](https://github.com/nekitdev/changelogging/pull/22))
+- Changed some things! ([#64](https://github.com/nekitdev/changelogging/pull/64)
 
 ### Fixes
 
-- Fixed annoying bugs! ([#34](https://github.com/nekitdev/changelogging/pull/34))
+- Fixed annoying bugs!

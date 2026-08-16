@@ -2,133 +2,35 @@
 //!
 //! The [`create`] function implements the `create` subcommand.
 
-use std::{
-    fs::File,
-    io::Write,
-    iter::once,
-    path::{Path, PathBuf},
-};
+use std::path::Path;
 
-use edit::edit_file;
-use miette::Diagnostic;
+use bon::builder;
+use non_empty_str::NonEmptyStr;
 use thiserror::Error;
 
 use crate::{
-    fragment::{validate, ParseError},
-    git,
+    file::{EditError, WriteError, edit as edit_path, write_non_empty},
+    fragments::{
+        content::PLACEHOLDER,
+        partial::{NonEmptyError as CheckError, check_non_empty},
+    },
+    git::{Error as GitError, add_one},
+    workspace::Workspace,
 };
 
-/// Represents errors that can occur when opening files.
-#[derive(Debug, Error, Diagnostic)]
-#[error("opening failed")]
-#[diagnostic(
-    code(changelogging::create::open),
-    help("check that the file does not already exist and the fragments directory is accessible")
-)]
-pub struct OpenError(#[from] pub std::io::Error);
-
-/// Represents errors that can occur when writing to files.
-#[derive(Debug, Error, Diagnostic)]
-#[error("writing failed")]
-#[diagnostic(
-    code(changelogging::create::write),
-    help("make sure the fragment file is accessible")
-)]
-pub struct WriteError(#[from] pub std::io::Error);
-
-/// Represents errors that can occur when starting default editors.
-#[derive(Debug, Error, Diagnostic)]
-#[error("editing failed")]
-#[diagnostic(
-    code(changelogging::create::edit),
-    help("check your default editor configuration")
-)]
-pub struct EditError(#[from] pub std::io::Error);
-
 /// Represents sources of errors that can occur during fragment creation.
-#[derive(Debug, Error, Diagnostic)]
+#[derive(Debug, Error)]
 #[error(transparent)]
-#[diagnostic(transparent)]
-pub enum ErrorSource {
-    /// Parse errors.
-    Parse(#[from] ParseError),
-    /// Open errors.
-    Open(#[from] OpenError),
+pub enum Error {
+    /// Check errors.
+    Check(#[from] CheckError),
     /// Write errors.
     Write(#[from] WriteError),
     /// Edit errors.
     Edit(#[from] EditError),
     /// `git` errors.
-    Git(#[from] crate::git::Error),
+    Git(#[from] GitError),
 }
-
-/// Represents errors that can occur during fragment creation.
-#[derive(Debug, Error, Diagnostic)]
-#[error("failed to create fragment `{path}`")]
-#[diagnostic(
-    code(changelogging::create::create),
-    help("see the report for more information")
-)]
-pub struct Error {
-    /// The source of this error.
-    #[source]
-    #[diagnostic_source]
-    pub source: ErrorSource,
-    /// The path provided.
-    pub path: PathBuf,
-}
-
-impl Error {
-    /// Constructs [`Self`].
-    pub fn new(source: ErrorSource, path: PathBuf) -> Self {
-        Self { source, path }
-    }
-
-    /// Constructs [`Self`] from [`ParseError`].
-    pub fn parse(error: ParseError, path: PathBuf) -> Self {
-        Self::new(error.into(), path)
-    }
-
-    /// Constructs [`Self`] from [`OpenError`].
-    pub fn open(error: OpenError, path: PathBuf) -> Self {
-        Self::new(error.into(), path)
-    }
-
-    /// Constructs [`Self`] from [`WriteError`].
-    pub fn write(error: WriteError, path: PathBuf) -> Self {
-        Self::new(error.into(), path)
-    }
-
-    /// Constructs [`Self`] from [`EditError`].
-    pub fn edit(error: EditError, path: PathBuf) -> Self {
-        Self::new(error.into(), path)
-    }
-
-    /// Constructs [`Self`] from [`Error`].
-    ///
-    /// [`Error`]: crate::git::Error
-    pub fn git(error: crate::git::Error, path: PathBuf) -> Self {
-        Self::new(error.into(), path)
-    }
-
-    /// Constructs [`OpenError`] and constructs [`Self`] from it.
-    pub fn new_open(error: std::io::Error, path: PathBuf) -> Self {
-        Self::open(OpenError(error), path)
-    }
-
-    /// Constructs [`WriteError`] and constructs [`Self`] from it.
-    pub fn new_write(error: std::io::Error, path: PathBuf) -> Self {
-        Self::write(WriteError(error), path)
-    }
-
-    /// Constructs [`EditError`] and constructs [`Self`] from it.
-    pub fn new_edit(error: std::io::Error, path: PathBuf) -> Self {
-        Self::edit(EditError(error), path)
-    }
-}
-
-/// The placeholder that gets written to fragment files if contents are not provided.
-pub const PLACEHOLDER: &str = "Add the fragment content here.";
 
 /// Creates changelog fragments.
 ///
@@ -136,37 +38,36 @@ pub const PLACEHOLDER: &str = "Add the fragment content here.";
 ///
 /// Returns [`struct@Error`] if parsing the fragment name, creating the fragment file
 /// and writing to it fails. Also returned if starting the default editor fails.
-pub fn create<D: AsRef<Path>, S: AsRef<str>, C: AsRef<str>>(
-    directory: D,
+#[builder]
+#[allow(clippy::should_implement_trait)] // `add` confused
+pub fn create<G: AsRef<Path>, S: AsRef<NonEmptyStr>, C: AsRef<NonEmptyStr>>(
+    git: G,
+    workspace: Workspace<'_>,
     name: S,
     content: Option<C>,
     edit: bool,
     add: bool,
 ) -> Result<(), Error> {
-    let name = name.as_ref();
+    let non_empty = name.as_ref();
 
-    let path = directory.as_ref().join(name);
+    check_non_empty(non_empty)?;
 
-    validate(name).map_err(|error| Error::parse(error, path.clone()))?;
+    let path = workspace.config.paths.directory_path();
 
-    let mut file = File::options()
-        .create_new(true)
-        .write(true)
-        .open(&path)
-        .map_err(|error| Error::new_open(error, path.clone()))?;
+    let joined = path.join(non_empty);
 
-    let string = content
-        .as_ref()
-        .map_or(PLACEHOLDER, |reference| reference.as_ref());
-
-    writeln!(file, "{string}").map_err(|error| Error::new_write(error, path.clone()))?;
+    if let Some(string) = content {
+        write_non_empty(joined.as_path(), string)?;
+    } else {
+        write_non_empty(joined.as_path(), PLACEHOLDER)?;
+    }
 
     if edit {
-        edit_file(&path).map_err(|error| Error::new_edit(error, path.clone()))?;
+        edit_path(joined.as_path())?;
     }
 
     if add {
-        git::add(once(&path)).map_err(|error| Error::git(error, path.clone()))?;
+        add_one(git, joined.as_path())?;
     }
 
     Ok(())

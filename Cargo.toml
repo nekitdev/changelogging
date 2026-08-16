@@ -1,8 +1,9 @@
 [package]
 name = "changelogging"
-version = "0.7.0"
+version = "0.8.0"
 authors = ["nekitdev <nekit@nekit.dev>"]
-edition = "2021"
+edition = "2024"
+rust-version = "1.97"
 description = "Building changelogs from fragments."
 documentation = "https://docs.rs/changelogging"
 readme = "README.md"
@@ -11,38 +12,72 @@ license = "MIT"
 keywords = ["changelog", "changes"]
 categories = ["command-line-utilities", "development-tools"]
 
+[dependencies.anyhow]
+version = "1.0.103"
+
+[dependencies.bon]
+version = "3.9.3"
+
 [dependencies.clap]
-version = "4.5.23"
+version = "4.6.2"
 features = ["derive"]
+
+[dependencies.clap-verbosity-flag]
+version = "3.0.4"
+features = ["tracing"]
 
 [dependencies.edit]
 version = "0.1.5"
 
+[dependencies.from-path]
+version = "0.2.1"
+
 [dependencies.handlebars]
-version = "6.2.0"
+version = "6.4.3"
 
 [dependencies.itertools]
-version = "0.13.0"
+version = "0.15.0"
 
-[dependencies.miette]
-version = "7.4.0"
-features = ["fancy"]
+[dependencies.jiff]
+version = "0.2.32"
+
+[dependencies.non-empty-iter]
+version = "0.3.1"
+
+[dependencies.non-empty-str]
+version = "0.12.0"
+features = ["serde", "ownership"]
+
+[dependencies.non-zero-size]
+version = "0.2.0"
+
+[dependencies.ownership]
+version = "0.3.0"
+features = ["derive"]
+
+[dependencies.path-name]
+version = "0.2.0"
 
 [dependencies.serde]
-version = "1.0.216"
+version = "1.0.228"
 features = ["derive"]
 
 [dependencies.textwrap]
-version = "0.16.1"
+version = "0.16.2"
 default-features = false
 
 [dependencies.thiserror]
-version = "2.0.9"
-
-[dependencies.time]
-version = "0.3.37"
-features = ["serde", "parsing", "macros"]
+version = "2.0.18"
 
 [dependencies.toml]
-version = "0.8.19"
+version = "1.1.3"
 features = ["parse"]
+
+[dependencies.tracing]
+version = "0.1.44"
+
+[dependencies.tracing-subscriber]
+version = "0.3.23"
+
+[dependencies.trait-aliases]
+version = "0.3.0"

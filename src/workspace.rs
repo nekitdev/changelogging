@@ -7,94 +7,17 @@
 //! [`context`]: crate::context
 //! [`config`]: crate::config
 
-use std::{
-    fs::read_to_string,
-    path::{Path, PathBuf},
-};
-
-use miette::Diagnostic;
+use ownership::IntoOwned;
 use serde::{Deserialize, Serialize};
-use thiserror::Error;
 
-use crate::{config::Config, context::Context, load::Load};
-
-/// Represents errors that can occur when reading files.
-#[derive(Debug, Error, Diagnostic)]
-#[error("read failed")]
-#[diagnostic(
-    code(changelogging::workspace::read),
-    help("check that the file exists and is accessible")
-)]
-pub struct ReadError(#[from] pub std::io::Error);
-
-/// Represents errors that can occur when parsing TOML configuration into concrete types.
-#[derive(Debug, Error, Diagnostic)]
-#[error("parsing failed")]
-#[diagnostic(
-    code(changelogging::workspace::parse),
-    help("check that the configuration is correct")
-)]
-pub struct ParseError(#[from] pub toml::de::Error);
-
-/// Represents sources of errors that can occur when loading workspaces.
-#[derive(Debug, Error, Diagnostic)]
-#[error(transparent)]
-#[diagnostic(transparent)]
-pub enum ErrorSource {
-    /// Read errors.
-    Read(#[from] ReadError),
-    /// Parse errors.
-    Parse(#[from] ParseError),
-}
-
-/// Represents errors that can occur during workspace loading.
-#[derive(Debug, Error, Diagnostic)]
-#[error("loading workspace from `{path}` failed")]
-#[diagnostic(
-    code(changelogging::workspace::load),
-    help("see the report for more information")
-)]
-pub struct Error {
-    /// The source of this error.
-    #[source]
-    #[diagnostic_source]
-    pub source: ErrorSource,
-    /// The path provided.
-    pub path: PathBuf,
-}
-
-impl Error {
-    /// Constructs [`Self`].
-    pub fn new(source: ErrorSource, path: PathBuf) -> Self {
-        Self { source, path }
-    }
-
-    /// Constructs [`Self`] from [`ReadError`].
-    pub fn read(error: ReadError, path: PathBuf) -> Self {
-        Self::new(error.into(), path)
-    }
-
-    /// Constructs [`Self`] from [`ParseError`].
-    pub fn parse(error: ParseError, path: PathBuf) -> Self {
-        Self::new(error.into(), path)
-    }
-
-    /// Constructs [`ReadError`] and constructs [`Self`] from it.
-    pub fn new_read(error: std::io::Error, path: PathBuf) -> Self {
-        Self::read(ReadError(error), path)
-    }
-
-    /// Constructs [`ParseError`] and constructs [`Self`] from it.
-    pub fn new_parse(error: toml::de::Error, path: PathBuf) -> Self {
-        Self::parse(ParseError(error), path)
-    }
-}
+use crate::{config::core::Config, context::Context, toml::internals::impl_from_path_with_toml};
 
 /// Combines [`Context`] and [`Config`] into one structure.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, IntoOwned)]
 pub struct Workspace<'w> {
     /// The context of the workspace.
     pub context: Context<'w>,
+
     /// The config of the workspace.
     ///
     /// This field is flattened during (de)serialization.
@@ -103,61 +26,120 @@ pub struct Workspace<'w> {
 }
 
 impl<'w> Workspace<'w> {
-    /// Constructs [`Self`].
-    pub fn new(context: Context<'w>, config: Config<'w>) -> Self {
+    pub const fn new(context: Context<'w>, config: Config<'w>) -> Self {
         Self { context, config }
     }
-}
 
-impl Load for Workspace<'_> {
-    type Error = Error;
+    pub const fn context(&self) -> &Context<'w> {
+        &self.context
+    }
 
-    fn load<P: AsRef<Path>>(path: P) -> Result<Self, Self::Error> {
-        let path = path.as_ref();
+    pub const fn context_mut(&mut self) -> &mut Context<'w> {
+        &mut self.context
+    }
 
-        let string =
-            read_to_string(path).map_err(|error| Self::Error::new_read(error, path.to_owned()))?;
+    pub const fn config(&self) -> &Config<'w> {
+        &self.config
+    }
 
-        let workspace = toml::from_str(&string)
-            .map_err(|error| Self::Error::new_parse(error, path.to_owned()))?;
+    pub const fn config_mut(&mut self) -> &mut Config<'w> {
+        &mut self.config
+    }
 
-        Ok(workspace)
+    pub fn get(self) -> (Context<'w>, Config<'w>) {
+        (self.context, self.config)
     }
 }
 
+impl_from_path_with_toml!(Workspace<'_>);
+
+pub type OwnedWorkspace = Workspace<'static>;
+
 /// Represents `tool` sections in `pyproject.toml` files.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, IntoOwned)]
 pub struct Tools<'t> {
     /// The `changelogging` section.
     pub changelogging: Option<Workspace<'t>>,
 }
 
+impl<'t> Tools<'t> {
+    pub const fn new(changelogging: Option<Workspace<'t>>) -> Self {
+        Self { changelogging }
+    }
+
+    pub const fn some(workspace: Workspace<'t>) -> Self {
+        Self::new(Some(workspace))
+    }
+
+    pub const fn none() -> Self {
+        Self::new(None)
+    }
+
+    pub const fn changelogging(&self) -> Option<&Workspace<'t>> {
+        self.changelogging.as_ref()
+    }
+
+    pub const fn changelogging_mut(&mut self) -> Option<&mut Workspace<'t>> {
+        self.changelogging.as_mut()
+    }
+
+    pub fn get(self) -> Option<Workspace<'t>> {
+        self.changelogging
+    }
+}
+
 /// Represents structures of `pyproject.toml` files.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, IntoOwned)]
 pub struct PyProject<'p> {
     /// The `tool` section.
     pub tool: Option<Tools<'p>>,
 }
 
-impl Load for PyProject<'_> {
-    type Error = Error;
-
-    fn load<P: AsRef<Path>>(path: P) -> Result<Self, Self::Error> {
-        let path = path.as_ref();
-
-        let string =
-            read_to_string(path).map_err(|error| Self::Error::new_read(error, path.to_owned()))?;
-
-        let workspace = toml::from_str(&string)
-            .map_err(|error| Self::Error::new_parse(error, path.to_owned()))?;
-
-        Ok(workspace)
-    }
-}
+impl_from_path_with_toml!(PyProject<'_>);
 
 impl<'p> PyProject<'p> {
-    /// Converts [`Self`] to [`Workspace`], provided that the `tool.changelogging` table is present.
+    pub const fn new(tool: Option<Tools<'p>>) -> Self {
+        Self { tool }
+    }
+
+    pub const fn some(tools: Tools<'p>) -> Self {
+        Self::new(Some(tools))
+    }
+
+    pub const fn none() -> Self {
+        Self::new(None)
+    }
+
+    pub const fn tool(&self) -> Option<&Tools<'p>> {
+        self.tool.as_ref()
+    }
+
+    pub const fn tool_mut(&mut self) -> Option<&mut Tools<'p>> {
+        self.tool.as_mut()
+    }
+
+    pub fn get(self) -> Option<Tools<'p>> {
+        self.tool
+    }
+
+    pub const fn workspace(&self) -> Option<&Workspace<'p>> {
+        if let Some(tools) = self.tool() {
+            tools.changelogging()
+        } else {
+            None
+        }
+    }
+
+    pub const fn workspace_mut(&mut self) -> Option<&mut Workspace<'p>> {
+        if let Some(tools) = self.tool_mut() {
+            tools.changelogging_mut()
+        } else {
+            None
+        }
+    }
+
+    /// Converts [`Self`] into [`Workspace`], provided the `tool.changelogging` section is present.
     pub fn into_workspace(self) -> Option<Workspace<'p>> {
-        self.tool.and_then(|tools| tools.changelogging)
+        self.get().and_then(|tools| tools.get())
     }
 }

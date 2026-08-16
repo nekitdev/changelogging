@@ -3,20 +3,40 @@
 use std::path::{Path, PathBuf};
 
 use clap::{Args, Parser, Subcommand};
-use miette::Diagnostic;
+use clap_verbosity_flag::{InfoLevel, Verbosity};
+use from_path::Load;
+use non_empty_str::NonEmptyString;
 use thiserror::Error;
 
 use crate::{
-    commands::{build::build, create::create, preview::preview},
-    discover::discover,
-    init::init,
-    load::load,
+    commands::{
+        build::{Error as BuildError, build},
+        create::{Error as CreateError, create},
+        preview::{Error as PreviewError, preview},
+    },
+    discover::{Error as DiscoverError, discover},
+    init::{Error as InitError, init},
+    prepare::{Error as PrepareError, prepare},
+    toml::load::Error as LoadError,
     workspace::Workspace,
 };
+
+pub type DefaultVerbosity = Verbosity<InfoLevel>;
 
 /// Represents global options of `changelogging`.
 #[derive(Debug, Args)]
 pub struct Globals {
+    /// The path to the `git` executable to use.
+    #[arg(
+        short = 'G',
+        long,
+        global = true,
+        name = "GIT",
+        help = "Use this git executable",
+        default_value = "git"
+    )]
+    pub git: PathBuf,
+
     /// The directory to change to before doing anything.
     #[arg(
         short = 'D',
@@ -36,6 +56,16 @@ pub struct Globals {
         help = "Use the config from this file"
     )]
     pub config: Option<PathBuf>,
+
+    /// The path to the file to use for tracing.
+    #[arg(
+        short = 'T',
+        long,
+        global = true,
+        name = "FILE",
+        help = "Use this file for tracing"
+    )]
+    pub tracing: Option<PathBuf>,
 }
 
 /// Represents the `changelogging` application.
@@ -51,91 +81,32 @@ pub struct App {
     /// The global options to use.
     #[command(flatten)]
     pub globals: Globals,
+    /// The verbosity level to use.
+    #[command(flatten)]
+    pub verbosity: DefaultVerbosity,
     /// The subcommand to run, if any.
     #[command(subcommand)]
     pub command: Command,
 }
 
-/// Represents sources of errors that can occur during application runs.
-#[derive(Debug, Error, Diagnostic)]
-#[error(transparent)]
-#[diagnostic(transparent)]
-pub enum ErrorSource {
-    /// Initialization errors.
-    Init(#[from] crate::init::Error),
-    /// Workspace discovery errors.
-    Discover(#[from] crate::discover::Error),
-    /// Workspace loading errors.
-    Workspace(#[from] crate::workspace::Error),
-    /// `build` errors.
-    Build(#[from] crate::commands::build::Error),
-    /// `preview` errors.
-    Preview(#[from] crate::commands::preview::Error),
-    /// `create` errors.
-    Create(#[from] crate::commands::create::Error),
-}
-
 /// Represents errors that can occur during application runs.
-#[derive(Debug, Error, Diagnostic)]
-#[error("error encountered")]
-#[diagnostic(
-    code(changelogging::app::run),
-    help("see the report for more information")
-)]
-pub struct Error {
-    /// The source of this error.
-    #[source]
-    #[diagnostic_source]
-    pub source: ErrorSource,
-}
-
-impl Error {
-    /// Constructs [`Self`].
-    pub fn new(source: ErrorSource) -> Self {
-        Self { source }
-    }
-
-    /// Constructs [`Self`] from [`Error`].
-    ///
-    /// [`Error`]: crate::init::Error
-    pub fn init(error: crate::init::Error) -> Self {
-        Self::new(error.into())
-    }
-
-    /// Constructs [`Self`] from [`Error`].
-    ///
-    /// [`Error`]: crate::discover::Error
-    pub fn discover(error: crate::discover::Error) -> Self {
-        Self::new(error.into())
-    }
-
-    /// Constructs [`Self`] from [`Error`].
-    ///
-    /// [`Error`]: crate::workspace::Error
-    pub fn workspace(error: crate::workspace::Error) -> Self {
-        Self::new(error.into())
-    }
-
-    /// Constructs [`Self`] from [`Error`].
-    ///
-    /// [`Error`]: crate::commands::build::Error
-    pub fn build(error: crate::commands::build::Error) -> Self {
-        Self::new(error.into())
-    }
-
-    /// Constructs [`Self`] from [`Error`]
-    ///
-    /// [`Error`]: crate::commands::preview::Error
-    pub fn preview(error: crate::commands::preview::Error) -> Self {
-        Self::new(error.into())
-    }
-
-    /// Constructs [`Self`] from [`Error`].
-    ///
-    /// [`Error`]: crate::commands::create::Error
-    pub fn create(error: crate::commands::create::Error) -> Self {
-        Self::new(error.into())
-    }
+#[derive(Debug, Error)]
+#[error(transparent)]
+pub enum Error {
+    /// Preparation errors.
+    Prepare(#[from] PrepareError),
+    /// Initialization errors.
+    Init(#[from] InitError),
+    /// Workspace discovery errors.
+    Discover(#[from] DiscoverError),
+    /// Workspace loading errors.
+    Workspace(#[from] LoadError),
+    /// `build` errors.
+    Build(#[from] BuildError),
+    /// `preview` errors.
+    Preview(#[from] PreviewError),
+    /// `create` errors.
+    Create(#[from] CreateError),
 }
 
 impl App {
@@ -147,25 +118,28 @@ impl App {
     pub fn run(self) -> Result<(), Error> {
         let globals = self.globals;
 
-        init(globals.directory).map_err(Error::init)?;
+        prepare()
+            .verbosity(self.verbosity)
+            .maybe_path(globals.tracing)
+            .call()?;
+
+        init().maybe_directory(globals.directory).call()?;
 
         let workspace = if let Some(path) = globals.config {
-            load(path).map_err(Error::workspace)?
+            path.load()?
         } else {
-            discover().map_err(Error::discover)?
+            discover()?
         };
 
         match self.command {
             Command::Build(build) => {
-                build.run(workspace).map_err(Error::build)?;
+                build.run(globals.git, workspace)?;
             }
             Command::Preview(preview) => {
-                preview.run(workspace).map_err(Error::preview)?;
+                preview.run(workspace)?;
             }
             Command::Create(create) => {
-                let directory = workspace.config.paths.directory;
-
-                create.run(directory).map_err(Error::create)?;
+                create.run(globals.git, workspace)?;
             }
         };
 
@@ -190,6 +164,9 @@ pub enum Command {
 /// Represents the `build` subcommand.
 #[derive(Debug, Args)]
 pub struct BuildCommand {
+    #[arg(name = "VERSION", help = "Use this version instead of the current one")]
+    pub version: Option<NonEmptyString>,
+
     /// The date to use. If not provided, [`today`] is used.
     ///
     /// [`today`]: crate::date::today
@@ -199,7 +176,7 @@ pub struct BuildCommand {
         name = "DATE",
         help = "Use the date provided instead of today"
     )]
-    pub date: Option<String>,
+    pub date: Option<NonEmptyString>,
 
     /// Whether to stage the changelog.
     #[arg(short = 's', long, action, help = "Stage the changelog")]
@@ -215,17 +192,32 @@ impl BuildCommand {
     ///
     /// # Errors
     ///
-    /// Returns [`Error`] when any error is encountered.
-    ///
-    /// [`Error`]: crate::commands::build::Error
-    pub fn run(self, workspace: Workspace<'_>) -> Result<(), crate::commands::build::Error> {
-        build(workspace, self.date, self.stage, self.remove)
+    /// Returns [`BuildError`] when any error is encountered.
+    pub fn run<G: AsRef<Path>>(
+        self,
+        git: G,
+        mut workspace: Workspace<'_>,
+    ) -> Result<(), BuildError> {
+        if let Some(version) = self.version {
+            workspace.context.version = version.into();
+        };
+
+        build()
+            .git(git)
+            .workspace(workspace)
+            .maybe_date(self.date)
+            .stage(self.stage)
+            .remove(self.remove)
+            .call()
     }
 }
 
 /// Represents the `preview` subcommand.
 #[derive(Debug, Args)]
 pub struct PreviewCommand {
+    #[arg(name = "VERSION", help = "Use this version instead of the current one")]
+    pub version: Option<NonEmptyString>,
+
     /// The date to use. If not provided, [`today`] is used.
     ///
     /// [`today`]: crate::date::today
@@ -235,7 +227,7 @@ pub struct PreviewCommand {
         name = "DATE",
         help = "Use the date provided instead of today"
     )]
-    pub date: Option<String>,
+    pub date: Option<NonEmptyString>,
 }
 
 impl PreviewCommand {
@@ -243,11 +235,13 @@ impl PreviewCommand {
     ///
     /// # Errors
     ///
-    /// Returns [`Error`] when any error is encountered.
-    ///
-    /// [`Error`]: crate::commands::preview::Error
-    pub fn run(self, workspace: Workspace<'_>) -> Result<(), crate::commands::preview::Error> {
-        preview(workspace, self.date)
+    /// Returns [`PreviewError`] when any error is encountered.
+    pub fn run(self, mut workspace: Workspace<'_>) -> Result<(), PreviewError> {
+        if let Some(version) = self.version {
+            workspace.context.version = version.into();
+        };
+
+        preview().workspace(workspace).maybe_date(self.date).call()
     }
 }
 
@@ -257,7 +251,7 @@ impl PreviewCommand {
 pub struct CreateCommand {
     /// The name of the fragment.
     #[arg(name = "NAME", help = "Write to the directory with this file name")]
-    pub name: String,
+    pub name: NonEmptyString,
 
     /// The fragment content, if it is passed as the argument.
     #[arg(
@@ -266,7 +260,7 @@ pub struct CreateCommand {
         name = "TEXT",
         help = "Pass the fragment content as this argument"
     )]
-    pub content: Option<String>,
+    pub content: Option<NonEmptyString>,
 
     /// Whether to open the default editor to edit the fragment content.
     #[arg(
@@ -287,10 +281,15 @@ impl CreateCommand {
     ///
     /// # Errors
     ///
-    /// Returns [`Error`] when any error is encountered.
-    ///
-    /// [`Error`]: crate::commands::create::Error
-    pub fn run<D: AsRef<Path>>(self, directory: D) -> Result<(), crate::commands::create::Error> {
-        create(directory, self.name, self.content, self.edit, self.add)
+    /// Returns [`CreateError`] when any error is encountered.
+    pub fn run<G: AsRef<Path>>(self, git: G, workspace: Workspace<'_>) -> Result<(), CreateError> {
+        create()
+            .git(git)
+            .workspace(workspace)
+            .name(self.name)
+            .maybe_content(self.content)
+            .edit(self.edit)
+            .add(self.add)
+            .call()
     }
 }

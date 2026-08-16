@@ -13,23 +13,24 @@
 //! ```toml
 //! [context]
 //! name = "changelogging"
-//! version = "0.7.0"
+//! version = "0.8.0"
 //! url = "https://github.com/nekitdev/changelogging"
 //! ```
 //!
 //! This section is represented by the [`Context`] structure.
 
-use std::borrow::Cow;
-
+use bon::Builder;
+use non_empty_str::NonEmptyCowStr;
+use ownership::IntoOwned;
 use serde::{Deserialize, Serialize};
 
 /// Represents project contexts.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Builder, IntoOwned)]
 pub struct Context<'c> {
     /// The name of the project.
-    pub name: Cow<'c, str>,
+    pub name: NonEmptyCowStr<'c>,
     /// The version of the project.
-    pub version: Cow<'c, str>,
+    pub version: NonEmptyCowStr<'c>,
     /// The URL of the project.
-    pub url: Cow<'c, str>,
+    pub url: NonEmptyCowStr<'c>,
 }

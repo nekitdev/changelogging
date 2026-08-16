@@ -5,11 +5,7 @@
             "title": "Context",
             "description": "Represents contexts of projects.",
             "type": "object",
-            "required": [
-                "name",
-                "version",
-                "url"
-            ],
+            "required": ["name", "version", "url"],
             "properties": {
                 "name": {
                     "description": "The name of the project.",
@@ -50,6 +46,7 @@
         },
         "Start": {
             "description": "Marks the location in the changelog to start writing entries after.",
+            "default": "<!-- changelogging: start -->",
             "$ref": "#/$defs/NonEmptyString"
         },
         "Level": {
@@ -117,6 +114,7 @@
         },
         "Wrap": {
             "type": "integer",
+            "default": 100,
             "minimum": 1
         },
         "Order": {
@@ -142,9 +140,7 @@
     "title": "changelogging",
     "description": "changelogging configuration file.",
     "type": "object",
-    "required": [
-        "context"
-    ],
+    "required": ["context"],
     "properties": {
         "context": {
             "$ref": "#/$defs/Context"
@@ -153,8 +149,7 @@
             "$ref": "#/$defs/Paths"
         },
         "start": {
-            "$ref": "#/$defs/Start",
-            "default": "<!-- changelogging: start -->"
+            "$ref": "#/$defs/Start"
         },
         "levels": {
             "$ref": "#/$defs/Levels"
@@ -166,12 +161,19 @@
             "$ref": "#/$defs/Formats"
         },
         "wrap": {
-            "$ref": "#/$defs/Wrap",
-            "default": 100
+            "$ref": "#/$defs/Wrap"
         },
         "order": {
             "$ref": "#/$defs/Order",
-            "default": ["security", "feature", "change", "fix", "deprecation", "removal", "internal"]
+            "default": [
+                "security",
+                "feature",
+                "change",
+                "fix",
+                "deprecation",
+                "removal",
+                "internal"
+            ]
         },
         "types": {
             "$ref": "#/$defs/Types",

@@ -2,83 +2,36 @@
 //!
 //! The [`build`] function implements the `build` subcommand.
 
-use std::iter::once;
+use std::path::Path;
 
-use miette::Diagnostic;
+use bon::builder;
+use non_empty_str::NonEmptyStr;
 use thiserror::Error;
 
 use crate::{
-    builder::{Builder, CollectError, InitError, WriteError},
-    date::{parse, today},
-    git,
+    build::{
+        builder::{Builder, CollectorError, PartialBuilder, WriteError},
+        renderer::RegisterError,
+    },
+    date::{Error as DateError, parse_or_today},
+    git::{Error as GitError, add_one, remove as remove_all},
     workspace::Workspace,
 };
 
-/// Represents sources of errors that can occur during building.
-#[derive(Debug, Error, Diagnostic)]
-#[error(transparent)]
-#[diagnostic(transparent)]
-pub enum ErrorSource {
-    /// Date parsing errors.
-    Date(#[from] crate::date::Error),
-    /// Initialization errors.
-    Init(#[from] InitError),
-    /// Build and write errors.
-    Write(#[from] WriteError),
-    /// Collection errors.
-    Collect(#[from] CollectError),
-    /// `git` errors.
-    Git(#[from] crate::git::Error),
-}
-
 /// Represents errors that can occur during building.
-#[derive(Debug, Error, Diagnostic)]
-#[error("failed to build")]
-#[diagnostic(
-    code(changelogging::commands::build),
-    help("see the report for more information")
-)]
-pub struct Error {
-    /// The source of this error.
-    #[source]
-    #[diagnostic_source]
-    pub source: ErrorSource,
-}
-
-impl Error {
-    /// Constructs [`Self`].
-    pub fn new(source: ErrorSource) -> Self {
-        Self { source }
-    }
-
-    /// Constructs [`Self`] from [`Error`].
-    ///
-    /// [`Error`]: crate::date::Error
-    pub fn date(error: crate::date::Error) -> Self {
-        Self::new(error.into())
-    }
-
-    /// Constructs [`Self`] from [`InitError`].
-    pub fn init(error: InitError) -> Self {
-        Self::new(error.into())
-    }
-
-    /// Constructs [`Self`] from [`WriteError`].
-    pub fn write(error: WriteError) -> Self {
-        Self::new(error.into())
-    }
-
-    /// Constructs [`Self`] from [`CollectError`].
-    pub fn collect(error: CollectError) -> Self {
-        Self::new(error.into())
-    }
-
-    /// Constructs [`Self`] from [`Error`].
-    ///
-    /// [`Error`]: crate::git::Error
-    pub fn git(error: crate::git::Error) -> Self {
-        Self::new(error.into())
-    }
+#[derive(Debug, Error)]
+#[error(transparent)]
+pub enum Error {
+    /// Date parsing errors.
+    Date(#[from] DateError),
+    /// Registering errors.
+    Register(#[from] RegisterError),
+    /// Writing errors.
+    Write(#[from] WriteError),
+    /// `git` errors.
+    Git(#[from] GitError),
+    /// Collection errors.
+    Collector(#[from] CollectorError),
 }
 
 /// Builds changelogs from fragments.
@@ -87,31 +40,39 @@ impl Error {
 ///
 /// Returns [`struct@Error`] when parsing dates, initializing the builder,
 /// building and writing the changelog or collecting paths fails. Also returned if `git` fails.
-pub fn build<S: AsRef<str>>(
+#[builder]
+pub fn build<G: AsRef<Path>, S: AsRef<NonEmptyStr>>(
+    git: G,
     workspace: Workspace<'_>,
     date: Option<S>,
     stage: bool,
     remove: bool,
 ) -> Result<(), Error> {
-    let date = match date {
-        Some(string) => parse(string).map_err(Error::date)?,
-        None => today(),
-    };
+    let date = parse_or_today(date)?;
 
-    let builder = Builder::from_workspace(workspace, date).map_err(Error::init)?;
+    let (context, config) = workspace.get();
 
-    builder.write().map_err(Error::write)?;
+    let partial = PartialBuilder::builder()
+        .context(context)
+        .config(config)
+        .date(date)
+        .build();
+
+    let builder = Builder::registering(partial)?;
+
+    builder.write()?;
 
     if stage {
-        let path = builder.config.paths.output.as_ref();
-
-        git::add(once(path)).map_err(Error::git)?;
+        add_one(
+            git.as_ref(),
+            builder.partial().config().paths().output_path(),
+        )?;
     }
 
     if remove {
-        let paths = builder.collect_paths().map_err(Error::collect)?;
+        let paths = builder.collect_paths()?;
 
-        git::remove(paths).map_err(Error::git)?;
+        remove_all(git, paths)?;
     }
 
     Ok(())

@@ -23,22 +23,22 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
 
       - name: Build changelog ${{ inputs.version }}
-        run: cargo run preview > ${{ env.changelog }}
+        run: cargo run --release preview > ${{ env.changelog }}
 
       - name: Upload changelog ${{ inputs.version }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: changelog
           path: ${{ env.changelog }}
 
       - name: Build changelog
-        run: cargo run build --stage --remove
+        run: cargo run --release build --stage --remove
 
       - name: Setup bot user
         run: |
@@ -59,7 +59,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup bot user
         run: |
@@ -77,7 +77,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Build source
         uses: PyO3/maturin-action@v1
@@ -86,7 +86,7 @@ jobs:
           args: --out dist
 
       - name: Upload source
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: wheels-source
           path: dist
@@ -103,7 +103,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Build wheel
         uses: PyO3/maturin-action@v1
@@ -112,7 +112,7 @@ jobs:
           args: --release --out dist
 
       - name: Upload wheel
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: wheels-${{ matrix.target }}
           path: dist
@@ -124,7 +124,7 @@ jobs:
           shasum -a 256 $ARCHIVE > $ARCHIVE.sha256
 
       - name: Upload binary
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: binaries-${{ matrix.target }}
           path: |
@@ -147,7 +147,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Build wheel
         uses: PyO3/maturin-action@v1
@@ -156,7 +156,7 @@ jobs:
           args: --release --out dist
 
       - name: Upload wheel
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: wheels-${{ matrix.target }}
           path: dist
@@ -169,7 +169,7 @@ jobs:
           sha256sum $ARCHIVE > $ARCHIVE.sha256
 
       - name: Upload binary
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: binaries-${{ matrix.target }}
           path: |
@@ -188,7 +188,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Build wheel
         uses: PyO3/maturin-action@v1
@@ -198,7 +198,7 @@ jobs:
           args: --release --out dist
 
       - name: Upload wheel
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: wheels-${{ matrix.target }}
           path: dist
@@ -210,7 +210,7 @@ jobs:
           shasum -a 256 $ARCHIVE > $ARCHIVE.sha256
 
       - name: Upload binary
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: binaries-${{ matrix.target }}
           path: |
@@ -232,7 +232,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Build wheel
         uses: PyO3/maturin-action@v1
@@ -242,7 +242,7 @@ jobs:
           args: --release --out dist
 
       - name: Upload wheel
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: wheels-${{ matrix.target }}
           path: dist
@@ -254,7 +254,7 @@ jobs:
           shasum -a 256 $ARCHIVE > $ARCHIVE.sha256
 
       - name: Upload binary
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: binaries-${{ matrix.target }}
           path: |
@@ -273,7 +273,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Build wheel
         uses: PyO3/maturin-action@v1
@@ -283,7 +283,7 @@ jobs:
           args: --release --out dist
 
       - name: Upload wheel
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: wheels-${{ matrix.target }}
           path: dist
@@ -295,7 +295,7 @@ jobs:
           shasum -a 256 $ARCHIVE > $ARCHIVE.sha256
 
       - name: Upload binary
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: binaries-${{ matrix.target }}
           path: |
@@ -314,7 +314,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Build wheel
         uses: PyO3/maturin-action@v1
@@ -324,7 +324,7 @@ jobs:
           args: --release --out dist
 
       - name: Upload wheel
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: wheels-${{ matrix.target }}
           path: dist
@@ -336,7 +336,7 @@ jobs:
           shasum -a 256 $ARCHIVE > $ARCHIVE.sha256
 
       - name: Upload binary
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: binaries-${{ matrix.target }}
           path: |
@@ -359,7 +359,7 @@ jobs:
 
     steps:
       - name: Download wheels
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           pattern: wheels-*
           path: wheels
@@ -380,13 +380,13 @@ jobs:
 
     steps:
       - name: Download changelog
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           pattern: changelog
           merge-multiple: true
 
       - name: Download binaries
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           pattern: binaries-*
           path: binaries
@@ -406,7 +406,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
