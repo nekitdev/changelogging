@@ -87,7 +87,7 @@
 //! Alternatively, the default editor can be used to write the fragment content:
 //!
 //! ```console
-//! $ changelogging create --edit ~bug.fix.md
+//! $ changelogging create --edit +bug.fix.md
 //! ```
 //!
 //! And, inside the editor:

@@ -95,7 +95,7 @@ $ changelogging create --content "Fixed annoying bugs!" 64.fix.md
 There are also *unlinked* fragments, which have non-integer IDs:
 
 ```console
-$ changelogging create --content "Fixed security issues!" ~issue.security.md
+$ changelogging create --content "Fixed security issues!" +issue.security.md
 ```
 
 And finally, preview the changelog entry!
